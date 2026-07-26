@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}
+ログイン | Tripper
+{% endblock %}
+
+{% block main %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-6 col-lg-5">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body p-4">
+
+                <h2 class="text-center mb-4">
+                    ログイン
+                </h2>
+
+
+                <!-- エラーメッセージ -->
+
+                {% if form.errors %}
+
+                    <div class="alert alert-danger">
+
+                        ユーザー名またはパスワードが違います。
+
+                    </div>
+
+                {% endif %}
+
+
+
+
+
+                <form method="post">
+
+
+                    {% csrf_token %}
+
+
+
+
+
+                    <!-- ユーザー名 -->
+
+                    <div class="mb-3">
+
+
+                        <label
+                            for="id_username"
+                            class="form-label">
+
+                            ユーザー名
+
+                        </label>
+
+
+
+                        <input
+
+                            type="text"
+
+                            name="username"
+
+                            id="id_username"
+
+                            class="form-control"
+
+                            placeholder="ユーザー名を入力">
+
+
+                    </div>
+
+
+
+
+
+
+                    <!-- パスワード -->
+
+                    <div class="mb-4">
+
+
+                        <label
+                            for="id_password"
+                            class="form-label">
+
+                            パスワード
+
+                        </label>
+
+
+
+                        <input
+
+                            type="password"
+
+                            name="password"
+
+                            id="id_password"
+
+                            class="form-control"
+
+                            placeholder="パスワードを入力">
+
+
+                    </div>
+
+
+
+
+
+
+                    <div class="d-grid">
+
+
+                        <button
+
+                            type="submit"
+
+                            class="btn btn-primary">
+
+
+                            ログイン
+
+
+                        </button>
+
+
+                    </div>
+
+
+
+                </form>
+
+
+
+
+
+                <hr class="my-4">
+
+
+
+
+
+
+                <div class="text-center">
+
+
+                    <!-- パスワードリセット -->
+
+
+                    <div class="mb-3">
+
+
+                        <a href="{% url 'password_reset' %}">
+
+
+                            パスワードを忘れた場合
+
+
+                        </a>
+
+
+                    </div>
+
+
+
+
+
+
+
+                    <p class="mb-2">
+
+                        アカウントをお持ちでない方
+
+                    </p>
+
+
+
+
+
+                    <a href="{% url 'signup' %}"
+
+                       class="btn btn-outline-secondary">
+
+
+                        新規登録はこちら
+
+
+                    </a>
+
+
+
+
+                </div>
+
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

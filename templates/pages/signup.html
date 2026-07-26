@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}
+新規登録 | Tripper
+{% endblock %}
+
+{% block main %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-6 col-lg-5">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body p-4">
+
+                <h2 class="text-center mb-4">
+                    新規登録
+                </h2>
+
+
+                <!-- エラーメッセージ -->
+                {% if form.errors %}
+                    <div class="alert alert-danger">
+                        入力内容に誤りがあります。内容をご確認ください。
+                    </div>
+                {% endif %}
+
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+
+                    <!-- ユーザー名 -->
+                    <div class="mb-3">
+
+                        <label for="id_username" class="form-label">
+                            ユーザー名
+                        </label>
+
+                        <input
+                            type="text"
+                            name="username"
+                            id="id_username"
+                            class="form-control"
+                            placeholder="ユーザー名を入力">
+
+                    </div>
+
+
+                    <!-- メールアドレス -->
+                    <div class="mb-3">
+
+                        <label for="id_email" class="form-label">
+                            メールアドレス
+                        </label>
+
+                        <input
+                            type="email"
+                            name="email"
+                            id="id_email"
+                            class="form-control"
+                            placeholder="メールアドレスを入力">
+
+                    </div>
+
+
+                    <!-- パスワード -->
+                    <div class="mb-4">
+
+                        <label for="id_password" class="form-label">
+                            パスワード
+                        </label>
+
+                        <input
+                            type="password"
+                            name="password"
+                            id="id_password"
+                            class="form-control"
+                            placeholder="パスワードを入力">
+
+                    </div>
+
+
+                    <div class="d-grid">
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary">
+
+                            アカウントを作成
+
+                        </button>
+
+                    </div>
+
+
+                </form>
+
+
+                <hr class="my-4">
+
+
+                <div class="text-center">
+
+                    <p class="mb-2">
+                        すでにアカウントをお持ちの方
+                    </p>
+
+
+                    <a href="{% url 'login' %}"
+                       class="btn btn-outline-secondary">
+
+                        ログインはこちら
+
+                    </a>
+
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

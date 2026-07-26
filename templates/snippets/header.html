@@ -1,50 +1,125 @@
-<header class="bg-dark shadow-sm">
-    <nav class="container navbar navbar-expand-lg navbar-dark">
+<div class="py-2 bg-dark shadow-sm">
 
-        <!-- ロゴ -->
-        <a class="navbar-brand fw-bold" href="/">
-            🌍 Tripper
-        </a>
+    <nav class="container d-flex justify-content-between align-items-center">
 
-        <!-- スマホ用メニューボタン -->
-        <button class="navbar-toggler" type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#navbarNav"
-                aria-controls="navbarNav"
-                aria-expanded="false"
-                aria-label="Toggle navigation">
 
-            <span class="navbar-toggler-icon"></span>
-        </button>
+        <!-- ロゴ + ようこそ表示 -->
+        <div class="d-flex align-items-center">
 
-        <!-- メニュー -->
-        <div class="collapse navbar-collapse" id="navbarNav">
+            <a class="text-white text-decoration-none fw-bold fs-5"
+               href="{% url 'home' %}">
 
-            <ul class="navbar-nav ms-auto">
+                🌍 Tripper
 
-                <li class="nav-item">
-                    <a class="nav-link" href="/">Home</a>
-                </li>
+            </a>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#">My Trip</a>
-                </li>
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Trip作成</a>
-                </li>
+            {% if user.is_authenticated %}
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#">プロフィール</a>
-                </li>
+                <span class="text-white ms-3 d-flex align-items-center"
+                      style="font-size: 0.9rem;">
 
-                <li class="nav-item">
-                    <a class="nav-link" href="#">Logout</a>
-                </li>
+                    ようこそ {{ user.username }} さん
 
-            </ul>
+                </span>
+
+            {% endif %}
+
 
         </div>
 
+
+
+        <!-- メニュー -->
+        <div class="d-flex gap-4 align-items-center">
+
+
+            {% if user.is_authenticated %}
+
+
+                <a class="py-2 text-white text-decoration-none"
+                   href="{% url 'home' %}">
+
+                    Home
+
+                </a>
+
+
+
+                <a class="py-2 text-white text-decoration-none"
+                   href="#">
+
+                    My Trip
+
+                </a>
+
+
+
+                <a class="py-2 text-white text-decoration-none"
+                   href="#">
+
+                    Trip作成
+
+                </a>
+
+
+
+                <a class="py-2 text-white text-decoration-none"
+                   href="{% url 'profile' %}">
+
+                    Profile
+
+                </a>
+
+
+
+                <form method="post"
+                      action="{% url 'logout' %}"
+                      class="d-inline">
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        class="border-0 bg-transparent text-white py-2">
+
+                        ログアウト
+
+                    </button>
+
+                </form>
+
+
+
+            {% else %}
+
+
+
+                <a class="py-2 text-white text-decoration-none"
+                   href="{% url 'login' %}">
+
+                    ログイン
+
+                </a>
+
+
+
+                <a class="py-2 text-white text-decoration-none"
+                   href="{% url 'signup' %}">
+
+                    新規登録
+
+                </a>
+
+
+
+            {% endif %}
+
+
+        </div>
+
+
     </nav>
-</header>
+
+
+</div>

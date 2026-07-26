@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}
+プロフィール | Tripper
+{% endblock %}
+
+
+{% block main %}
+
+<div class="row justify-content-center">
+
+    <div class="col-md-8 col-lg-6">
+
+
+        <div class="card shadow-sm">
+
+
+            <div class="card-body p-4">
+
+
+                <h2 class="text-center mb-4">
+                    プロフィール
+                </h2>
+
+
+
+                {% if form.errors %}
+
+                    <div class="alert alert-danger">
+                        入力内容に誤りがあります。
+                    </div>
+
+                {% endif %}
+
+
+
+
+
+                <!-- プロフィール更新フォーム -->
+
+                <form method="post" enctype="multipart/form-data">
+
+
+                    {% csrf_token %}
+
+
+
+
+
+                    <!-- プロフィール画像 -->
+
+                    <div class="text-center mb-4">
+
+
+                        <img
+                            src="{% if user.profile.profile_image %}{{ user.profile.profile_image.url }}{% else %}/media/profile_images/default.png{% endif %}"
+                            alt="プロフィール画像"
+                            class="rounded-circle border shadow"
+                            width="180"
+                            height="180"
+                            style="object-fit: cover;">
+
+
+                    </div>
+
+
+
+
+
+                    <!-- 画像変更 -->
+
+                    <div class="text-center mb-4">
+
+
+                        <label
+                            for="id_profile_image"
+                            class="btn btn-outline-primary">
+
+                            画像を変更
+
+                        </label>
+
+
+                        <input
+                            type="file"
+                            name="profile_image"
+                            id="id_profile_image"
+                            accept="image/*"
+                            hidden>
+
+
+                    </div>
+
+
+
+
+
+                    <!-- 自己紹介 -->
+
+                    <div class="mb-4">
+
+
+                        <label
+                            for="id_introduction"
+                            class="form-label">
+
+                            自己紹介
+
+                        </label>
+
+
+
+                        <textarea
+                            id="id_introduction"
+                            name="introduction"
+                            rows="5"
+                            class="form-control"
+                            placeholder="自己紹介を入力してください">{{ user.profile.introduction }}</textarea>
+
+
+                    </div>
+
+
+
+
+
+
+                    <!-- メールアドレス -->
+
+                    <div class="mb-4">
+
+
+                        <label
+                            class="form-label">
+
+                            メールアドレス
+
+                        </label>
+
+
+
+                        <p class="form-control bg-light">
+
+                            {{ user_info.email }}
+
+                        </p>
+
+
+
+                        <div class="text-center mt-3">
+
+
+                            <a
+                                href="{% url 'email_change' %}"
+                                class="btn btn-outline-primary">
+
+                                メールアドレス変更
+
+                            </a>
+
+
+
+                            <div class="mt-3">
+
+
+                                <a
+                                    href="{% url 'password_change' %}"
+                                    class="btn btn-outline-primary">
+
+                                    パスワード変更
+
+                                </a>
+
+
+                            </div>
+
+
+                        </div>
+
+
+                    </div>
+
+
+
+
+
+
+                    <!-- 保存ボタン -->
+
+                    <div class="d-grid">
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary">
+
+                            保存
+
+                        </button>
+
+
+                    </div>
+
+
+
+
+                </form>
+
+
+
+
+
+                <!-- 画像削除フォーム -->
+
+                <form method="post"
+                      class="text-center mt-3">
+
+
+                    {% csrf_token %}
+
+
+                    <button
+                        type="submit"
+                        name="delete_image"
+                        class="btn btn-outline-danger">
+
+                        画像を削除
+
+                    </button>
+
+
+                </form>
+
+
+
+
+
+                <!-- アカウント削除フォーム -->
+
+                <form method="post"
+                      action="{% url 'account_delete' %}"
+                      class="text-center mt-4"
+                      onsubmit="return confirm('本当にアカウントを削除しますか？\n削除すると元に戻すことはできません。');">
+
+
+                    {% csrf_token %}
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-danger">
+
+                        アカウントを削除
+
+                    </button>
+
+
+                </form>
+
+
+
+            </div>
+
+
+        </div>
+
+
+    </div>
+
+
+</div>
+
+
+{% endblock %}
