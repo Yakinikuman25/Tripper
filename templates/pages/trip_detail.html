@@ -1,0 +1,563 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ trip.title }} | Tripper
+{% endblock %}
+
+{% block main %}
+
+
+<h1>
+    {{ trip.title }}
+</h1>
+
+
+<p>
+    カテゴリ：
+
+    {% if trip.category %}
+
+        {{ trip.category }}
+
+    {% else %}
+
+        未設定
+
+    {% endif %}
+</p>
+
+
+<p>
+    旅行期間：
+    {{ trip.start_date }}
+    ～
+    {{ trip.end_date }}
+</p>
+
+
+<h3>
+    訪問先
+</h3>
+
+
+{% for country, regions in locations_by_country.items %}
+
+    <p>
+
+        {{ country }}：
+
+        {% for region in regions %}
+
+            {{ region }}
+
+            {% if not forloop.last %}
+                ・
+            {% endif %}
+
+        {% endfor %}
+
+    </p>
+
+{% empty %}
+
+    <p>
+        まだ訪問先が登録されていません。
+    </p>
+
+{% endfor %}
+
+
+<div>
+
+    <a href="{% url 'trip_edit' trip.trip_id %}">
+        Tripを編集
+    </a>
+
+    <a href="{% url 'trip_delete' trip.trip_id %}">
+        Tripを削除
+    </a>
+
+</div>
+
+
+<hr>
+
+
+{% if trip.status == "draft" %}
+
+    <p>
+        現在のステータス：
+        <strong>
+            作成中
+        </strong>
+    </p>
+
+    <p>
+        現在、旅行コースを作成中です。
+    </p>
+
+    <p>
+        コースの作成が完了したら、
+        「コース作成完了」を押してください。
+    </p>
+
+    <form
+        method="post"
+        action="{% url 'trip_status_update' trip.trip_id %}"
+    >
+
+        {% csrf_token %}
+
+        <button
+            type="submit"
+            name="action"
+            value="complete_plan"
+        >
+            コース作成完了
+        </button>
+
+    </form>
+
+
+{% elif trip.status == "planned" %}
+
+    <p>
+        現在のステータス：
+        <strong>
+            出発待ち
+        </strong>
+    </p>
+
+    <p>
+        旅行開始前です。
+    </p>
+
+    <p>
+        旅行開始日：
+        {{ trip.start_date }}
+    </p>
+
+
+{% elif trip.status == "traveling" %}
+
+    <p>
+        現在のステータス：
+        <strong>
+            旅中
+        </strong>
+    </p>
+
+
+    {% if today < trip.end_date %}
+
+        <p>
+            現在、旅中です。
+        </p>
+
+
+    {% elif today == trip.end_date %}
+
+        <p>
+            今日は旅行最終日です。
+        </p>
+
+        <a href="{% url 'trip_complete' trip.trip_id %}">
+            旅を完了する
+        </a>
+
+
+    {% else %}
+
+        <p>
+            旅行期間が終了しています。
+        </p>
+
+        <p>
+            旅を完了できます。
+        </p>
+
+        <a href="{% url 'trip_complete' trip.trip_id %}">
+            旅を完了する
+        </a>
+
+    {% endif %}
+
+
+{% elif trip.status == "completed" %}
+
+    <p>
+        現在のステータス：
+        <strong>
+            旅完了
+        </strong>
+    </p>
+
+    <p>
+        このTripは旅完了になっています。
+    </p>
+
+
+    {% if trip.is_public %}
+
+        <p>
+            公開設定：
+            <strong>
+                公開
+            </strong>
+        </p>
+
+    {% else %}
+
+        <p>
+            公開設定：
+            <strong>
+                非公開
+            </strong>
+        </p>
+
+    {% endif %}
+
+
+    {% if trip.main_media %}
+
+        <div>
+
+            <p>
+                代表写真
+            </p>
+
+            <img
+                src="{{ trip.main_media.url }}"
+                alt="{{ trip.title }}"
+                style="max-width: 400px;"
+            >
+
+        </div>
+
+    {% endif %}
+
+
+    {% if trip.overview %}
+
+        <div>
+
+            <h3>
+                旅の感想
+            </h3>
+
+            <p>
+                {{ trip.overview }}
+            </p>
+
+        </div>
+
+    {% endif %}
+
+{% endif %}
+
+
+<hr>
+
+
+<h2>
+    Day
+</h2>
+
+
+{% for day in days %}
+
+    <div>
+
+        <h3>
+            Day {{ day.day_order }}
+        </h3>
+
+
+        <p>
+            日付：
+            {{ day.date }}
+        </p>
+
+
+        {% if day.title %}
+
+            <h4>
+                {{ day.title }}
+            </h4>
+
+        {% else %}
+
+            <p>
+                まだDayタイトルが登録されていません。
+            </p>
+
+        {% endif %}
+
+
+        <div>
+
+            <strong>
+                訪問先：
+            </strong>
+
+
+            {% for country, regions in day.location_groups.items %}
+
+                <p>
+
+                    {{ country }}：
+
+                    {% for region in regions %}
+
+                        {{ region }}
+
+                        {% if not forloop.last %}
+                            ・
+                        {% endif %}
+
+                    {% endfor %}
+
+                </p>
+
+            {% empty %}
+
+                <p>
+                    訪問先はまだ登録されていません。
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+
+        <div>
+
+            <a href="{% url 'day_edit' day.day_id %}">
+                Dayを編集
+            </a>
+
+        </div>
+
+
+        <hr>
+
+
+        <h4>
+            Spot
+        </h4>
+
+
+        {% for spot in day.spots_sorted %}
+
+            <div>
+
+                <p>
+
+                    {% if spot.time %}
+
+                        <strong>
+                            {{ spot.time|time:"H:i" }}
+                        </strong>
+
+                    {% else %}
+
+                        <strong>
+                            時間未定
+                        </strong>
+
+                    {% endif %}
+
+                    {{ spot.name }}
+
+                </p>
+
+
+                {% if spot.url %}
+
+                    <p>
+                        URL：
+
+                        <a
+                            href="{{ spot.url }}"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            {{ spot.url }}
+                        </a>
+                    </p>
+
+                {% endif %}
+
+
+                {% if spot.memo %}
+
+                    <p>
+                        メモ：
+                        {{ spot.memo }}
+                    </p>
+
+                {% endif %}
+
+
+                <div>
+
+                    <a href="{% url 'spot_edit' spot.spot_id %}">
+                        Spotを編集
+                    </a>
+
+                    <a href="{% url 'spot_delete' spot.spot_id %}">
+                        Spotを削除
+                    </a>
+
+                </div>
+
+            </div>
+
+
+            <br>
+
+        {% empty %}
+
+            <p>
+                Spotはまだ登録されていません。
+            </p>
+
+        {% endfor %}
+
+
+        <div>
+
+            <a href="{% url 'spot_create' day.day_id %}">
+                ＋ Spotを追加
+            </a>
+
+        </div>
+
+
+        {% if day.can_edit_record %}
+
+            <hr>
+
+
+            <h4>
+                旅の記録
+            </h4>
+
+
+            {% if day.media %}
+
+                <div>
+
+                    <p>
+                        現在の写真
+                    </p>
+
+                    <img
+                        src="{{ day.media.url }}"
+                        alt="{{ day.title }}"
+                        style="max-width: 300px;"
+                    >
+
+                </div>
+
+            {% endif %}
+
+
+            <form
+                method="post"
+                action="{% url 'day_record_edit' day.day_id %}"
+                enctype="multipart/form-data"
+            >
+
+                {% csrf_token %}
+
+
+                {% if day.record_form.non_field_errors %}
+
+                    {% for error in day.record_form.non_field_errors %}
+
+                        <p>
+                            {{ error }}
+                        </p>
+
+                    {% endfor %}
+
+                {% endif %}
+
+
+                <div>
+
+                    <label for="{{ day.record_form.media.id_for_label }}">
+                        写真
+                    </label>
+
+                    {{ day.record_form.media }}
+
+                    {% for error in day.record_form.media.errors %}
+
+                        <p>
+                            {{ error }}
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <br>
+
+
+                <div>
+
+                    <label for="{{ day.record_form.content.id_for_label }}">
+                        感想
+                    </label>
+
+                    {{ day.record_form.content }}
+
+                    {% for error in day.record_form.content.errors %}
+
+                        <p>
+                            {{ error }}
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+
+                <br>
+
+
+                <button type="submit">
+                    旅の記録を保存
+                </button>
+
+            </form>
+
+
+        {% elif trip.status == "traveling" and day.date > today %}
+
+            <hr>
+
+            <p>
+                この日の写真・感想は当日以降に登録できます。
+            </p>
+
+        {% endif %}
+
+    </div>
+
+
+    <hr>
+
+{% empty %}
+
+    <p>
+        Dayがありません。
+    </p>
+
+{% endfor %}
+
+
+{% endblock %}

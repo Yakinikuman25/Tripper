@@ -6,21 +6,13 @@ from django.contrib.auth.views import (
     PasswordResetConfirmView,
     PasswordResetCompleteView,
 )
-
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth import login, logout
-
 from django.views.generic import CreateView, UpdateView, View
-
 from django.shortcuts import redirect, render
-
 from django.urls import reverse_lazy
-
 from base.models import Profile
 from base.forms import UserCreationForm, EmailUpdateForm
-
-
-
 
 
 
@@ -30,25 +22,15 @@ class SignUpView(CreateView):
     template_name = "pages/signup.html"
     success_url = "/"
 
-
     def form_valid(self, form):
-
         response = super().form_valid(form)
 
-
         # 登録したユーザーを自動ログイン
-
         login(
             self.request,
             self.object
         )
-
-
         return response
-
-
-
-
 
 
 
@@ -58,28 +40,15 @@ class Login(LoginView):
 
 
 
-
-
-
-
-
-
 class ProfileUpdateView(LoginRequiredMixin, UpdateView):
 
     model = Profile
-
     template_name = "pages/profile.html"
-
-
     fields = (
         "profile_image",
         "introduction",
     )
-
-
     success_url = "/profile/"
-
-
 
 
     def get_object(self):
@@ -87,61 +56,32 @@ class ProfileUpdateView(LoginRequiredMixin, UpdateView):
         profile, created = Profile.objects.get_or_create(
             user=self.request.user
         )
-
         return profile
-
-
-
-
 
 
     def get_context_data(self, **kwargs):
 
         context = super().get_context_data(**kwargs)
 
-
         # ログインユーザー情報を渡す
-
         context["user_info"] = self.request.user
-
-
         return context
-
-
-
-
-
 
 
     def post(self, request, *args, **kwargs):
 
         profile = self.get_object()
 
-
-
         # プロフィール画像削除
-
         if "delete_image" in request.POST:
-
-
             if profile.profile_image:
-
-
                 if profile.profile_image.name != "profile_images/default.png":
-
-
                     profile.profile_image.delete(
                         save=False
                     )
-
-
             profile.profile_image = "profile_images/default.png"
-
             profile.save()
-
-
             return redirect("profile")
-
 
 
         return super().post(

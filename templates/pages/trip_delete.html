@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block title %}
+Trip削除 | Tripper
+{% endblock %}
+
+{% block main %}
+
+<h1>Trip削除</h1>
+
+<p>
+    「{{ trip.title }}」を削除しますか？
+</p>
+
+<p>
+    このTripに登録されているDayやSpotなども削除されます。
+</p>
+
+<form method="post">
+
+    {% csrf_token %}
+
+    <button type="submit">
+        削除する
+    </button>
+
+</form>
+
+<a href="{% url 'trip_detail' trip.trip_id %}">
+    キャンセル
+</a>
+
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}
+My Trip | Tripper
+{% endblock %}
+
+{% block main %}
+
+
+<h1>
+    My Trip
+</h1>
+
+
+{% for trip in trips %}
+
+    <div>
+
+        <h2>
+
+            <a href="{% url 'trip_detail' trip.pk %}">
+                {{ trip.title }}
+            </a>
+
+        </h2>
+
+
+        <p>
+            旅行期間：
+            {{ trip.start_date }}
+            ～
+            {{ trip.end_date }}
+        </p>
+
+
+        <p>
+            ステータス：
+
+            {% if trip.status == "draft" %}
+
+                <strong>
+                    作成中
+                </strong>
+
+            {% elif trip.status == "planned" %}
+
+                <strong>
+                    出発待ち
+                </strong>
+
+            {% elif trip.status == "traveling" %}
+
+                <strong>
+                    旅中
+                </strong>
+
+            {% elif trip.status == "completed" %}
+
+                <strong>
+                    旅完了
+                </strong>
+
+            {% endif %}
+
+        </p>
+
+
+        {% if trip.status == "completed" %}
+
+            <p>
+                公開設定：
+
+                {% if trip.is_public %}
+
+                    <strong>
+                        公開
+                    </strong>
+
+                {% else %}
+
+                    <strong>
+                        非公開
+                    </strong>
+
+                {% endif %}
+
+            </p>
+
+        {% endif %}
+
+
+        {% if trip.overview %}
+
+            <p>
+                {{ trip.overview }}
+            </p>
+
+        {% endif %}
+
+
+        {% if trip.main_media %}
+
+            <div>
+
+                <img
+                    src="{{ trip.main_media.url }}"
+                    alt="{{ trip.title }}"
+                    style="max-width: 300px;"
+                >
+
+            </div>
+
+        {% endif %}
+
+
+        <p>
+
+            <a href="{% url 'trip_detail' trip.pk %}">
+                Tripを見る
+            </a>
+
+        </p>
+
+    </div>
+
+
+    <hr>
+
+{% empty %}
+
+    <p>
+        まだTripがありません。
+    </p>
+
+{% endfor %}
+
+
+{% endblock %}

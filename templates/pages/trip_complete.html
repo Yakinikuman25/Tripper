@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}
+旅を完了する | Tripper
+{% endblock %}
+
+
+{% block main %}
+
+
+<h1>
+    旅を完了する
+</h1>
+
+
+<p>
+    {{ trip.title }}
+</p>
+
+
+<p>
+    旅行期間：
+    {{ trip.start_date }}
+    ～
+    {{ trip.end_date }}
+</p>
+
+
+<p>
+    旅の代表写真や感想を登録して、
+    Tripを完了します。
+</p>
+
+
+<form
+    method="post"
+    enctype="multipart/form-data"
+>
+
+    {% csrf_token %}
+
+
+    {% if form.non_field_errors %}
+
+        <div>
+
+            {% for error in form.non_field_errors %}
+
+                <p>
+                    {{ error }}
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+    <div>
+
+        <label for="{{ form.main_media.id_for_label }}">
+            代表写真
+        </label>
+
+        {{ form.main_media }}
+
+        {% if form.main_media.errors %}
+
+            {% for error in form.main_media.errors %}
+
+                <p>
+                    {{ error }}
+                </p>
+
+            {% endfor %}
+
+        {% endif %}
+
+    </div>
+
+
+    <br>
+
+
+    <div>
+
+        <label for="{{ form.overview.id_for_label }}">
+            感想
+        </label>
+
+        {{ form.overview }}
+
+        {% if form.overview.errors %}
+
+            {% for error in form.overview.errors %}
+
+                <p>
+                    {{ error }}
+                </p>
+
+            {% endfor %}
+
+        {% endif %}
+
+    </div>
+
+
+    <br>
+
+
+    <div>
+
+        {{ form.is_public }}
+
+        <label for="{{ form.is_public.id_for_label }}">
+            このTripを公開する
+        </label>
+
+        {% if form.is_public.errors %}
+
+            {% for error in form.is_public.errors %}
+
+                <p>
+                    {{ error }}
+                </p>
+
+            {% endfor %}
+
+        {% endif %}
+
+    </div>
+
+
+    <br>
+
+
+    <p>
+        ※ 公開する場合は、
+        代表写真と感想の登録が必要です。
+    </p>
+
+
+    <button type="submit">
+        旅を完了する
+    </button>
+
+
+</form>
+
+
+<br>
+
+
+<a href="{% url 'trip_detail' trip.trip_id %}">
+    Trip詳細に戻る
+</a>
+
+
+{% endblock %}

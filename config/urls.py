@@ -12,7 +12,6 @@ from django.conf.urls.static import static
 
 from django.contrib.auth.views import LogoutView
 
-
 from base.views.account_views import (
     Login,
     SignUpView,
@@ -26,39 +25,45 @@ from base.views.account_views import (
     AccountDeleteView,
 )
 
-
 from base.views.home_views import HomeView
 
+from base.views.trip_views import (
+    TripListView,
+    TripCreateView,
+    TripDetailView,
+    TripUpdateView,
+    TripDeleteView,
+    TripPeriodConfirmView,
+    TripStatusUpdateView,
+    TripCompleteView,
+)
 
+from base.views.day_views import (
+    DayUpdateView,
+    DayRecordUpdateView,
+)
+
+from base.views.spot_views import (
+    SpotCreateView,
+    SpotUpdateView,
+    SpotDeleteView,
+)
 
 
 urlpatterns = [
 
-
     # 管理画面
-
     path(
         "admin/",
         admin.site.urls
     ),
 
-
-
-
-
-
     # アカウント
-
-
-
     path(
         "login/",
         Login.as_view(),
         name="login"
     ),
-
-
-
 
     path(
         "logout/",
@@ -68,17 +73,11 @@ urlpatterns = [
         name="logout"
     ),
 
-
-
-
     path(
         "signup/",
         SignUpView.as_view(),
         name="signup"
     ),
-
-
-
 
     path(
         "profile/",
@@ -86,54 +85,26 @@ urlpatterns = [
         name="profile"
     ),
 
-
-
-
-
-
-
-
     # メールアドレス変更
-
-
     path(
         "email/change/",
         EmailUpdateView.as_view(),
         name="email_change"
     ),
 
-
-
-
-
-
-
     # パスワード変更
-
-
     path(
         "password/change/",
         PasswordChange.as_view(),
         name="password_change"
     ),
 
-
-
-
-
-
-
-
     # パスワードリセット
-
-
     path(
         "password/reset/",
         PasswordReset.as_view(),
         name="password_reset"
     ),
-
-
 
     path(
         "password/reset/done/",
@@ -141,15 +112,11 @@ urlpatterns = [
         name="password_reset_done"
     ),
 
-
-
     path(
         "password/reset/confirm/<uidb64>/<token>/",
         PasswordResetConfirm.as_view(),
         name="password_reset_confirm"
     ),
-
-
 
     path(
         "password/reset/complete/",
@@ -157,45 +124,114 @@ urlpatterns = [
         name="password_reset_complete"
     ),
 
-
-
-
-
-
-
     # アカウント削除
-
-
     path(
         "account/delete/",
         AccountDeleteView.as_view(),
         name="account_delete"
     ),
 
+    # Trip一覧
+    path(
+        "trips/",
+        TripListView.as_view(),
+        name="trip_list"
+    ),
 
+    # Trip作成
+    path(
+        "trips/create/",
+        TripCreateView.as_view(),
+        name="trip_create"
+    ),
 
+    # Trip詳細
+    path(
+        "trips/<int:pk>/",
+        TripDetailView.as_view(),
+        name="trip_detail"
+    ),
 
+    # Trip編集
+    path(
+        "trips/<int:pk>/edit/",
+        TripUpdateView.as_view(),
+        name="trip_edit",
+    ),
 
+    # Trip削除
+    path(
+        "trips/<int:pk>/delete/",
+        TripDeleteView.as_view(),
+        name="trip_delete",
+    ),
 
+    # 旅行期間短縮時の確認
+    path(
+        "trips/<int:pk>/period-confirm/",
+        TripPeriodConfirmView.as_view(),
+        name="trip_period_confirm",
+    ),
 
+    # Tripステータス変更
+    path(
+        "trips/<int:pk>/status/",
+        TripStatusUpdateView.as_view(),
+        name="trip_status_update",
+    ),
+
+    # Trip完了
+    path(
+        "trips/<int:pk>/complete/",
+        TripCompleteView.as_view(),
+        name="trip_complete",
+    ),
+
+    # Day編集
+    path(
+        "days/<int:pk>/edit/",
+        DayUpdateView.as_view(),
+        name="day_edit",
+    ),
+
+    # Day旅の記録編集
+    path(
+        "days/<int:pk>/record/",
+        DayRecordUpdateView.as_view(),
+        name="day_record_edit",
+    ),
+
+    # Spot作成
+    path(
+        "days/<int:day_pk>/spots/create/",
+        SpotCreateView.as_view(),
+        name="spot_create",
+    ),
+
+    # Spot編集
+    path(
+        "spots/<int:pk>/edit/",
+        SpotUpdateView.as_view(),
+        name="spot_edit",
+    ),
+
+    # Spot削除
+    path(
+        "spots/<int:pk>/delete/",
+        SpotDeleteView.as_view(),
+        name="spot_delete",
+    ),
 
     # トップページ
-
-
     path(
         "",
         HomeView.as_view(),
         name="home"
     ),
-
 ]
 
 
-
-
-
 # 開発環境でメディアファイルを表示する設定
-
 urlpatterns += static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT

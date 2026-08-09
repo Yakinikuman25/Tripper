@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+
+{% block title %}
+Spot追加 | Tripper
+{% endblock %}
+
+{% block main %}
+
+
+<h1>
+    Spot追加
+</h1>
+
+
+<p>
+    Trip：
+    {{ trip.title }}
+</p>
+
+
+<p>
+    Day {{ day.day_order }}
+</p>
+
+
+<p>
+    日付：
+    {{ day.date }}
+</p>
+
+
+<form method="post">
+
+    {% csrf_token %}
+
+
+    {% if form.non_field_errors %}
+
+        {% for error in form.non_field_errors %}
+
+            <p>
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+    {% endif %}
+
+
+    <div>
+
+        <label for="{{ form.time.id_for_label }}">
+            時間
+        </label>
+
+        {{ form.time }}
+
+        {% for error in form.time.errors %}
+
+            <p>
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+    </div>
+
+
+    <br>
+
+
+    <div>
+
+        <label for="{{ form.name.id_for_label }}">
+            場所名
+        </label>
+
+        {{ form.name }}
+
+        {% for error in form.name.errors %}
+
+            <p>
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+    </div>
+
+
+    <br>
+
+
+    <div>
+
+        <label for="{{ form.url.id_for_label }}">
+            URL
+        </label>
+
+        {{ form.url }}
+
+        {% for error in form.url.errors %}
+
+            <p>
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+    </div>
+
+
+    <br>
+
+
+    <div>
+
+        <label for="{{ form.memo.id_for_label }}">
+            メモ
+        </label>
+
+        {{ form.memo }}
+
+        {% for error in form.memo.errors %}
+
+            <p>
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+    </div>
+
+
+    <br>
+
+
+    <button type="submit">
+        Spotを追加
+    </button>
+
+</form>
+
+
+<br>
+
+
+<a href="{% url 'trip_detail' trip.trip_id %}">
+    Trip詳細に戻る
+</a>
+
+
+{% endblock %}

@@ -1,0 +1,586 @@
+{% extends "base.html" %}
+
+{% block title %}
+Day編集 | Tripper
+{% endblock %}
+
+{% block main %}
+
+
+<h1>
+    Day編集
+</h1>
+
+
+<h2>
+    Day {{ day.day_order }}
+</h2>
+
+
+<p>
+    日付：
+    {{ day.date }}
+</p>
+
+
+<form method="post">
+
+    {% csrf_token %}
+
+
+    <div>
+
+        <label for="{{ form.title.id_for_label }}">
+            Dayタイトル
+        </label>
+
+        {{ form.title }}
+
+        {% for error in form.title.errors %}
+
+            <p>
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+    </div>
+
+
+    <hr>
+
+
+    <h3>
+        訪問先
+    </h3>
+
+
+    {% if form.non_field_errors %}
+
+        {% for error in form.non_field_errors %}
+
+            <p>
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+    {% endif %}
+
+
+    <!--
+        このTripで登録済みの国候補
+        候補から選択することも、
+        新しい国を直接入力することもできる
+    -->
+    <datalist id="country-options">
+
+        {% for country, regions in trip_location_groups.items %}
+
+            <option value="{{ country }}">
+
+        {% endfor %}
+
+    </datalist>
+
+
+    <!--
+        JavaScriptで国に対応する地域候補を作るためのデータ
+    -->
+    {{ trip_location_groups|json_script:"trip-location-data" }}
+
+
+    <div id="country-container">
+
+        {% if location_groups %}
+
+            {% for country, regions in location_groups.items %}
+
+                <div
+                    class="country-block"
+                    data-index="{{ forloop.counter0 }}"
+                >
+
+                    <div>
+
+                        <label>
+                            国
+                        </label>
+
+                        <input
+                            type="text"
+                            name="countries"
+                            value="{{ country }}"
+                            placeholder="国名を入力してください"
+                            list="country-options"
+                            class="country-input"
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+
+                    <div class="region-container">
+
+                        <label>
+                            地域
+                        </label>
+
+
+                        <datalist
+                            id="region-options-{{ forloop.counter0 }}"
+                            class="region-options"
+                        >
+                        </datalist>
+
+
+                        {% for region in regions %}
+
+                            <div>
+
+                                <input
+                                    type="text"
+                                    name="regions_{{ forloop.parentloop.counter0 }}"
+                                    value="{{ region }}"
+                                    placeholder="地域名を入力してください"
+                                    list="region-options-{{ forloop.parentloop.counter0 }}"
+                                    class="region-input"
+                                    autocomplete="off"
+                                >
+
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    <button
+                        type="button"
+                        class="add-region"
+                    >
+                        ＋ 地域を追加
+                    </button>
+
+                    <hr>
+
+                </div>
+
+            {% endfor %}
+
+
+        {% else %}
+
+
+            <div
+                class="country-block"
+                data-index="0"
+            >
+
+                <div>
+
+                    <label>
+                        国
+                    </label>
+
+                    <input
+                        type="text"
+                        name="countries"
+                        placeholder="国名を入力してください"
+                        list="country-options"
+                        class="country-input"
+                        autocomplete="off"
+                    >
+
+                </div>
+
+
+                <div class="region-container">
+
+                    <label>
+                        地域
+                    </label>
+
+
+                    <datalist
+                        id="region-options-0"
+                        class="region-options"
+                    >
+                    </datalist>
+
+
+                    <div>
+
+                        <input
+                            type="text"
+                            name="regions_0"
+                            placeholder="地域名を入力してください"
+                            list="region-options-0"
+                            class="region-input"
+                            autocomplete="off"
+                        >
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    type="button"
+                    class="add-region"
+                >
+                    ＋ 地域を追加
+                </button>
+
+                <hr>
+
+            </div>
+
+
+        {% endif %}
+
+    </div>
+
+
+    <button
+        type="button"
+        id="add-country"
+    >
+        ＋ 国を追加
+    </button>
+
+
+    <hr>
+
+
+    <button type="submit">
+        Dayを保存
+    </button>
+
+
+</form>
+
+
+<hr>
+
+
+<a href="{% url 'trip_detail' trip.trip_id %}">
+    Trip詳細に戻る
+</a>
+
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const countryContainer =
+                document.getElementById(
+                    "country-container"
+                );
+
+            const addCountryButton =
+                document.getElementById(
+                    "add-country"
+                );
+
+            const tripLocationData =
+                JSON.parse(
+                    document.getElementById(
+                        "trip-location-data"
+                    ).textContent
+                );
+
+
+            // --------------------------------
+            // 国に対応する地域候補を更新
+            // --------------------------------
+            function updateRegionOptions(
+                countryBlock
+            ) {
+
+                const countryInput =
+                    countryBlock.querySelector(
+                        ".country-input"
+                    );
+
+                const regionOptions =
+                    countryBlock.querySelector(
+                        ".region-options"
+                    );
+
+                const country =
+                    countryInput.value.trim();
+
+
+                // 現在の候補をいったん削除
+                regionOptions.innerHTML = "";
+
+
+                // 登録済みの国なら
+                // その国に登録されている地域を候補にする
+                if (
+                    tripLocationData[
+                        country
+                    ]
+                ) {
+
+                    tripLocationData[
+                        country
+                    ].forEach(
+                        function (region) {
+
+                            const option =
+                                document.createElement(
+                                    "option"
+                                );
+
+                            option.value =
+                                region;
+
+                            regionOptions.appendChild(
+                                option
+                            );
+                        }
+                    );
+                }
+            }
+
+
+            // --------------------------------
+            // 「地域を追加」ボタン設定
+            // --------------------------------
+            function setupAddRegionButton(
+                countryBlock
+            ) {
+
+                const button =
+                    countryBlock.querySelector(
+                        ".add-region"
+                    );
+
+                const regionContainer =
+                    countryBlock.querySelector(
+                        ".region-container"
+                    );
+
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        const index =
+                            countryBlock.dataset.index;
+
+                        const div =
+                            document.createElement(
+                                "div"
+                            );
+
+                        const input =
+                            document.createElement(
+                                "input"
+                            );
+
+                        input.type =
+                            "text";
+
+                        input.name =
+                            "regions_" + index;
+
+                        input.placeholder =
+                            "地域名を入力してください";
+
+                        input.className =
+                            "region-input";
+
+                        input.setAttribute(
+                            "list",
+                            "region-options-" + index
+                        );
+
+                        input.setAttribute(
+                            "autocomplete",
+                            "off"
+                        );
+
+                        div.appendChild(
+                            input
+                        );
+
+                        regionContainer.appendChild(
+                            div
+                        );
+                    }
+                );
+            }
+
+
+            // --------------------------------
+            // 国入力欄のイベント設定
+            // --------------------------------
+            function setupCountryInput(
+                countryBlock
+            ) {
+
+                const countryInput =
+                    countryBlock.querySelector(
+                        ".country-input"
+                    );
+
+
+                countryInput.addEventListener(
+                    "input",
+                    function () {
+
+                        updateRegionOptions(
+                            countryBlock
+                        );
+                    }
+                );
+
+
+                countryInput.addEventListener(
+                    "change",
+                    function () {
+
+                        updateRegionOptions(
+                            countryBlock
+                        );
+                    }
+                );
+
+
+                // 既に国が登録されている場合、
+                // 初期表示時に地域候補を作る
+                updateRegionOptions(
+                    countryBlock
+                );
+            }
+
+
+            // --------------------------------
+            // 既存の国ブロックを設定
+            // --------------------------------
+            document.querySelectorAll(
+                ".country-block"
+            ).forEach(
+                function (countryBlock) {
+
+                    setupAddRegionButton(
+                        countryBlock
+                    );
+
+                    setupCountryInput(
+                        countryBlock
+                    );
+                }
+            );
+
+
+            // --------------------------------
+            // 「国を追加」
+            // --------------------------------
+            addCountryButton.addEventListener(
+                "click",
+                function () {
+
+                    const index =
+                        document.querySelectorAll(
+                            ".country-block"
+                        ).length;
+
+                    const countryBlock =
+                        document.createElement(
+                            "div"
+                        );
+
+                    countryBlock.className =
+                        "country-block";
+
+                    countryBlock.dataset.index =
+                        index;
+
+
+                    countryBlock.innerHTML = `
+                        <div>
+
+                            <label>
+                                国
+                            </label>
+
+                            <input
+                                type="text"
+                                name="countries"
+                                placeholder="国名を入力してください"
+                                list="country-options"
+                                class="country-input"
+                                autocomplete="off"
+                            >
+
+                        </div>
+
+
+                        <div class="region-container">
+
+                            <label>
+                                地域
+                            </label>
+
+
+                            <datalist
+                                id="region-options-${index}"
+                                class="region-options"
+                            >
+                            </datalist>
+
+
+                            <div>
+
+                                <input
+                                    type="text"
+                                    name="regions_${index}"
+                                    placeholder="地域名を入力してください"
+                                    list="region-options-${index}"
+                                    class="region-input"
+                                    autocomplete="off"
+                                >
+
+                            </div>
+
+                        </div>
+
+
+                        <button
+                            type="button"
+                            class="add-region"
+                        >
+                            ＋ 地域を追加
+                        </button>
+
+                        <hr>
+                    `;
+
+
+                    countryContainer.appendChild(
+                        countryBlock
+                    );
+
+
+                    setupAddRegionButton(
+                        countryBlock
+                    );
+
+                    setupCountryInput(
+                        countryBlock
+                    );
+                }
+            );
+        }
+    );
+
+</script>
+
+
+{% endblock %}

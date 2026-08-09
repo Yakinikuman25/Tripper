@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+旅行期間変更の確認 | Tripper
+{% endblock %}
+
+
+{% block main %}
+
+
+<h1>
+    旅行期間変更の確認
+</h1>
+
+
+<p>
+    旅行期間を
+</p>
+
+<p>
+    {{ trip.start_date }}
+    ～
+    {{ trip.end_date }}
+</p>
+
+<p>
+    から
+</p>
+
+<p>
+    {{ new_start_date }}
+    ～
+    {{ new_end_date }}
+</p>
+
+<p>
+    に変更すると、以下のDayが削除されます。
+</p>
+
+
+<hr>
+
+
+{% for day in outside_days %}
+
+    <div>
+
+        <h3>
+            Day {{ day.day_order }}
+        </h3>
+
+        <p>
+            {{ day.date }}
+        </p>
+
+        {% if day.title %}
+
+            <p>
+                {{ day.title }}
+            </p>
+
+        {% endif %}
+
+        {% if day.content %}
+
+            <p>
+                感想・内容が登録されています。
+            </p>
+
+        {% endif %}
+
+        {% if day.media %}
+
+            <p>
+                写真が登録されています。
+            </p>
+
+        {% endif %}
+
+        {% if day.locations.exists %}
+
+            <p>
+                訪問先が登録されています。
+            </p>
+
+        {% endif %}
+
+        {% if day.spots.exists %}
+
+            <p>
+                Spotが登録されています。
+            </p>
+
+        {% endif %}
+
+    </div>
+
+    <hr>
+
+{% endfor %}
+
+
+<p>
+    削除したDayの内容・写真・訪問先・Spotは元に戻せません。
+</p>
+
+
+<form method="post">
+
+    {% csrf_token %}
+
+    <button
+        type="submit"
+        name="action"
+        value="cancel"
+    >
+        短縮せず元の期間のままにする
+    </button>
+
+
+    <button
+        type="submit"
+        name="action"
+        value="confirm"
+    >
+        Dayを削除して期間を短縮する
+    </button>
+
+</form>
+
+
+{% endblock %}
