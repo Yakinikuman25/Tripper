@@ -36,6 +36,7 @@ from base.views.trip_views import (
     TripPeriodConfirmView,
     TripStatusUpdateView,
     TripCompleteView,
+    TripPublicUpdateView,
 )
 
 from base.views.day_views import (
@@ -47,6 +48,11 @@ from base.views.spot_views import (
     SpotCreateView,
     SpotUpdateView,
     SpotDeleteView,
+)
+
+from base.views.expense_views import (
+    TripExpenseCreateView,
+    DayExpenseCreateView,
 )
 
 
@@ -187,6 +193,20 @@ urlpatterns = [
         name="trip_complete",
     ),
 
+    # 公開・非公開設定
+    path(
+        "trips/<int:pk>/public/",
+        TripPublicUpdateView.as_view(),
+        name="trip_public_update",
+    ),
+
+    # Trip共通費用作成
+    path(
+        "trips/<int:trip_id>/expenses/create/",
+        TripExpenseCreateView.as_view(),
+        name="trip_expense_create",
+    ),
+
     # Day編集
     path(
         "days/<int:pk>/edit/",
@@ -199,6 +219,13 @@ urlpatterns = [
         "days/<int:pk>/record/",
         DayRecordUpdateView.as_view(),
         name="day_record_edit",
+    ),
+
+    # Day費用作成
+    path(
+        "days/<int:day_id>/expenses/create/",
+        DayExpenseCreateView.as_view(),
+        name="day_expense_create",
     ),
 
     # Spot作成
@@ -232,6 +259,7 @@ urlpatterns = [
 
 
 # 開発環境でメディアファイルを表示する設定
+
 urlpatterns += static(
     settings.MEDIA_URL,
     document_root=settings.MEDIA_ROOT

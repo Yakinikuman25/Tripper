@@ -1,35 +1,32 @@
 {% extends "base.html" %}
 
 {% block title %}
-旅を完了する | Tripper
+
+    {% if is_completed_edit %}
+        代表写真・感想を編集 | Tripper
+    {% else %}
+        旅を完了する | Tripper
+    {% endif %}
+
 {% endblock %}
 
 
 {% block main %}
 
 
-<h1>
-    旅を完了する
-</h1>
+{% if is_completed_edit %}
 
+    <h1>
+        代表写真・感想を編集
+    </h1>
 
-<p>
-    {{ trip.title }}
-</p>
+{% else %}
 
+    <h1>
+        旅を完了する
+    </h1>
 
-<p>
-    旅行期間：
-    {{ trip.start_date }}
-    ～
-    {{ trip.end_date }}
-</p>
-
-
-<p>
-    旅の代表写真や感想を登録して、
-    Tripを完了します。
-</p>
+{% endif %}
 
 
 <form
@@ -141,20 +138,46 @@
     </p>
 
 
-    <button type="submit">
-        旅を完了する
-    </button>
+    {% if is_completed_edit %}
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+        >
+            保存
+        </button>
+
+    {% else %}
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+        >
+            旅を完了する
+        </button>
+
+    {% endif %}
 
 
 </form>
 
 
-<br>
+<hr>
 
 
-<a href="{% url 'trip_detail' trip.trip_id %}">
-    Trip詳細に戻る
-</a>
+{% if is_completed_edit %}
+
+    <a href="{% url 'trip_detail' trip.trip_id %}?edit=1">
+        Trip編集画面に戻る
+    </a>
+
+{% else %}
+
+    <a href="{% url 'trip_detail' trip.trip_id %}">
+        Trip詳細に戻る
+    </a>
+
+{% endif %}
 
 
 {% endblock %}

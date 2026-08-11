@@ -13,92 +13,95 @@ Spot削除 | Tripper
 
 
 <p>
-    Trip：
-    {{ object.day.trip.title }}
+    以下のSpotを削除してもよろしいですか？
 </p>
 
 
-<p>
-    Day {{ object.day.day_order }}
-</p>
+<div>
+
+    <p>
+
+        {% if object.time %}
+
+            <strong>
+                {{ object.time|time:"H:i" }}
+            </strong>
+
+        {% else %}
+
+            <strong>
+                時間未定
+            </strong>
+
+        {% endif %}
+
+        {{ object.name }}
+
+    </p>
 
 
-<p>
-    日付：
-    {{ object.day.date }}
-</p>
+    {% if object.url %}
 
+        <p>
+            URL：
 
-<p>
-    以下のSpotを削除しますか？
-</p>
-
-
-<p>
-
-    {% if object.time %}
-
-        <strong>
-            {{ object.time|time:"H:i" }}
-        </strong>
-
-    {% else %}
-
-        <strong>
-            時間未定
-        </strong>
+            <a
+                href="{{ object.url }}"
+                target="_blank"
+                rel="noopener noreferrer"
+            >
+                {{ object.url }}
+            </a>
+        </p>
 
     {% endif %}
 
-    {{ object.name }}
 
-</p>
+    {% if object.memo %}
 
+        <p>
+            メモ：
+            {{ object.memo }}
+        </p>
 
-{% if object.url %}
+    {% endif %}
 
-    <p>
-        URL：
-
-        <a
-            href="{{ object.url }}"
-            target="_blank"
-            rel="noopener noreferrer"
-        >
-            {{ object.url }}
-        </a>
-    </p>
-
-{% endif %}
+</div>
 
 
-{% if object.memo %}
-
-    <p>
-        メモ：
-        {{ object.memo }}
-    </p>
-
-{% endif %}
+<hr>
 
 
 <form method="post">
 
     {% csrf_token %}
 
-    <button type="submit">
+    <button
+        type="submit"
+        class="btn btn-danger"
+    >
         削除する
     </button>
 
 </form>
 
 
-<br>
+<hr>
 
 
-<a href="{% url 'trip_detail' object.day.trip.trip_id %}">
-    キャンセル
-</a>
+{% if trip.status == "draft" %}
+
+    <a href="{% url 'trip_detail' trip.trip_id %}">
+        Trip詳細に戻る
+    </a>
+
+{% else %}
+
+    <a href="{% url 'trip_detail' trip.trip_id %}?edit=1">
+        Trip編集画面に戻る
+    </a>
+
+{% endif %}
 
 
 {% endblock %}

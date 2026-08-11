@@ -12,15 +12,9 @@ Spot編集 | Tripper
 </h1>
 
 
-<p>
-    Trip：
-    {{ trip.title }}
-</p>
-
-
-<p>
+<h2>
     Day {{ day.day_order }}
-</p>
+</h2>
 
 
 <p>
@@ -139,15 +133,26 @@ Spot編集 | Tripper
         保存
     </button>
 
+
 </form>
 
 
-<br>
+<hr>
 
 
-<a href="{% url 'trip_detail' trip.trip_id %}">
-    Trip詳細に戻る
-</a>
+{% if trip.status == "draft" %}
+
+    <a href="{% url 'trip_detail' trip.trip_id %}">
+        Trip詳細に戻る
+    </a>
+
+{% else %}
+
+    <a href="{% url 'trip_detail' trip.trip_id %}?edit=1">
+        Trip編集画面に戻る
+    </a>
+
+{% endif %}
 
 
 {% endblock %}

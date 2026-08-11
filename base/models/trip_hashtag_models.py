@@ -5,6 +5,7 @@ from .hashtag_models import Hashtag
 
 
 class TripHashtag(models.Model):
+
     trip_hashtag_id = models.AutoField(
         primary_key=True
     )
@@ -36,4 +37,4 @@ class TripHashtag(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.trip.title} - {self.hashtag.name}"
+        return f"{self.trip.title} - #{self.hashtag.name}"

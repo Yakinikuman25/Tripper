@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 
 from .trip_models import Trip
@@ -34,6 +35,19 @@ class Day(models.Model):
         verbose_name="Dayタイトル",
     )
 
+    # =====================================
+    # 旅行計画用のメモ
+    # =====================================
+
+    memo = models.TextField(
+        blank=True,
+        verbose_name="メモ",
+    )
+
+    # =====================================
+    # 旅中・旅完了後の記録
+    # =====================================
+
     content = models.TextField(
         blank=True,
         verbose_name="内容",
@@ -43,6 +57,24 @@ class Day(models.Model):
         upload_to="day_media/",
         blank=True,
         verbose_name="写真",
+    )
+
+    budget = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1)
+        ],
+        verbose_name="1日の予算",
+    )
+
+    actual_cost = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1)
+        ],
+        verbose_name="実際の合計費用",
     )
 
     day_order = models.IntegerField(
@@ -73,4 +105,7 @@ class Day(models.Model):
 
     def __str__(self):
 
-        return f"{self.trip.title} - Day {self.day_order}"
+        return (
+            f"{self.trip.title} "
+            f"- Day {self.day_order}"
+        )

@@ -14,3 +14,6 @@ admin.site.register(Hashtag)
 admin.site.register(Location)
 admin.site.register(Day)
 admin.site.register(Spot)
+
+admin.site.register(TripExpense)
+admin.site.register(DayExpense)

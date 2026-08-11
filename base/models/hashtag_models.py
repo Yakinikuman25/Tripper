@@ -2,12 +2,14 @@ from django.db import models
 
 
 class Hashtag(models.Model):
+
     hashtag_id = models.AutoField(
         primary_key=True
     )
 
     name = models.CharField(
         max_length=50,
+        unique=True,
         verbose_name="タグ名",
     )
 

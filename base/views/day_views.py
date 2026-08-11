@@ -1,36 +1,55 @@
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Max
 from django.shortcuts import (
     get_object_or_404,
     redirect,
 )
-from django.urls import reverse_lazy
-from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse
 from django.utils import timezone
 from django.views import View
 from django.views.generic import UpdateView
 
-from base.models import Day, Location
+from base.models import (
+    Day,
+    Location,
+    DayExpense,
+)
+
 from base.forms import (
     DayForm,
     DayRecordForm,
+    DayExpenseForm,
 )
 
 
-# Day基本情報編集
-class DayUpdateView(LoginRequiredMixin, UpdateView):
+# =========================================
+# Day編集
+#
+# 旅行の「計画」を編集する
+#
+# ・Dayタイトル
+# ・1日の予算
+# ・訪問先
+# =========================================
+
+class DayUpdateView(
+    LoginRequiredMixin,
+    UpdateView,
+):
 
     model = Day
     form_class = DayForm
     template_name = "pages/day_edit.html"
 
-    def dispatch(self, request, *args, **kwargs):
+    def dispatch(
+        self,
+        request,
+        *args,
+        **kwargs
+    ):
 
-        self.day = get_object_or_404(
-            Day,
-            pk=self.kwargs["pk"],
-            trip__user=request.user,
-        )
-
-        self.trip = self.day.trip
+        self.object = self.get_object()
+        self.trip = self.object.trip
 
         return super().dispatch(
             request,
@@ -38,123 +57,36 @@ class DayUpdateView(LoginRequiredMixin, UpdateView):
             **kwargs
         )
 
-    def form_valid(self, form):
+    def get_queryset(self):
 
-        # 国を複数取得
-        countries = self.request.POST.getlist(
-            "countries"
+        return Day.objects.filter(
+            trip__user=self.request.user
         )
 
-        # 保存予定の国・地域
-        location_data = []
+    def get_context_data(
+        self,
+        **kwargs
+    ):
 
-        # 同じDay内の重複確認用
-        registered_locations = set()
-
-        for index, country in enumerate(countries):
-
-            country = country.strip()
-
-            # その国に対応する地域を取得
-            regions = self.request.POST.getlist(
-                f"regions_{index}"
-            )
-
-            for region in regions:
-
-                region = region.strip()
-
-                if country and region:
-
-                    location_key = (
-                        country,
-                        region,
-                    )
-
-                    # -------------------------
-                    # 同じDay内に
-                    # 同一の国・地域があるか確認
-                    # -------------------------
-                    if location_key in registered_locations:
-
-                        form.add_error(
-                            None,
-                            (
-                                f"「{country} / {region}」は"
-                                "すでにこのDayに登録されています。"
-                            )
-                        )
-
-                        return self.form_invalid(
-                            form
-                        )
-
-                    registered_locations.add(
-                        location_key
-                    )
-
-                    location_data.append(
-                        location_key
-                    )
-
-        # -------------------------
-        # 重複がなければDayを保存
-        # -------------------------
-
-        response = super().form_valid(
-            form
+        context = super().get_context_data(
+            **kwargs
         )
-
-        # 現在のLocationとの関連をいったん外す
-        self.object.locations.clear()
-
-        # 国・地域を登録
-        for country, region in location_data:
-
-            location, created = (
-                Location.objects.get_or_create(
-                    trip=self.trip,
-                    country=country,
-                    region=region,
-                )
-            )
-
-            self.object.locations.add(
-                location
-            )
-
-        # どのDayからも使用されなくなったLocationを削除
-        self.trip.locations.filter(
-            days__isnull=True
-        ).delete()
-
-        return response
-
-    def get_success_url(self):
-
-        return reverse_lazy(
-            "trip_detail",
-            kwargs={
-                "pk": self.trip.trip_id,
-            },
-        )
-
-    def get_context_data(self, **kwargs):
-
-        context = super().get_context_data(**kwargs)
 
         context["trip"] = self.trip
-        context["day"] = self.day
 
-        # --------------------------------
-        # 現在のDayに登録されている国・地域
-        # --------------------------------
+        # =====================================
+        # 現在のDayに登録されている
+        # 訪問先を国ごとにまとめる
+        # =====================================
 
         location_groups = {}
 
-        for location in self.day.locations.all():
+        for location in self.object.locations.all():
 
-            if location.country not in location_groups:
+            if (
+                location.country
+                not in location_groups
+            ):
 
                 location_groups[
                     location.country
@@ -177,16 +109,19 @@ class DayUpdateView(LoginRequiredMixin, UpdateView):
             location_groups
         )
 
-        # --------------------------------
-        # このTripですでに登録されている
-        # 国・地域を候補として取得
-        # --------------------------------
+        # =====================================
+        # Trip全体で登録済みの
+        # 訪問先候補
+        # =====================================
 
         trip_location_groups = {}
 
         for location in self.trip.locations.all():
 
-            if location.country not in trip_location_groups:
+            if (
+                location.country
+                not in trip_location_groups
+            ):
 
                 trip_location_groups[
                     location.country
@@ -211,11 +146,265 @@ class DayUpdateView(LoginRequiredMixin, UpdateView):
 
         return context
 
+    # =====================================
+    # Day編集保存
+    # =====================================
 
-# Trip詳細画面からDayの写真・感想を保存
-class DayRecordUpdateView(LoginRequiredMixin, View):
+    def form_valid(self, form):
 
-    def post(self, request, *args, **kwargs):
+        countries = (
+            self.request.POST.getlist(
+                "countries"
+            )
+        )
+
+        location_data = []
+        registered_locations = set()
+
+        for index, country in enumerate(
+            countries
+        ):
+
+            country = country.strip()
+
+            regions = (
+                self.request.POST.getlist(
+                    f"regions_{index}"
+                )
+            )
+
+            for region in regions:
+
+                region = region.strip()
+
+                if country and region:
+
+                    location_key = (
+                        country,
+                        region,
+                    )
+
+                    # -------------------------
+                    # 同じDayに
+                    # 同じ国・地域を重複登録しない
+                    # -------------------------
+                    if (
+                        location_key
+                        in registered_locations
+                    ):
+
+                        form.add_error(
+                            None,
+                            (
+                                f"「{country} / "
+                                f"{region}」"
+                                "はすでにこのDayに"
+                                "登録されています。"
+                            )
+                        )
+
+                        return self.form_invalid(
+                            form
+                        )
+
+                    registered_locations.add(
+                        location_key
+                    )
+
+                    location_data.append(
+                        location_key
+                    )
+
+        response = super().form_valid(
+            form
+        )
+
+        # -------------------------
+        # 一度DayとLocationの
+        # 紐付けを解除
+        # -------------------------
+        self.object.locations.clear()
+
+        # -------------------------
+        # 入力されたLocationを登録
+        # -------------------------
+        for country, region in location_data:
+
+            location, created = (
+                Location.objects.get_or_create(
+                    trip=self.trip,
+                    country=country,
+                    region=region,
+                )
+            )
+
+            self.object.locations.add(
+                location
+            )
+
+        # -------------------------
+        # どのDayからも
+        # 使われなくなったLocationを削除
+        # -------------------------
+        self.trip.locations.filter(
+            days__isnull=True
+        ).delete()
+
+        return response
+
+    # =====================================
+    # Day編集保存後
+    # =====================================
+
+    def get_success_url(self):
+
+        # -------------------------
+        # 作成中
+        # → 通常Trip詳細へ戻る
+        # -------------------------
+        if self.trip.status == "draft":
+
+            return reverse(
+                "trip_detail",
+                kwargs={
+                    "pk": self.trip.trip_id,
+                },
+            )
+
+        # -------------------------
+        # 出発待ち・旅中・旅完了
+        # → Trip全体編集モードへ戻る
+        # -------------------------
+        return (
+            reverse(
+                "trip_detail",
+                kwargs={
+                    "pk": self.trip.trip_id,
+                },
+            )
+            + "?edit=1"
+        )
+
+
+# =========================================
+# Day旅の記録
+#
+# 旅行の「実績」を記録する
+#
+# ・写真
+# ・感想
+# ・実際の合計費用
+# ・費用明細
+# =========================================
+
+class DayRecordUpdateView(
+    LoginRequiredMixin,
+    View,
+):
+
+    # =====================================
+    # このDayに旅の記録を
+    # 入力・編集できるか
+    # =====================================
+
+    def can_edit_record(
+        self,
+        request,
+        day,
+        trip,
+    ):
+
+        today = timezone.localdate()
+
+        # -------------------------
+        # 作成中・出発待ち
+        # → 入力不可
+        # -------------------------
+        if trip.status in (
+            "draft",
+            "planned",
+        ):
+
+            return False
+
+        # -------------------------
+        # 旅中
+        #
+        # 今日・過去のDay
+        # → 通常画面から入力可能
+        #
+        # 未来のDay
+        # → 入力不可
+        # -------------------------
+        if trip.status == "traveling":
+
+            return (
+                day.date
+                <= today
+            )
+
+        # -------------------------
+        # 旅完了
+        #
+        # 通常画面
+        # → 入力・編集不可
+        #
+        # Trip全体編集モード
+        # → 入力・編集可能
+        # -------------------------
+        if trip.status == "completed":
+
+            return (
+                request.POST.get(
+                    "edit_mode"
+                )
+                == "1"
+            )
+
+        return False
+
+    # =====================================
+    # Trip詳細へ戻るURL
+    # =====================================
+
+    def get_return_url(
+        self,
+        trip,
+        request,
+    ):
+
+        url = reverse(
+            "trip_detail",
+            kwargs={
+                "pk": trip.trip_id,
+            },
+        )
+
+        # -------------------------
+        # Trip全体編集モードから
+        # 操作した場合
+        # -------------------------
+        if (
+            request.POST.get(
+                "edit_mode"
+            )
+            == "1"
+        ):
+
+            url += "?edit=1"
+
+        return url
+
+    # =====================================
+    # POST
+    # =====================================
+
+    def post(
+        self,
+        request,
+        *args,
+        **kwargs
+    ):
 
         day = get_object_or_404(
             Day,
@@ -225,12 +414,18 @@ class DayRecordUpdateView(LoginRequiredMixin, View):
 
         trip = day.trip
 
-        today = timezone.localdate()
+        # =====================================
+        # 旅の記録を入力・編集できるか確認
+        #
+        # completedでは
+        # edit_mode=1 がない限り
+        # 保存処理を行わない
+        # =====================================
 
-        # 作成中・出発待ちは記録不可
-        if trip.status in (
-            "draft",
-            "planned",
+        if not self.can_edit_record(
+            request,
+            day,
+            trip,
         ):
 
             return redirect(
@@ -238,27 +433,63 @@ class DayRecordUpdateView(LoginRequiredMixin, View):
                 pk=trip.trip_id,
             )
 
-        # 旅中で未来のDayは記録不可
-        if (
-            trip.status == "traveling"
-            and day.date > today
-        ):
+        action = request.POST.get(
+            "action"
+        )
 
-            return redirect(
-                "trip_detail",
-                pk=trip.trip_id,
+        # -------------------------
+        # Day費用明細追加
+        # -------------------------
+        if action == "add_day_expense":
+
+            return self.add_expense(
+                request,
+                day,
+                trip,
             )
 
-        # traveling / completed 以外は記録不可
-        if trip.status not in (
-            "traveling",
-            "completed",
-        ):
+        # -------------------------
+        # Day費用明細編集
+        # -------------------------
+        if action == "update_day_expense":
 
-            return redirect(
-                "trip_detail",
-                pk=trip.trip_id,
+            return self.update_expense(
+                request,
+                day,
+                trip,
             )
+
+        # -------------------------
+        # Day費用明細削除
+        # -------------------------
+        if action == "delete_day_expense":
+
+            return self.delete_expense(
+                request,
+                day,
+                trip,
+            )
+
+        # -------------------------
+        # 写真・感想・実際の合計費用
+        # を保存
+        # -------------------------
+        return self.update_record(
+            request,
+            day,
+            trip,
+        )
+
+    # =====================================
+    # 写真・感想・実際の合計費用
+    # =====================================
+
+    def update_record(
+        self,
+        request,
+        day,
+        trip,
+    ):
 
         form = DayRecordForm(
             request.POST,
@@ -272,6 +503,153 @@ class DayRecordUpdateView(LoginRequiredMixin, View):
             form.save()
 
         return redirect(
-            "trip_detail",
-            pk=trip.trip_id,
+            self.get_return_url(
+                trip,
+                request,
+            )
+        )
+
+    # =====================================
+    # Day費用明細追加
+    # =====================================
+
+    def add_expense(
+        self,
+        request,
+        day,
+        trip,
+    ):
+
+        expense_form = DayExpenseForm(
+            request.POST
+        )
+
+        if expense_form.is_valid():
+
+            amount = (
+                expense_form.cleaned_data.get(
+                    "amount"
+                )
+            )
+
+            # -------------------------
+            # DayExpenseは
+            # 登録する場合は金額必須
+            # -------------------------
+            if amount is not None:
+
+                day_expense = (
+                    expense_form.save(
+                        commit=False
+                    )
+                )
+
+                day_expense.day = day
+
+                # -------------------------
+                # 表示順を自動採番
+                # -------------------------
+                max_order = (
+                    day.day_expenses.aggregate(
+                        Max(
+                            "expense_order"
+                        )
+                    )[
+                        "expense_order__max"
+                    ]
+                )
+
+                if max_order is None:
+
+                    max_order = 0
+
+                day_expense.expense_order = (
+                    max_order + 1
+                )
+
+                day_expense.save()
+
+        return redirect(
+            self.get_return_url(
+                trip,
+                request,
+            )
+        )
+
+    # =====================================
+    # Day費用明細編集
+    # =====================================
+
+    def update_expense(
+        self,
+        request,
+        day,
+        trip,
+    ):
+
+        expense = get_object_or_404(
+            DayExpense,
+            day_expense_id=(
+                request.POST.get(
+                    "expense_id"
+                )
+            ),
+            day=day,
+        )
+
+        expense_form = DayExpenseForm(
+            request.POST,
+            instance=expense,
+        )
+
+        if expense_form.is_valid():
+
+            amount = (
+                expense_form.cleaned_data.get(
+                    "amount"
+                )
+            )
+
+            # -------------------------
+            # 金額がある場合のみ保存
+            # -------------------------
+            if amount is not None:
+
+                expense_form.save()
+
+        return redirect(
+            self.get_return_url(
+                trip,
+                request,
+            )
+        )
+
+    # =====================================
+    # Day費用明細削除
+    # =====================================
+
+    def delete_expense(
+        self,
+        request,
+        day,
+        trip,
+    ):
+
+        expense = get_object_or_404(
+            DayExpense,
+            day_expense_id=(
+                request.POST.get(
+                    "expense_id"
+                )
+            ),
+            day=day,
+        )
+
+        expense.delete()
+
+        return redirect(
+            self.get_return_url(
+                trip,
+                request,
+            )
         )

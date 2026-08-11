@@ -23,10 +23,18 @@ Day編集 | Tripper
 </p>
 
 
+{# ======================================== #}
+{# Day基本情報編集 #}
+{# ======================================== #}
+
 <form method="post">
 
     {% csrf_token %}
 
+
+    {# ------------------------- #}
+    {# Dayタイトル #}
+    {# ------------------------- #}
 
     <div>
 
@@ -50,6 +58,10 @@ Day編集 | Tripper
     <hr>
 
 
+    {# ======================================== #}
+    {# 訪問先 #}
+    {# ======================================== #}
+
     <h3>
         訪問先
     </h3>
@@ -68,11 +80,6 @@ Day編集 | Tripper
     {% endif %}
 
 
-    <!--
-        このTripで登録済みの国候補
-        候補から選択することも、
-        新しい国を直接入力することもできる
-    -->
     <datalist id="country-options">
 
         {% for country, regions in trip_location_groups.items %}
@@ -84,9 +91,6 @@ Day編集 | Tripper
     </datalist>
 
 
-    <!--
-        JavaScriptで国に対応する地域候補を作るためのデータ
-    -->
     {{ trip_location_groups|json_script:"trip-location-data" }}
 
 
@@ -253,7 +257,82 @@ Day編集 | Tripper
     <hr>
 
 
-    <button type="submit">
+    {# ======================================== #}
+    {# Dayメモ #}
+    {# ======================================== #}
+
+    <h3>
+        メモ
+    </h3>
+
+
+    <div class="mb-3">
+
+        <label for="{{ form.memo.id_for_label }}">
+            メモ
+        </label>
+
+        {{ form.memo }}
+
+        {% for error in form.memo.errors %}
+
+            <p>
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+
+        <p>
+            この日の予定や補足などを自由に入力できます。
+        </p>
+
+    </div>
+
+
+    <hr>
+
+
+    {# ======================================== #}
+    {# 1日の予算 #}
+    {# ======================================== #}
+
+    <h3>
+        予算
+    </h3>
+
+
+    <div>
+
+        <label for="{{ form.budget.id_for_label }}">
+            1日の予算
+        </label>
+
+        {{ form.budget }}
+
+        {% for error in form.budget.errors %}
+
+            <p>
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+        <p>
+            この日に使う予定の金額を入力できます。
+            入力する場合は1円以上です。
+        </p>
+
+    </div>
+
+
+    <hr>
+
+
+    <button
+        type="submit"
+        class="btn btn-primary"
+    >
         Dayを保存
     </button>
 
@@ -264,9 +343,23 @@ Day編集 | Tripper
 <hr>
 
 
-<a href="{% url 'trip_detail' trip.trip_id %}">
-    Trip詳細に戻る
-</a>
+{# ------------------------- #}
+{# 戻るボタン #}
+{# ------------------------- #}
+
+{% if trip.status == "draft" %}
+
+    <a href="{% url 'trip_detail' trip.trip_id %}">
+        Trip詳細に戻る
+    </a>
+
+{% else %}
+
+    <a href="{% url 'trip_detail' trip.trip_id %}?edit=1">
+        Trip編集画面に戻る
+    </a>
+
+{% endif %}
 
 
 <script>
@@ -314,12 +407,9 @@ Day編集 | Tripper
                     countryInput.value.trim();
 
 
-                // 現在の候補をいったん削除
                 regionOptions.innerHTML = "";
 
 
-                // 登録済みの国なら
-                // その国に登録されている地域を候補にする
                 if (
                     tripLocationData[
                         country
@@ -452,8 +542,6 @@ Day編集 | Tripper
                 );
 
 
-                // 既に国が登録されている場合、
-                // 初期表示時に地域候補を作る
                 updateRegionOptions(
                     countryBlock
                 );

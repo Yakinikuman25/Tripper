@@ -1,6 +1,6 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse
 from django.views.generic import (
     CreateView,
     UpdateView,
@@ -67,11 +67,16 @@ class SpotCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
 
-        return reverse_lazy(
-            "trip_detail",
-            kwargs={
-                "pk": self.day.trip.trip_id,
-            },
+        # Spot作成後は
+        # Trip全体編集モードへ戻る
+        return (
+            reverse(
+                "trip_detail",
+                kwargs={
+                    "pk": self.day.trip.trip_id,
+                },
+            )
+            + "?edit=1"
         )
 
 
@@ -99,11 +104,16 @@ class SpotUpdateView(LoginRequiredMixin, UpdateView):
 
     def get_success_url(self):
 
-        return reverse_lazy(
-            "trip_detail",
-            kwargs={
-                "pk": self.object.day.trip.trip_id,
-            },
+        # Spot編集後は
+        # Trip全体編集モードへ戻る
+        return (
+            reverse(
+                "trip_detail",
+                kwargs={
+                    "pk": self.object.day.trip.trip_id,
+                },
+            )
+            + "?edit=1"
         )
 
 
@@ -119,12 +129,27 @@ class SpotDeleteView(LoginRequiredMixin, DeleteView):
             day__trip__user=self.request.user
         )
 
+    def get_context_data(self, **kwargs):
+
+        context = super().get_context_data(**kwargs)
+
+        context["day"] = self.object.day
+        context["trip"] = self.object.day.trip
+
+        return context
+
     def get_success_url(self):
 
-        return reverse_lazy(
-            "trip_detail",
-            kwargs={
-                "pk": self.object.day.trip.trip_id,
-            },
+        # 削除後もTrip情報を使えるように
+        # 削除前にtrip_idを取得
+        trip_id = self.object.day.trip.trip_id
+
+        return (
+            reverse(
+                "trip_detail",
+                kwargs={
+                    "pk": trip_id,
+                },
+            )
+            + "?edit=1"
         )
-    

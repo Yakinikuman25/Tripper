@@ -1,34 +1,31 @@
 {% extends "base.html" %}
 
-
 {% block title %}
 Home | Tripper
 {% endblock %}
 
-
 {% block main %}
 
 
-<!-- 検索フォーム -->
-<form method="get" action="" class="mb-5">
+<form method="get">
 
-    <div class="input-group">
+    <div class="input-group mb-5">
 
         <input
             type="text"
             class="form-control form-control-lg"
             name="q"
-            placeholder="Tripを検索">
+            value="{{ request.GET.q }}"
+            placeholder="Tripを検索"
+        >
 
 
         <button
             class="btn btn-primary"
-            type="submit">
-
+            type="submit"
+        >
             検索
-
         </button>
-
 
     </div>
 
@@ -36,106 +33,365 @@ Home | Tripper
 
 
 
-<!-- My Trip -->
-<h2 class="mb-3">
-    My Trip
-</h2>
+{% if user.is_authenticated %}
 
 
-<div class="row mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+
+        <h2>
+            My Trip
+        </h2>
 
 
-    <div class="col-md-6 mb-3">
-
-        <div class="card shadow-sm">
-
-            <div class="card-body text-center py-5">
-
-                Tripカード
-
-            </div>
-
-        </div>
+        <a
+            href="{% url 'trip_create' %}"
+            class="btn btn-primary"
+        >
+            ＋ Tripを作成
+        </a>
 
     </div>
 
 
+    <div class="row">
 
-    <div class="col-md-6 mb-3">
+        {% for trip in my_trips %}
 
-        <div class="card shadow-sm">
+            <div class="col-md-6 col-lg-4 mb-4">
 
-            <div class="card-body text-center py-5">
+                <div class="card shadow-sm h-100">
 
-                Tripカード
+
+                    {% if trip.main_media %}
+
+                        <img
+                            src="{{ trip.main_media.url }}"
+                            class="card-img-top"
+                            alt="{{ trip.title }}"
+                            style="
+                                height: 200px;
+                                object-fit: cover;
+                            "
+                        >
+
+                    {% else %}
+
+                        <div
+                            class="card-img-top bg-light d-flex align-items-center justify-content-center text-muted"
+                            style="
+                                height: 200px;
+                            "
+                        >
+                            写真未設定
+                        </div>
+
+                    {% endif %}
+
+
+                    <div class="card-body">
+
+
+                        <h5 class="card-title">
+
+                            {{ trip.title }}
+
+                        </h5>
+
+
+                        <p class="card-text">
+
+                            {{ trip.start_date }}
+                            ～
+                            {{ trip.end_date }}
+
+                        </p>
+
+
+                        <div class="mb-2">
+
+                            {% for country, regions in trip.locations_by_country.items %}
+
+                                <span class="badge bg-secondary">
+
+                                    {{ country }}
+
+                                    {% if regions %}
+                                        /
+                                    {% endif %}
+
+                                    {% for region in regions %}
+
+                                        {{ region }}
+
+                                        {% if not forloop.last %}
+                                            ・
+                                        {% endif %}
+
+                                    {% endfor %}
+
+                                </span>
+
+                            {% empty %}
+
+                                <span class="text-muted">
+                                    訪問先未設定
+                                </span>
+
+                            {% endfor %}
+
+                        </div>
+
+
+                        <p>
+
+                            ステータス：
+
+                            {% if trip.status == "draft" %}
+
+                                <span class="badge bg-secondary">
+                                    作成中
+                                </span>
+
+                            {% elif trip.status == "planned" %}
+
+                                <span class="badge bg-info text-dark">
+                                    出発待ち
+                                </span>
+
+                            {% elif trip.status == "traveling" %}
+
+                                <span class="badge bg-warning text-dark">
+                                    旅中
+                                </span>
+
+                            {% elif trip.status == "completed" %}
+
+                                <span class="badge bg-success">
+                                    旅完了
+                                </span>
+
+                            {% endif %}
+
+                        </p>
+
+
+                        <a
+                            href="{% url 'trip_detail' trip.trip_id %}"
+                            class="btn btn-outline-primary"
+                        >
+                            Tripを見る
+                        </a>
+
+
+                    </div>
+
+                </div>
 
             </div>
 
-        </div>
+        {% empty %}
+
+            <div class="col-12">
+
+                <p>
+                    まだTripがありません。
+                </p>
+
+
+                <a
+                    href="{% url 'trip_create' %}"
+                    class="btn btn-primary"
+                >
+                    最初のTripを作成
+                </a>
+
+            </div>
+
+        {% endfor %}
 
     </div>
 
 
-</div>
+    {% if my_trips %}
+
+        <div class="text-end mb-5">
+
+            <a href="{% url 'trip_list' %}">
+                My Tripをもっと見る
+            </a>
+
+        </div>
+
+    {% endif %}
+
+
+{% else %}
+
+
+    <div class="mb-5">
+
+        <h2>
+            My Trip
+        </h2>
+
+        <p>
+            ログインすると自分のTripを作成・管理できます。
+        </p>
+
+        <a
+            href="{% url 'login' %}"
+            class="btn btn-primary"
+        >
+            ログイン
+        </a>
+
+    </div>
+
+
+{% endif %}
 
 
 
+<hr class="mb-5">
 
-<!-- みんなのTrip -->
-<h2 class="mb-3">
-    みんなのTrip
+
+<h2 class="mb-4">
+    旅完了
 </h2>
 
 
 <div class="row">
 
+    {% for trip in public_trips %}
 
-    <div class="col-md-4 mb-3">
+        <div class="col-md-6 col-lg-4 mb-4">
 
-        <div class="card shadow-sm">
+            <div class="card shadow-sm h-100">
 
-            <div class="card-body text-center py-5">
 
-                Tripカード
+                {% if trip.main_media %}
+
+                    <img
+                        src="{{ trip.main_media.url }}"
+                        class="card-img-top"
+                        alt="{{ trip.title }}"
+                        style="
+                            height: 200px;
+                            object-fit: cover;
+                        "
+                    >
+
+                {% else %}
+
+                    <div
+                        class="card-img-top bg-light d-flex align-items-center justify-content-center text-muted"
+                        style="
+                            height: 200px;
+                        "
+                    >
+                        写真未設定
+                    </div>
+
+                {% endif %}
+
+
+                <div class="card-body">
+
+
+                    <h5 class="card-title">
+
+                        {{ trip.title }}
+
+                    </h5>
+
+
+                    <p class="card-text">
+
+                        {{ trip.start_date }}
+                        ～
+                        {{ trip.end_date }}
+
+                    </p>
+
+
+                    <div class="mb-2">
+
+                        {% for country, regions in trip.locations_by_country.items %}
+
+                            <span class="badge bg-secondary">
+
+                                {{ country }}
+
+                                {% if regions %}
+                                    /
+                                {% endif %}
+
+                                {% for region in regions %}
+
+                                    {{ region }}
+
+                                    {% if not forloop.last %}
+                                        ・
+                                    {% endif %}
+
+                                {% endfor %}
+
+                            </span>
+
+                        {% empty %}
+
+                            <span class="text-muted">
+                                訪問先未設定
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    {% if trip.category %}
+
+                        <p>
+                            カテゴリ：
+                            {{ trip.category }}
+                        </p>
+
+                    {% endif %}
+
+
+                    {% if trip.overview %}
+
+                        <p class="card-text">
+
+                            {{ trip.overview|truncatechars:80 }}
+
+                        </p>
+
+                    {% endif %}
+
+
+                    <span class="badge bg-success">
+                        旅完了
+                    </span>
+
+
+                </div>
 
             </div>
 
         </div>
 
-    </div>
+    {% empty %}
 
+        <div class="col-12">
 
-
-    <div class="col-md-4 mb-3">
-
-        <div class="card shadow-sm">
-
-            <div class="card-body text-center py-5">
-
-                Tripカード
-
-            </div>
+            <p>
+                まだ公開されているTripはありません。
+            </p>
 
         </div>
 
-    </div>
-
-
-
-    <div class="col-md-4 mb-3">
-
-        <div class="card shadow-sm">
-
-            <div class="card-body text-center py-5">
-
-                Tripカード
-
-            </div>
-
-        </div>
-
-    </div>
-
+    {% endfor %}
 
 </div>
 

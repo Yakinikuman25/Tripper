@@ -5,6 +5,7 @@ from .category_models import Category
 
 
 class Trip(models.Model):
+
     STATUS_CHOICES = [
         ("draft", "作成中"),
         ("planned", "出発待ち"),
@@ -54,8 +55,21 @@ class Trip(models.Model):
     total_cost = models.PositiveIntegerField(
         null=True,
         blank=True,
-        verbose_name="合計費用",
+        verbose_name="実際の合計費用",
     )
+
+    # =====================================
+    # 旅行計画用のメモ
+    # =====================================
+
+    memo = models.TextField(
+        blank=True,
+        verbose_name="メモ",
+    )
+
+    # =====================================
+    # 旅完了後の概要・感想
+    # =====================================
 
     overview = models.TextField(
         blank=True,

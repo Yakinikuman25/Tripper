@@ -7,9 +7,62 @@
 {% block main %}
 
 
-<h1>
+{% if trip.main_media %}
+
+    <div class="mb-4">
+
+        <img
+            src="{{ trip.main_media.url }}"
+            alt="{{ trip.title }}"
+            class="img-fluid w-100 rounded"
+            style="
+                max-height: 500px;
+                object-fit: cover;
+            "
+        >
+
+    </div>
+
+{% endif %}
+
+
+{% if trip.overview %}
+
+    <div class="mb-4">
+
+        <h3>
+            旅の感想
+        </h3>
+
+        <p>
+            {{ trip.overview|linebreaksbr }}
+        </p>
+
+    </div>
+
+{% endif %}
+
+
+<h1 class="mb-3">
     {{ trip.title }}
 </h1>
+
+
+{% if trip_hashtags %}
+
+    <div class="mb-3">
+
+        {% for trip_hashtag in trip_hashtags %}
+
+            <span class="badge bg-primary me-1">
+                #{{ trip_hashtag.hashtag.name }}
+            </span>
+
+        {% endfor %}
+
+    </div>
+
+{% endif %}
 
 
 <p>
@@ -67,21 +120,660 @@
 {% endfor %}
 
 
-<div>
 
-    <a href="{% url 'trip_edit' trip.trip_id %}">
-        Tripを編集
-    </a>
+{# ======================================== #}
+{# Tripメモ #}
+{# ======================================== #}
 
-    <a href="{% url 'trip_delete' trip.trip_id %}">
-        Tripを削除
-    </a>
+{% if trip.memo %}
+
+    <div class="mb-4">
+
+        <h3>
+            メモ
+        </h3>
+
+        <p>
+            {{ trip.memo|linebreaksbr }}
+        </p>
+
+    </div>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# Trip全体の編集操作 #}
+{# ======================================== #}
+
+{% if trip.status == "draft" %}
+
+    <div class="mb-4">
+
+        <a href="{% url 'trip_edit' trip.trip_id %}">
+            Tripを編集
+        </a>
+
+        <a href="{% url 'trip_delete' trip.trip_id %}">
+            Tripを削除
+        </a>
+
+    </div>
+
+
+{% else %}
+
+    <div class="mb-4">
+
+        {% if edit_mode %}
+
+            <p>
+                <strong>
+                    Trip全体を編集中です
+                </strong>
+            </p>
+
+
+            <a
+                href="{% url 'trip_detail' trip.trip_id %}"
+                class="btn btn-outline-secondary"
+            >
+                編集を終了
+            </a>
+
+
+            <a
+                href="{% url 'trip_edit' trip.trip_id %}"
+                class="btn btn-outline-primary"
+            >
+                Tripを編集
+            </a>
+
+
+            <a
+                href="{% url 'trip_delete' trip.trip_id %}"
+                class="btn btn-outline-danger"
+            >
+                Tripを削除
+            </a>
+
+
+        {% else %}
+
+            <a
+                href="{% url 'trip_detail' trip.trip_id %}?edit=1"
+                class="btn btn-outline-primary"
+            >
+                Trip全体を編集
+            </a>
+
+        {% endif %}
+
+    </div>
+
+{% endif %}
+
+
+<hr>
+
+
+
+{# ======================================== #}
+{# 費用サマリー #}
+{# ======================================== #}
+
+<h3>
+    旅行費用
+</h3>
+
+
+<div class="mb-4">
+
+    <h4>
+        予定
+    </h4>
+
+
+    <p>
+        Trip共通費用：
+
+        {% if has_trip_planned_cost %}
+
+            {{ trip_planned_cost_total }}円
+
+        {% else %}
+
+            －
+
+        {% endif %}
+    </p>
+
+
+    <p>
+        Day予算合計：
+
+        {% if has_day_budget %}
+
+            {{ day_budget_total }}円
+
+        {% else %}
+
+            －
+
+        {% endif %}
+    </p>
+
+
+    <p>
+        <strong>
+            予定合計：
+
+            {% if has_planned_cost %}
+
+                {{ planned_total }}円
+
+            {% else %}
+
+                －
+
+            {% endif %}
+        </strong>
+    </p>
+
+
+    <h4>
+        実績
+    </h4>
+
+
+    <p>
+        Trip共通費用：
+
+        {% if has_trip_actual_cost %}
+
+            {{ trip_actual_cost_total }}円
+
+        {% else %}
+
+            －
+
+        {% endif %}
+    </p>
+
+
+    {% if show_day_actual %}
+
+        <p>
+            Day実績合計：
+
+            {% if has_day_actual_cost %}
+
+                {{ day_actual_cost_total }}円
+
+            {% else %}
+
+                －
+
+            {% endif %}
+        </p>
+
+    {% endif %}
+
+
+    {% if is_manual_total_cost %}
+
+        <p>
+            参考実績合計：
+
+            {% if has_reference_actual_cost %}
+
+                {{ reference_actual_total }}円
+
+            {% else %}
+
+                －
+
+            {% endif %}
+        </p>
+
+
+        <p>
+            <strong>
+                実際の合計費用：
+                {{ final_actual_total }}円
+            </strong>
+        </p>
+
+
+        <p>
+            手入力したTrip全体の合計費用を使用しています。
+        </p>
+
+
+    {% else %}
+
+        <p>
+            <strong>
+                実績合計：
+
+                {% if has_final_actual_cost %}
+
+                    {{ final_actual_total }}円
+
+                {% else %}
+
+                    －
+
+                {% endif %}
+            </strong>
+        </p>
+
+    {% endif %}
+
+
+    <hr>
+
+
+    <p>
+        予定との差：
+    </p>
+
+
+    {% if has_cost_difference %}
+
+        {% if cost_difference > 0 %}
+
+            <p>
+                <strong>
+                    ＋{{ cost_difference }}円
+                </strong>
+            </p>
+
+            <p>
+                予定より{{ cost_difference }}円多く使っています。
+            </p>
+
+
+        {% elif cost_difference < 0 %}
+
+            <p>
+                <strong>
+                    {{ cost_difference }}円
+                </strong>
+            </p>
+
+            <p>
+                予定より少ない金額になっています。
+            </p>
+
+
+        {% else %}
+
+            <p>
+                <strong>
+                    0円
+                </strong>
+            </p>
+
+            <p>
+                予定と実績が同じです。
+            </p>
+
+        {% endif %}
+
+
+    {% else %}
+
+        <p>
+            －
+        </p>
+
+    {% endif %}
+
 
 </div>
 
 
 <hr>
 
+
+
+{# ======================================== #}
+{# Trip共通費用 #}
+{# ======================================== #}
+
+<h3>
+    Trip共通費用
+</h3>
+
+
+{% if trip_expenses %}
+
+    {% for expense in trip_expenses %}
+
+        <div class="mb-4">
+
+
+            {# ======================================== #}
+            {# この費用が編集可能 #}
+            {# ======================================== #}
+
+            {% if expense.can_edit %}
+
+                <form method="post">
+
+                    {% csrf_token %}
+
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="update_trip_expense"
+                    >
+
+
+                    <input
+                        type="hidden"
+                        name="expense_id"
+                        value="{{ expense.trip_expense_id }}"
+                    >
+
+
+                    <div class="mb-2">
+
+                        <label>
+                            費用名
+                        </label>
+
+                        <input
+                            type="text"
+                            name="name"
+                            value="{{ expense.name }}"
+                            class="form-control"
+                            placeholder="例：航空券、ホテル、ツアー"
+                        >
+
+                    </div>
+
+
+                    <div class="mb-2">
+
+                        <label>
+                            予定金額
+                        </label>
+
+                        <input
+                            type="number"
+                            name="planned_amount"
+                            value="{{ expense.planned_amount|default_if_none:'' }}"
+                            class="form-control"
+                            min="1"
+                        >
+
+                    </div>
+
+
+                    <div class="mb-2">
+
+                        <label>
+                            実際支払額
+                        </label>
+
+                        <input
+                            type="number"
+                            name="actual_amount"
+                            value="{{ expense.actual_amount|default_if_none:'' }}"
+                            class="form-control"
+                            min="1"
+                        >
+
+                        <small class="text-muted">
+                            予定金額が空欄の場合は、
+                            実際支払額と同じ金額が予定金額にも登録されます。
+                        </small>
+
+                    </div>
+
+
+                    <div class="mb-2">
+
+                        <label>
+                            メモ
+                        </label>
+
+                        <textarea
+                            name="memo"
+                            class="form-control"
+                            rows="3"
+                            placeholder="例：予約内容や補足を入力してください"
+                        >{{ expense.memo }}</textarea>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-outline-primary"
+                    >
+                        更新
+                    </button>
+
+                </form>
+
+
+                <form
+                    method="post"
+                    class="mt-2"
+                >
+
+                    {% csrf_token %}
+
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="delete_trip_expense"
+                    >
+
+
+                    <input
+                        type="hidden"
+                        name="expense_id"
+                        value="{{ expense.trip_expense_id }}"
+                    >
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-outline-danger"
+                        onclick="return confirm('この共通費用を削除しますか？');"
+                    >
+                        削除
+                    </button>
+
+                </form>
+
+
+            {# ======================================== #}
+            {# この費用が編集不可 #}
+            {# ======================================== #}
+
+            {% else %}
+
+                <p>
+
+                    <strong>
+
+                        {% if expense.name %}
+
+                            {{ expense.name }}
+
+                        {% else %}
+
+                            共通費用
+
+                        {% endif %}
+
+                    </strong>
+
+                </p>
+
+
+                <p>
+                    予定金額：
+
+                    {% if expense.planned_amount != None %}
+
+                        {{ expense.planned_amount }}円
+
+                    {% else %}
+
+                        －
+
+                    {% endif %}
+                </p>
+
+
+                <p>
+                    実際支払額：
+
+                    {% if expense.actual_amount != None %}
+
+                        {{ expense.actual_amount }}円
+
+                    {% else %}
+
+                        －
+
+                    {% endif %}
+                </p>
+
+
+                {% if expense.memo %}
+
+                    <p>
+                        メモ：
+                        {{ expense.memo|linebreaksbr }}
+                    </p>
+
+                {% endif %}
+
+
+                {% if not edit_mode %}
+
+                    <p class="text-muted">
+                        実際支払額が登録済みです。
+                        変更する場合は「Trip全体を編集」から編集できます。
+                    </p>
+
+                {% endif %}
+
+            {% endif %}
+
+        </div>
+
+        <hr>
+
+    {% endfor %}
+
+
+{% else %}
+
+    <p>
+        Trip共通費用はまだ登録されていません。
+    </p>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# Trip共通費用の新規追加 #}
+{# ======================================== #}
+
+{% if can_add_trip_expense %}
+
+    <h4>
+        共通費用を追加
+    </h4>
+
+
+    <form method="post">
+
+        {% csrf_token %}
+
+
+        <input
+            type="hidden"
+            name="action"
+            value="add_trip_expense"
+        >
+
+
+        <div class="mb-2">
+
+            <label for="{{ trip_expense_form.name.id_for_label }}">
+                費用名
+            </label>
+
+            {{ trip_expense_form.name }}
+
+        </div>
+
+
+        <div class="mb-2">
+
+            <label for="{{ trip_expense_form.planned_amount.id_for_label }}">
+                予定金額
+            </label>
+
+            {{ trip_expense_form.planned_amount }}
+
+        </div>
+
+
+        <div class="mb-2">
+
+            <label for="{{ trip_expense_form.actual_amount.id_for_label }}">
+                実際支払額
+            </label>
+
+            {{ trip_expense_form.actual_amount }}
+
+        </div>
+
+
+        <div class="mb-2">
+
+            <label for="{{ trip_expense_form.memo.id_for_label }}">
+                メモ
+            </label>
+
+            {{ trip_expense_form.memo }}
+
+        </div>
+
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+        >
+            ＋ 共通費用を追加
+        </button>
+
+    </form>
+
+{% endif %}
+
+
+<hr>
+
+
+
+{# ======================================== #}
+{# Tripステータス #}
+{# ======================================== #}
 
 {% if trip.status == "draft" %}
 
@@ -92,14 +784,6 @@
         </strong>
     </p>
 
-    <p>
-        現在、旅行コースを作成中です。
-    </p>
-
-    <p>
-        コースの作成が完了したら、
-        「コース作成完了」を押してください。
-    </p>
 
     <form
         method="post"
@@ -128,15 +812,6 @@
         </strong>
     </p>
 
-    <p>
-        旅行開始前です。
-    </p>
-
-    <p>
-        旅行開始日：
-        {{ trip.start_date }}
-    </p>
-
 
 {% elif trip.status == "traveling" %}
 
@@ -148,33 +823,7 @@
     </p>
 
 
-    {% if today < trip.end_date %}
-
-        <p>
-            現在、旅中です。
-        </p>
-
-
-    {% elif today == trip.end_date %}
-
-        <p>
-            今日は旅行最終日です。
-        </p>
-
-        <a href="{% url 'trip_complete' trip.trip_id %}">
-            旅を完了する
-        </a>
-
-
-    {% else %}
-
-        <p>
-            旅行期間が終了しています。
-        </p>
-
-        <p>
-            旅を完了できます。
-        </p>
+    {% if today >= trip.end_date %}
 
         <a href="{% url 'trip_complete' trip.trip_id %}">
             旅を完了する
@@ -192,64 +841,101 @@
         </strong>
     </p>
 
+
     <p>
-        このTripは旅完了になっています。
+        公開設定：
+
+        {% if trip.is_public %}
+
+            公開
+
+        {% else %}
+
+            非公開
+
+        {% endif %}
+
     </p>
 
 
-    {% if trip.is_public %}
+    {% if edit_mode %}
 
-        <p>
-            公開設定：
-            <strong>
-                公開
-            </strong>
-        </p>
+        <div class="mb-3">
 
-    {% else %}
+            <a
+                href="{% url 'trip_complete' trip.trip_id %}"
+                class="btn btn-outline-primary"
+            >
+                代表写真・感想を編集
+            </a>
 
-        <p>
-            公開設定：
-            <strong>
-                非公開
-            </strong>
-        </p>
-
-    {% endif %}
+        </div>
 
 
-    {% if trip.main_media %}
+        <form
+            method="post"
+            action="{% url 'trip_status_update' trip.trip_id %}"
+            class="mb-3"
+        >
 
-        <div>
+            {% csrf_token %}
 
-            <p>
-                代表写真
-            </p>
+            <button
+                type="submit"
+                name="action"
+                value="reopen_trip"
+                class="btn btn-outline-warning"
+            >
+                旅中に戻す
+            </button>
 
-            <img
-                src="{{ trip.main_media.url }}"
-                alt="{{ trip.title }}"
-                style="max-width: 400px;"
+        </form>
+
+
+        {% if trip.is_public %}
+
+            <form
+                method="post"
+                action="{% url 'trip_public_update' trip.trip_id %}"
             >
 
-        </div>
+                {% csrf_token %}
 
-    {% endif %}
+                <button
+                    type="submit"
+                    name="action"
+                    value="private"
+                >
+                    非公開に変更
+                </button>
+
+            </form>
 
 
-    {% if trip.overview %}
+        {% else %}
 
-        <div>
+            {% if trip.main_media and trip.overview %}
 
-            <h3>
-                旅の感想
-            </h3>
+                <form
+                    method="post"
+                    action="{% url 'trip_public_update' trip.trip_id %}"
+                >
 
-            <p>
-                {{ trip.overview }}
-            </p>
+                    {% csrf_token %}
 
-        </div>
+                    <button
+                        type="submit"
+                        name="action"
+                        value="public"
+                    >
+                        公開に変更
+                    </button>
+
+                </form>
+
+            {% endif %}
+
+        {% endif %}
 
     {% endif %}
 
@@ -259,14 +945,15 @@
 <hr>
 
 
-<h2>
-    Day
-</h2>
 
+{# ======================================== #}
+{# Day一覧 #}
+{# ======================================== #}
 
 {% for day in days %}
 
     <div>
+
 
         <h3>
             Day {{ day.day_order }}
@@ -285,13 +972,8 @@
                 {{ day.title }}
             </h4>
 
-        {% else %}
-
-            <p>
-                まだDayタイトルが登録されていません。
-            </p>
-
         {% endif %}
+
 
 
         <div>
@@ -330,13 +1012,77 @@
         </div>
 
 
-        <div>
+
+        {# ======================================== #}
+        {# Dayメモ #}
+        {# ======================================== #}
+
+        {% if day.memo %}
+
+            <div class="mb-3">
+
+                <p>
+                    <strong>
+                        メモ：
+                    </strong>
+                </p>
+
+                <p>
+                    {{ day.memo|linebreaksbr }}
+                </p>
+
+            </div>
+
+        {% endif %}
+
+
+
+        <p>
+            予算：
+
+            {% if day.budget != None %}
+
+                {{ day.budget }}円
+
+            {% else %}
+
+                －
+
+            {% endif %}
+        </p>
+
+
+        {# ======================================== #}
+        {# 作成完了後だけDay実績を表示 #}
+        {# ======================================== #}
+
+        {% if show_day_actual %}
+
+            <p>
+                実績：
+
+                {% if day.has_actual_cost %}
+
+                    {{ day.adopted_actual_cost }}円
+
+                {% else %}
+
+                    －
+
+                {% endif %}
+            </p>
+
+        {% endif %}
+
+
+
+        {% if trip.status == "draft" or edit_mode %}
 
             <a href="{% url 'day_edit' day.day_id %}">
                 Dayを編集
             </a>
 
-        </div>
+        {% endif %}
 
 
         <hr>
@@ -355,15 +1101,11 @@
 
                     {% if spot.time %}
 
-                        <strong>
-                            {{ spot.time|time:"H:i" }}
-                        </strong>
+                        {{ spot.time|time:"H:i" }}
 
                     {% else %}
 
-                        <strong>
-                            時間未定
-                        </strong>
+                        時間未定
 
                     {% endif %}
 
@@ -375,8 +1117,6 @@
                 {% if spot.url %}
 
                     <p>
-                        URL：
-
                         <a
                             href="{{ spot.url }}"
                             target="_blank"
@@ -392,14 +1132,13 @@
                 {% if spot.memo %}
 
                     <p>
-                        メモ：
                         {{ spot.memo }}
                     </p>
 
                 {% endif %}
 
 
-                <div>
+                {% if trip.status == "draft" or edit_mode %}
 
                     <a href="{% url 'spot_edit' spot.spot_id %}">
                         Spotを編集
@@ -409,12 +1148,9 @@
                         Spotを削除
                     </a>
 
-                </div>
+                {% endif %}
 
             </div>
-
-
-            <br>
 
         {% empty %}
 
@@ -425,16 +1161,742 @@
         {% endfor %}
 
 
-        <div>
 
-            <a href="{% url 'spot_create' day.day_id %}">
-                ＋ Spotを追加
-            </a>
+        {% if trip.status == "draft" or edit_mode %}
 
-        </div>
+            <p>
+                <a href="{% url 'spot_create' day.day_id %}">
+                    ＋ Spotを追加
+                </a>
+            </p>
+
+        {% endif %}
 
 
-        {% if day.can_edit_record %}
+
+        {# ======================================== #}
+        {# 旅中 #}
+        {# ======================================== #}
+
+        {% if trip.status == "traveling" %}
+
+
+            {% if day.date <= today %}
+
+                <hr>
+
+
+                <h4>
+                    旅の記録
+                </h4>
+
+
+                {% if day.media or day.content or day.actual_cost != None %}
+
+
+                    {% if edit_mode %}
+
+
+                        {% if day.media %}
+
+                            <p>
+                                現在の写真
+                            </p>
+
+                            <img
+                                src="{{ day.media.url }}"
+                                alt="{{ day.title }}"
+                                class="img-fluid rounded"
+                                style="
+                                    max-width: 500px;
+                                    max-height: 400px;
+                                    object-fit: cover;
+                                "
+                            >
+
+                        {% endif %}
+
+
+                        <form
+                            method="post"
+                            action="{% url 'day_record_edit' day.day_id %}"
+                            enctype="multipart/form-data"
+                        >
+
+                            {% csrf_token %}
+
+
+                            <input
+                                type="hidden"
+                                name="edit_mode"
+                                value="1"
+                            >
+
+
+                            <div class="mb-3">
+
+                                <label>
+                                    写真
+                                </label>
+
+                                {{ day.record_form.media }}
+
+                            </div>
+
+
+                            <div class="mb-3">
+
+                                <label>
+                                    感想
+                                </label>
+
+                                {{ day.record_form.content }}
+
+                            </div>
+
+
+                            <div class="mb-3">
+
+                                <label>
+                                    実際の合計費用
+                                </label>
+
+                                {{ day.record_form.actual_cost }}
+
+                                {% if day.actual_cost == None and day.has_day_expense %}
+
+                                    <p class="text-muted">
+                                        現在は費用明細の合計
+                                        {{ day.day_expense_total }}円
+                                        をDayの実績として使用しています。
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+
+                            <button
+                                type="submit"
+                                class="btn btn-primary"
+                            >
+                                旅の記録を更新
+                            </button>
+
+                        </form>
+
+
+                        <hr>
+
+
+                        <h5>
+                            費用明細
+                        </h5>
+
+
+                        {% for expense in day.day_expenses.all %}
+
+                            <form
+                                method="post"
+                                action="{% url 'day_record_edit' day.day_id %}"
+                                class="mb-2"
+                            >
+
+                                {% csrf_token %}
+
+
+                                <input
+                                    type="hidden"
+                                    name="edit_mode"
+                                    value="1"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="update_day_expense"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="expense_id"
+                                    value="{{ expense.day_expense_id }}"
+                                >
+
+
+                                <div class="mb-2">
+
+                                    <label>
+                                        何に使ったか
+                                    </label>
+
+                                    <input
+                                        type="text"
+                                        name="name"
+                                        value="{{ expense.name }}"
+                                        class="form-control"
+                                    >
+
+                                </div>
+
+
+                                <div class="mb-2">
+
+                                    <label>
+                                        金額
+                                    </label>
+
+                                    <input
+                                        type="number"
+                                        name="amount"
+                                        value="{{ expense.amount|default_if_none:'' }}"
+                                        class="form-control"
+                                        min="1"
+                                    >
+
+                                </div>
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-primary"
+                                >
+                                    更新
+                                </button>
+
+                            </form>
+
+
+                            <form
+                                method="post"
+                                action="{% url 'day_record_edit' day.day_id %}"
+                                class="mb-3"
+                            >
+
+                                {% csrf_token %}
+
+
+                                <input
+                                    type="hidden"
+                                    name="edit_mode"
+                                    value="1"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="delete_day_expense"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="expense_id"
+                                    value="{{ expense.day_expense_id }}"
+                                >
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-danger"
+                                    onclick="return confirm('この費用を削除しますか？');"
+                                >
+                                    削除
+                                </button>
+
+                            </form>
+
+
+                        {% empty %}
+
+                            <p>
+                                費用明細はまだ登録されていません。
+                            </p>
+
+                        {% endfor %}
+
+
+                        <p>
+                            参考合計金額：
+
+                            {% if day.has_day_expense %}
+
+                                {{ day.day_expense_total }}円
+
+                            {% else %}
+
+                                －
+
+                            {% endif %}
+                        </p>
+
+
+                        <h5>
+                            費用を追加
+                        </h5>
+
+
+                        <form
+                            method="post"
+                            action="{% url 'day_record_edit' day.day_id %}"
+                        >
+
+                            {% csrf_token %}
+
+
+                            <input
+                                type="hidden"
+                                name="edit_mode"
+                                value="1"
+                            >
+
+
+                            <input
+                                type="hidden"
+                                name="action"
+                                value="add_day_expense"
+                            >
+
+
+                            <div class="mb-2">
+
+                                <label>
+                                    何に使ったか
+                                </label>
+
+                                <input
+                                    type="text"
+                                    name="name"
+                                    class="form-control"
+                                    placeholder="例：昼食、電車、入場料"
+                                >
+
+                            </div>
+
+
+                            <div class="mb-2">
+
+                                <label>
+                                    金額
+                                </label>
+
+                                <input
+                                    type="number"
+                                    name="amount"
+                                    class="form-control"
+                                    min="1"
+                                    placeholder="例：1200"
+                                >
+
+                            </div>
+
+
+                            <button
+                                type="submit"
+                                class="btn btn-outline-primary"
+                            >
+                                ＋ 費用を追加
+                            </button>
+
+                        </form>
+
+
+                    {% else %}
+
+
+                        {% if day.media %}
+
+                            <img
+                                src="{{ day.media.url }}"
+                                alt="{{ day.title }}"
+                                class="img-fluid rounded"
+                                style="
+                                    max-width: 500px;
+                                    max-height: 400px;
+                                    object-fit: cover;
+                                "
+                            >
+
+                        {% endif %}
+
+
+                        {% if day.content %}
+
+                            <p>
+                                {{ day.content|linebreaksbr }}
+                            </p>
+
+                        {% endif %}
+
+
+                        <p>
+                            実際の合計費用：
+
+                            {% if day.has_actual_cost %}
+
+                                <strong>
+                                    {{ day.adopted_actual_cost }}円
+                                </strong>
+
+                            {% else %}
+
+                                －
+
+                            {% endif %}
+                        </p>
+
+
+                        {% if day.actual_cost == None and day.has_day_expense %}
+
+                            <p class="text-muted">
+                                費用明細の参考合計金額を使用しています。
+                            </p>
+
+                        {% endif %}
+
+
+                        <hr>
+
+
+                        <h5>
+                            費用明細
+                        </h5>
+
+
+                        {% for expense in day.day_expenses.all %}
+
+                            <p>
+
+                                {% if expense.name %}
+
+                                    {{ expense.name }}
+
+                                {% else %}
+
+                                    費用
+
+                                {% endif %}
+
+                                ：
+
+                                {{ expense.amount }}円
+
+                            </p>
+
+                        {% empty %}
+
+                            <p>
+                                費用明細はまだ登録されていません。
+                            </p>
+
+                        {% endfor %}
+
+
+                        <p>
+                            参考合計金額：
+
+                            {% if day.has_day_expense %}
+
+                                {{ day.day_expense_total }}円
+
+                            {% else %}
+
+                                －
+
+                            {% endif %}
+                        </p>
+
+
+                    {% endif %}
+
+
+
+                {% else %}
+
+
+                    <form
+                        method="post"
+                        action="{% url 'day_record_edit' day.day_id %}"
+                        enctype="multipart/form-data"
+                    >
+
+                        {% csrf_token %}
+
+
+                        {% if edit_mode %}
+
+                            <input
+                                type="hidden"
+                                name="edit_mode"
+                                value="1"
+                            >
+
+                        {% endif %}
+
+
+                        <div class="mb-3">
+
+                            <label>
+                                写真
+                            </label>
+
+                            {{ day.record_form.media }}
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label>
+                                感想
+                            </label>
+
+                            {{ day.record_form.content }}
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label>
+                                実際の合計費用
+                            </label>
+
+                            {{ day.record_form.actual_cost }}
+
+
+                            {% if day.has_day_expense %}
+
+                                <p class="text-muted">
+                                    入力しない場合は、
+                                    費用明細の参考合計金額
+                                    {{ day.day_expense_total }}円
+                                    を実際の合計費用として使用します。
+                                </p>
+
+                            {% else %}
+
+                                <p class="text-muted">
+                                    入力しない場合は、
+                                    費用明細を登録するとその合計金額を
+                                    実際の合計費用として使用します。
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            旅の記録を保存
+                        </button>
+
+                    </form>
+
+
+                    <hr>
+
+
+                    <h5>
+                        費用明細
+                    </h5>
+
+
+                    {% for expense in day.day_expenses.all %}
+
+                        <div class="mb-3">
+
+                            <p>
+
+                                {% if expense.name %}
+
+                                    {{ expense.name }}
+
+                                {% else %}
+
+                                    費用
+
+                                {% endif %}
+
+                                ：
+
+                                {{ expense.amount }}円
+
+                            </p>
+
+
+                            <form
+                                method="post"
+                                action="{% url 'day_record_edit' day.day_id %}"
+                            >
+
+                                {% csrf_token %}
+
+
+                                {% if edit_mode %}
+
+                                    <input
+                                        type="hidden"
+                                        name="edit_mode"
+                                        value="1"
+                                    >
+
+                                {% endif %}
+
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="delete_day_expense"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="expense_id"
+                                    value="{{ expense.day_expense_id }}"
+                                >
+
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-danger"
+                                    onclick="return confirm('この費用を削除しますか？');"
+                                >
+                                    削除
+                                </button>
+
+                            </form>
+
+                        </div>
+
+
+                    {% empty %}
+
+                        <p>
+                            費用明細はまだ登録されていません。
+                        </p>
+
+                    {% endfor %}
+
+
+                    <p>
+                        参考合計金額：
+
+                        {% if day.has_day_expense %}
+
+                            {{ day.day_expense_total }}円
+
+                        {% else %}
+
+                            －
+
+                        {% endif %}
+                    </p>
+
+
+                    <h5>
+                        費用を追加
+                    </h5>
+
+
+                    <form
+                        method="post"
+                        action="{% url 'day_record_edit' day.day_id %}"
+                    >
+
+                        {% csrf_token %}
+
+
+                        {% if edit_mode %}
+
+                            <input
+                                type="hidden"
+                                name="edit_mode"
+                                value="1"
+                            >
+
+                        {% endif %}
+
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="add_day_expense"
+                        >
+
+
+                        <div class="mb-2">
+
+                            <label>
+                                何に使ったか
+                            </label>
+
+                            <input
+                                type="text"
+                                name="name"
+                                class="form-control"
+                                placeholder="例：昼食、電車、入場料"
+                            >
+
+                        </div>
+
+
+                        <div class="mb-2">
+
+                            <label>
+                                金額
+                            </label>
+
+                            <input
+                                type="number"
+                                name="amount"
+                                class="form-control"
+                                min="1"
+                                placeholder="例：1200"
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-primary"
+                        >
+                            ＋ 費用を追加
+                        </button>
+
+                    </form>
+
+
+                {% endif %}
+
+
+            {% else %}
+
+                <hr>
+
+                <p>
+                    この日の写真・感想・実際費用は当日以降に登録できます。
+                </p>
+
+            {% endif %}
+
+        {% endif %}
+
+
+
+        {# ======================================== #}
+        {# 旅完了 #}
+        {# ======================================== #}
+
+        {% if trip.status == "completed" %}
 
             <hr>
 
@@ -444,112 +1906,547 @@
             </h4>
 
 
-            {% if day.media %}
-
-                <div>
-
-                    <p>
-                        現在の写真
-                    </p>
-
-                    <img
-                        src="{{ day.media.url }}"
-                        alt="{{ day.title }}"
-                        style="max-width: 300px;"
-                    >
-
-                </div>
-
-            {% endif %}
+            {% if edit_mode %}
 
 
-            <form
-                method="post"
-                action="{% url 'day_record_edit' day.day_id %}"
-                enctype="multipart/form-data"
-            >
-
-                {% csrf_token %}
+                {% if day.media or day.content or day.actual_cost != None %}
 
 
-                {% if day.record_form.non_field_errors %}
-
-                    {% for error in day.record_form.non_field_errors %}
+                    {% if day.media %}
 
                         <p>
-                            {{ error }}
+                            現在の写真
                         </p>
 
-                    {% endfor %}
+                        <img
+                            src="{{ day.media.url }}"
+                            alt="{{ day.title }}"
+                            class="img-fluid rounded"
+                            style="
+                                max-width: 500px;
+                                max-height: 400px;
+                                object-fit: cover;
+                            "
+                        >
+
+                    {% endif %}
+
+
+                    <form
+                        method="post"
+                        action="{% url 'day_record_edit' day.day_id %}"
+                        enctype="multipart/form-data"
+                    >
+
+                        {% csrf_token %}
+
+
+                        <input
+                            type="hidden"
+                            name="edit_mode"
+                            value="1"
+                        >
+
+
+                        <div class="mb-3">
+
+                            <label>
+                                写真
+                            </label>
+
+                            {{ day.record_form.media }}
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label>
+                                感想
+                            </label>
+
+                            {{ day.record_form.content }}
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label>
+                                実際の合計費用
+                            </label>
+
+                            {{ day.record_form.actual_cost }}
+
+
+                            {% if day.actual_cost == None and day.has_day_expense %}
+
+                                <p class="text-muted">
+                                    現在は費用明細の合計
+                                    {{ day.day_expense_total }}円
+                                    をDayの実績として使用しています。
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            旅の記録を更新
+                        </button>
+
+                    </form>
+
+
+                {% else %}
+
+
+                    <form
+                        method="post"
+                        action="{% url 'day_record_edit' day.day_id %}"
+                        enctype="multipart/form-data"
+                    >
+
+                        {% csrf_token %}
+
+
+                        <input
+                            type="hidden"
+                            name="edit_mode"
+                            value="1"
+                        >
+
+
+                        <div class="mb-3">
+
+                            <label>
+                                写真
+                            </label>
+
+                            {{ day.record_form.media }}
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label>
+                                感想
+                            </label>
+
+                            {{ day.record_form.content }}
+
+                        </div>
+
+
+                        <div class="mb-3">
+
+                            <label>
+                                実際の合計費用
+                            </label>
+
+                            {{ day.record_form.actual_cost }}
+
+
+                            {% if day.has_day_expense %}
+
+                                <p class="text-muted">
+                                    入力しない場合は、
+                                    費用明細の参考合計金額
+                                    {{ day.day_expense_total }}円
+                                    を実際の合計費用として使用します。
+                                </p>
+
+                            {% endif %}
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            旅の記録を保存
+                        </button>
+
+                    </form>
+
 
                 {% endif %}
 
 
-                <div>
 
-                    <label for="{{ day.record_form.media.id_for_label }}">
-                        写真
-                    </label>
+                <hr>
 
-                    {{ day.record_form.media }}
 
-                    {% for error in day.record_form.media.errors %}
+                <h5>
+                    費用明細
+                </h5>
+
+
+                {% for expense in day.day_expenses.all %}
+
+                    <form
+                        method="post"
+                        action="{% url 'day_record_edit' day.day_id %}"
+                        class="mb-2"
+                    >
+
+                        {% csrf_token %}
+
+
+                        <input
+                            type="hidden"
+                            name="edit_mode"
+                            value="1"
+                        >
+
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="update_day_expense"
+                        >
+
+
+                        <input
+                            type="hidden"
+                            name="expense_id"
+                            value="{{ expense.day_expense_id }}"
+                        >
+
+
+                        <div class="mb-2">
+
+                            <label>
+                                何に使ったか
+                            </label>
+
+                            <input
+                                type="text"
+                                name="name"
+                                value="{{ expense.name }}"
+                                class="form-control"
+                            >
+
+                        </div>
+
+
+                        <div class="mb-2">
+
+                            <label>
+                                金額
+                            </label>
+
+                            <input
+                                type="number"
+                                name="amount"
+                                value="{{ expense.amount|default_if_none:'' }}"
+                                class="form-control"
+                                min="1"
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-primary"
+                        >
+                            更新
+                        </button>
+
+                    </form>
+
+
+                    <form
+                        method="post"
+                        action="{% url 'day_record_edit' day.day_id %}"
+                        class="mb-3"
+                    >
+
+                        {% csrf_token %}
+
+
+                        <input
+                            type="hidden"
+                            name="edit_mode"
+                            value="1"
+                        >
+
+
+                        <input
+                            type="hidden"
+                            name="action"
+                            value="delete_day_expense"
+                        >
+
+
+                        <input
+                            type="hidden"
+                            name="expense_id"
+                            value="{{ expense.day_expense_id }}"
+                        >
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-danger"
+                            onclick="return confirm('この費用を削除しますか？');"
+                        >
+                            削除
+                        </button>
+
+                    </form>
+
+
+                {% empty %}
+
+                    <p>
+                        費用明細はまだ登録されていません。
+                    </p>
+
+                {% endfor %}
+
+
+                <p>
+                    参考合計金額：
+
+                    {% if day.has_day_expense %}
+
+                        {{ day.day_expense_total }}円
+
+                    {% else %}
+
+                        －
+
+                    {% endif %}
+                </p>
+
+
+                <h5>
+                    費用を追加
+                </h5>
+
+
+                <form
+                    method="post"
+                    action="{% url 'day_record_edit' day.day_id %}"
+                >
+
+                    {% csrf_token %}
+
+
+                    <input
+                        type="hidden"
+                        name="edit_mode"
+                        value="1"
+                    >
+
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="add_day_expense"
+                    >
+
+
+                    <div class="mb-2">
+
+                        <label>
+                            何に使ったか
+                        </label>
+
+                        <input
+                            type="text"
+                            name="name"
+                            class="form-control"
+                            placeholder="例：昼食、電車、入場料"
+                        >
+
+                    </div>
+
+
+                    <div class="mb-2">
+
+                        <label>
+                            金額
+                        </label>
+
+                        <input
+                            type="number"
+                            name="amount"
+                            class="form-control"
+                            min="1"
+                            placeholder="例：1200"
+                        >
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-outline-primary"
+                    >
+                        ＋ 費用を追加
+                    </button>
+
+                </form>
+
+
+
+            {% else %}
+
+
+                {% if day.media or day.content or day.actual_cost != None %}
+
+
+                    {% if day.media %}
+
+                        <img
+                            src="{{ day.media.url }}"
+                            alt="{{ day.title }}"
+                            class="img-fluid rounded"
+                            style="
+                                max-width: 500px;
+                                max-height: 400px;
+                                object-fit: cover;
+                            "
+                        >
+
+                    {% endif %}
+
+
+                    {% if day.content %}
 
                         <p>
-                            {{ error }}
+                            {{ day.content|linebreaksbr }}
                         </p>
 
-                    {% endfor %}
-
-                </div>
+                    {% endif %}
 
 
-                <br>
+                    <p>
+                        実際の合計費用：
+
+                        {% if day.has_actual_cost %}
+
+                            <strong>
+                                {{ day.adopted_actual_cost }}円
+                            </strong>
+
+                        {% else %}
+
+                            －
+
+                        {% endif %}
+                    </p>
 
 
-                <div>
+                    {% if day.actual_cost == None and day.has_day_expense %}
 
-                    <label for="{{ day.record_form.content.id_for_label }}">
-                        感想
-                    </label>
-
-                    {{ day.record_form.content }}
-
-                    {% for error in day.record_form.content.errors %}
-
-                        <p>
-                            {{ error }}
+                        <p class="text-muted">
+                            費用明細の参考合計金額を使用しています。
                         </p>
 
-                    {% endfor %}
-
-                </div>
+                    {% endif %}
 
 
-                <br>
+                {% else %}
+
+                    <p>
+                        旅の記録はまだ登録されていません。
+                    </p>
+
+                    <p>
+                        登録する場合は「Trip全体を編集」から登録できます。
+                    </p>
+
+                {% endif %}
 
 
-                <button type="submit">
-                    旅の記録を保存
-                </button>
 
-            </form>
+                <hr>
 
 
-        {% elif trip.status == "traveling" and day.date > today %}
+                <h5>
+                    費用明細
+                </h5>
 
-            <hr>
 
-            <p>
-                この日の写真・感想は当日以降に登録できます。
-            </p>
+                {% for expense in day.day_expenses.all %}
+
+                    <p>
+
+                        {% if expense.name %}
+
+                            {{ expense.name }}
+
+                        {% else %}
+
+                            費用
+
+                        {% endif %}
+
+                        ：
+
+                        {{ expense.amount }}円
+
+                    </p>
+
+                {% empty %}
+
+                    <p>
+                        費用明細はまだ登録されていません。
+                    </p>
+
+                {% endfor %}
+
+
+                <p>
+                    参考合計金額：
+
+                    {% if day.has_day_expense %}
+
+                        {{ day.day_expense_total }}円
+
+                    {% else %}
+
+                        －
+
+                    {% endif %}
+                </p>
+
+
+                <p>
+                    Dayの実績：
+
+                    {% if day.has_actual_cost %}
+
+                        {{ day.adopted_actual_cost }}円
+
+                    {% else %}
+
+                        －
+
+                    {% endif %}
+                </p>
+
+
+            {% endif %}
 
         {% endif %}
+
 
     </div>
 
 
     <hr>
+
 
 {% empty %}
 
