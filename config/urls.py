@@ -29,6 +29,7 @@ from base.views.home_views import HomeView
 
 from base.views.trip_views import (
     TripListView,
+    PublicTripListView,
     TripCreateView,
     TripDetailView,
     TripUpdateView,
@@ -42,6 +43,8 @@ from base.views.trip_views import (
 from base.views.day_views import (
     DayUpdateView,
     DayRecordUpdateView,
+    DayMoveView,
+    DayResetView
 )
 
 from base.views.spot_views import (
@@ -144,6 +147,13 @@ urlpatterns = [
         name="trip_list"
     ),
 
+    # 公開Trip一覧
+    path(
+        "public/",
+        PublicTripListView.as_view(),
+        name="public_trip",
+    ),
+
     # Trip作成
     path(
         "trips/create/",
@@ -212,6 +222,20 @@ urlpatterns = [
         "days/<int:pk>/edit/",
         DayUpdateView.as_view(),
         name="day_edit",
+    ),
+
+    # Dayリセット
+    path(
+    "days/<int:pk>/reset/",
+    DayResetView.as_view(),
+    name="day_reset",
+    ),
+
+    # Day入れ替え
+    path(
+        "days/<int:pk>/move/",
+        DayMoveView.as_view(),
+        name="day_move",
     ),
 
     # Day旅の記録編集

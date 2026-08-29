@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
 {% block title %}
-Spot編集 | Tripper
+スケジュール編集 | Tripper
 {% endblock %}
 
 {% block main %}
 
 
 <h1>
-    Spot編集
+    スケジュール編集
 </h1>
 
 
@@ -32,7 +32,7 @@ Spot編集 | Tripper
 
         {% for error in form.non_field_errors %}
 
-            <p>
+            <p class="text-danger">
                 {{ error }}
             </p>
 
@@ -41,17 +41,24 @@ Spot編集 | Tripper
     {% endif %}
 
 
-    <div>
+    {# ======================================== #}
+    {# 開始時間 #}
+    {# ======================================== #}
 
-        <label for="{{ form.time.id_for_label }}">
-            時間
+    <div class="mb-3">
+
+        <label
+            for="{{ form.start_time.id_for_label }}"
+            class="form-label"
+        >
+            開始時間
         </label>
 
-        {{ form.time }}
+        {{ form.start_time }}
 
-        {% for error in form.time.errors %}
+        {% for error in form.start_time.errors %}
 
-            <p>
+            <p class="text-danger mb-0">
                 {{ error }}
             </p>
 
@@ -60,20 +67,55 @@ Spot編集 | Tripper
     </div>
 
 
-    <br>
+    {# ======================================== #}
+    {# 終了時間 #}
+    {# ======================================== #}
+
+    <div class="mb-3">
+
+        <label
+            for="{{ form.end_time.id_for_label }}"
+            class="form-label"
+        >
+            終了時間
+        </label>
+
+        {{ form.end_time }}
+
+        {% for error in form.end_time.errors %}
+
+            <p class="text-danger mb-0">
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+        <p class="text-muted small mt-1 mb-0">
+            終了時間は任意です。
+            開始時間だけ入力することもできます。
+        </p>
+
+    </div>
 
 
-    <div>
+    {# ======================================== #}
+    {# スケジュール名 #}
+    {# ======================================== #}
 
-        <label for="{{ form.name.id_for_label }}">
-            場所名
+    <div class="mb-3">
+
+        <label
+            for="{{ form.name.id_for_label }}"
+            class="form-label"
+        >
+            スケジュール名
         </label>
 
         {{ form.name }}
 
         {% for error in form.name.errors %}
 
-            <p>
+            <p class="text-danger mb-0">
                 {{ error }}
             </p>
 
@@ -82,34 +124,16 @@ Spot編集 | Tripper
     </div>
 
 
-    <br>
+    {# ======================================== #}
+    {# メモ #}
+    {# ======================================== #}
 
+    <div class="mb-4">
 
-    <div>
-
-        <label for="{{ form.url.id_for_label }}">
-            URL
-        </label>
-
-        {{ form.url }}
-
-        {% for error in form.url.errors %}
-
-            <p>
-                {{ error }}
-            </p>
-
-        {% endfor %}
-
-    </div>
-
-
-    <br>
-
-
-    <div>
-
-        <label for="{{ form.memo.id_for_label }}">
+        <label
+            for="{{ form.memo.id_for_label }}"
+            class="form-label"
+        >
             メモ
         </label>
 
@@ -117,7 +141,7 @@ Spot編集 | Tripper
 
         {% for error in form.memo.errors %}
 
-            <p>
+            <p class="text-danger mb-0">
                 {{ error }}
             </p>
 
@@ -126,10 +150,242 @@ Spot編集 | Tripper
     </div>
 
 
-    <br>
+    {# ======================================== #}
+    {# 参考URL #}
+    {# SpotReferenceUrl FormSet #}
+    {# ======================================== #}
+
+    <div class="mb-4">
+
+        {# ==================================== #}
+        {# FormSetでは必須 #}
+        {# ==================================== #}
+
+        {{ reference_url_formset.management_form }}
 
 
-    <button type="submit">
+        {% if reference_url_formset.non_form_errors %}
+
+            {% for error in reference_url_formset.non_form_errors %}
+
+                <p class="text-danger">
+                    {{ error }}
+                </p>
+
+            {% endfor %}
+
+        {% endif %}
+
+
+        {# ==================================== #}
+        {# 既存・追加済み参考URLフォーム #}
+        {# ==================================== #}
+
+        <div id="reference-url-forms">
+
+            {% for url_form in reference_url_formset %}
+
+                <div
+                    class="reference-url-form mb-3"
+                >
+
+                    {# ------------------------- #}
+                    {# hiddenフィールド #}
+                    {# ------------------------- #}
+
+                    {% for hidden in url_form.hidden_fields %}
+
+                        {{ hidden }}
+
+                    {% endfor %}
+
+
+                    {# ------------------------- #}
+                    {# 参考URL名 #}
+                    {# ------------------------- #}
+
+                    <div class="mb-2">
+
+                        <label
+                            for="{{ url_form.title.id_for_label }}"
+                            class="form-label"
+                        >
+                            参考URL名
+                        </label>
+
+                        {{ url_form.title }}
+
+                        {% for error in url_form.title.errors %}
+
+                            <p class="text-danger mb-0">
+                                {{ error }}
+                            </p>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    {# ------------------------- #}
+                    {# URL #}
+                    {# ------------------------- #}
+
+                    <div class="mb-2">
+
+                        <label
+                            for="{{ url_form.url.id_for_label }}"
+                            class="form-label"
+                        >
+                            URL
+                        </label>
+
+                        {{ url_form.url }}
+
+                        {% for error in url_form.url.errors %}
+
+                            <p class="text-danger mb-0">
+                                {{ error }}
+                            </p>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                    {# ------------------------- #}
+                    {# FormSet削除フィールド #}
+                    {# ------------------------- #}
+
+                    <div
+                        class="delete-field"
+                        style="display: none;"
+                    >
+
+                        {{ url_form.DELETE }}
+
+                    </div>
+
+
+                    <div class="d-flex gap-2">
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm register-reference-url"
+                        >
+                            {% if url_form.instance.pk %}
+                                登録済み
+                            {% else %}
+                                登録
+                            {% endif %}
+                        </button>
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-danger btn-sm remove-reference-url"
+                        >
+                            削除
+                        </button>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        </div>
+
+
+        {# ==================================== #}
+        {# JavaScript追加用の空フォーム #}
+        {# ==================================== #}
+
+        <template id="empty-reference-url-form">
+
+            <div
+                class="reference-url-form mb-3"
+            >
+
+                {% for hidden in reference_url_formset.empty_form.hidden_fields %}
+
+                    {{ hidden }}
+
+                {% endfor %}
+
+
+                <div class="mb-2">
+
+                    <label class="form-label">
+                        参考URL名
+                    </label>
+
+                    {{ reference_url_formset.empty_form.title }}
+
+                </div>
+
+
+                <div class="mb-2">
+
+                    <label class="form-label">
+                        URL
+                    </label>
+
+                    {{ reference_url_formset.empty_form.url }}
+
+                </div>
+
+
+                <div
+                    class="delete-field"
+                    style="display: none;"
+                >
+
+                    {{ reference_url_formset.empty_form.DELETE }}
+
+                </div>
+
+
+                <div class="d-flex gap-2">
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary btn-sm register-reference-url"
+                    >
+                        登録
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-danger btn-sm remove-reference-url"
+                    >
+                        削除
+                    </button>
+
+                </div>
+
+            </div>
+
+        </template>
+
+
+        <button
+            type="button"
+            id="add-reference-url"
+            class="btn btn-outline-primary"
+        >
+            ＋ 参考URL
+        </button>
+
+    </div>
+
+
+    {# ======================================== #}
+    {# 保存 #}
+    {# ======================================== #}
+
+    <button
+        type="submit"
+        class="btn btn-primary"
+    >
         保存
     </button>
 
@@ -137,22 +393,247 @@ Spot編集 | Tripper
 </form>
 
 
-<hr>
-
+{# ======================================== #}
+{# 戻る #}
+{# ======================================== #}
 
 {% if trip.status == "draft" %}
 
-    <a href="{% url 'trip_detail' trip.trip_id %}">
-        Trip詳細に戻る
+    <a
+        href="{% url 'trip_detail' trip.trip_id %}#day-{{ day.day_id }}"
+        class="btn btn-outline-secondary mt-3"
+    >
+        戻る
     </a>
 
 {% else %}
 
-    <a href="{% url 'trip_detail' trip.trip_id %}?edit=1">
-        Trip編集画面に戻る
+    <a
+        href="{% url 'trip_detail' trip.trip_id %}?edit=1#day-{{ day.day_id }}"
+        class="btn btn-outline-secondary mt-3"
+    >
+        戻る
     </a>
 
 {% endif %}
+
+
+{# ======================================== #}
+{# 参考URL追加・登録・削除 JavaScript #}
+{# ======================================== #}
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+            const formContainer =
+                document.getElementById(
+                    "reference-url-forms"
+                );
+
+            const addButton =
+                document.getElementById(
+                    "add-reference-url"
+                );
+
+            const emptyFormTemplate =
+                document.getElementById(
+                    "empty-reference-url-form"
+                );
+
+            const totalFormsInput =
+                document.getElementById(
+                    "id_reference_urls-TOTAL_FORMS"
+                );
+
+
+            // =====================================
+            // 参考URLを追加
+            // =====================================
+
+            addButton.addEventListener(
+                "click",
+                function () {
+
+                    const formIndex =
+                        parseInt(
+                            totalFormsInput.value
+                        );
+
+
+                    const newFormHtml =
+                        emptyFormTemplate
+                        .innerHTML
+                        .replace(
+                            /__prefix__/g,
+                            formIndex
+                        );
+
+
+                    formContainer.insertAdjacentHTML(
+                        "beforeend",
+                        newFormHtml
+                    );
+
+
+                    totalFormsInput.value =
+                        formIndex + 1;
+                }
+            );
+
+
+            // =====================================
+            // 参考URLの登録・削除
+            // =====================================
+
+            formContainer.addEventListener(
+                "click",
+                function (event) {
+
+                    const formElement =
+                        event.target.closest(
+                            ".reference-url-form"
+                        );
+
+
+                    if (!formElement) {
+
+                        return;
+                    }
+
+
+                    // =================================
+                    // 参考URLを登録状態にする
+                    // =================================
+
+                    if (
+                        event.target.classList.contains(
+                            "register-reference-url"
+                        )
+                    ) {
+
+                        const urlInput =
+                            formElement.querySelector(
+                                'input[name$="-url"]'
+                            );
+
+
+                        if (
+                            !urlInput
+                            || !urlInput.value.trim()
+                        ) {
+
+                            alert(
+                                "URLを入力してください。"
+                            );
+
+                            return;
+                        }
+
+
+                        // -------------------------
+                        // 「登録」を押しても入力欄は
+                        // 編集可能なままにする
+                        //
+                        // DBへの保存は最後の
+                        // 「保存」で行う
+                        // -------------------------
+
+                        event.target.textContent =
+                            "登録済み";
+
+                        return;
+                    }
+
+
+                    // =================================
+                    // 参考URLを削除
+                    // =================================
+
+                    if (
+                        !event.target.classList.contains(
+                            "remove-reference-url"
+                        )
+                    ) {
+
+                        return;
+                    }
+
+
+                    const deleteInput =
+                        formElement.querySelector(
+                            'input[name$="-DELETE"]'
+                        );
+
+
+                    if (deleteInput) {
+
+                        deleteInput.checked =
+                            true;
+                    }
+
+
+                    formElement.style.display =
+                        "none";
+                }
+            );
+
+
+            // =====================================
+            // 登録後に内容を変更した場合
+            // 表示を「登録」に戻す
+            // =====================================
+
+            formContainer.addEventListener(
+                "input",
+                function (event) {
+
+                    if (
+                        !event.target.matches(
+                            'input[name$="-title"], input[name$="-url"]'
+                        )
+                    ) {
+
+                        return;
+                    }
+
+
+                    const formElement =
+                        event.target.closest(
+                            ".reference-url-form"
+                        );
+
+
+                    if (!formElement) {
+
+                        return;
+                    }
+
+
+                    const registerButton =
+                        formElement.querySelector(
+                            ".register-reference-url"
+                        );
+
+
+                    if (
+                        registerButton
+                        && registerButton.textContent.trim()
+                        === "登録済み"
+                    ) {
+
+                        registerButton.textContent =
+                            "登録";
+                    }
+                }
+            );
+
+        }
+    );
+
+</script>
 
 
 {% endblock %}

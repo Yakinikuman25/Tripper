@@ -7,6 +7,10 @@ from base.models import (
     Spot,
     TripExpense,
     DayExpense,
+    TripReferenceUrl,
+    DayReferenceUrl,
+    SpotReferenceUrl,
+    TripExpenseReferenceUrl,
 )
 
 
@@ -80,16 +84,60 @@ class EmailUpdateForm(forms.ModelForm):
 
 class TripForm(forms.ModelForm):
 
-    hashtags = forms.CharField(
+    # =========================================
+    # ハッシュタグ
+    #
+    # 4つの入力欄を最初から表示する
+    # すべて任意入力
+    # 「#」はテンプレート側で表示する
+    # =========================================
+
+    hashtag_1 = forms.CharField(
         required=False,
-        label="ハッシュタグ",
+        label="ハッシュタグ1",
+        max_length=50,
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "#一人旅 #海外旅行 #バックパッカー",
+                "placeholder": "例：一人旅",
             }
         ),
-        help_text="複数入力する場合はスペースで区切ってください。",
+    )
+
+    hashtag_2 = forms.CharField(
+        required=False,
+        label="ハッシュタグ2",
+        max_length=50,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "例：海外旅行",
+            }
+        ),
+    )
+
+    hashtag_3 = forms.CharField(
+        required=False,
+        label="ハッシュタグ3",
+        max_length=50,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "例：バックパッカー",
+            }
+        ),
+    )
+
+    hashtag_4 = forms.CharField(
+        required=False,
+        label="ハッシュタグ4",
+        max_length=50,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "例：自然",
+            }
+        ),
     )
 
     class Meta:
@@ -131,14 +179,22 @@ class TripForm(forms.ModelForm):
                 attrs={
                     "type": "date",
                     "class": "form-control",
-                }
+                    "onkeydown": "return false;",
+                    "onpaste": "return false;",
+                    "ondrop": "return false;",
+                },
+                format="%Y-%m-%d",
             ),
 
             "end_date": forms.DateInput(
                 attrs={
                     "type": "date",
                     "class": "form-control",
-                }
+                    "onkeydown": "return false;",
+                    "onpaste": "return false;",
+                    "ondrop": "return false;",
+                },
+                format="%Y-%m-%d",
             ),
 
             "memo": forms.Textarea(
@@ -154,53 +210,102 @@ class TripForm(forms.ModelForm):
 
         super().__init__(*args, **kwargs)
 
+        self.fields["start_date"].input_formats = [
+            "%Y-%m-%d",
+        ]
+
+        self.fields["end_date"].input_formats = [
+            "%Y-%m-%d",
+        ]
+
         if self.instance and self.instance.pk:
 
             hashtag_names = []
 
-            for trip_hashtag in self.instance.trip_hashtags.select_related(
-                "hashtag"
-            ).all():
+            for trip_hashtag in (
+                self.instance
+                .trip_hashtags
+                .select_related("hashtag")
+                .all()
+            ):
 
                 hashtag_names.append(
-                    f"#{trip_hashtag.hashtag.name}"
+                    trip_hashtag.hashtag.name
                 )
 
-            self.fields["hashtags"].initial = " ".join(
-                hashtag_names
+            hashtag_field_names = (
+                "hashtag_1",
+                "hashtag_2",
+                "hashtag_3",
+                "hashtag_4",
             )
 
-    def clean_hashtags(self):
+            for index, field_name in enumerate(
+                hashtag_field_names
+            ):
 
-        hashtags = self.cleaned_data.get(
-            "hashtags",
-            ""
+                if index < len(hashtag_names):
+
+                    self.fields[
+                        field_name
+                    ].initial = hashtag_names[index]
+
+    def clean(self):
+
+        cleaned_data = super().clean()
+
+        # =================================
+        # ハッシュタグ
+        # =================================
+
+        hashtag_field_names = (
+            "hashtag_1",
+            "hashtag_2",
+            "hashtag_3",
+            "hashtag_4",
         )
-
-        hashtags = hashtags.strip()
-
-        if not hashtags:
-
-            return ""
-
-        hashtag_list = hashtags.split()
 
         cleaned_hashtags = []
 
-        for hashtag in hashtag_list:
+        for field_name in hashtag_field_names:
 
-            hashtag = hashtag.lstrip("#")
-            hashtag = hashtag.strip()
+            hashtag = (
+                cleaned_data.get(
+                    field_name,
+                    ""
+                )
+                or ""
+            ).strip()
+
+            # 「#」を入力してしまっても
+            # DBには#を付けずに保存する
+            hashtag = hashtag.lstrip("#").strip()
 
             if not hashtag:
+
+                cleaned_data[field_name] = ""
+                continue
+
+            if any(
+                character.isspace()
+                for character in hashtag
+            ):
+
+                self.add_error(
+                    field_name,
+                    "1つの入力欄にはハッシュタグを1つだけ入力してください。"
+                )
 
                 continue
 
             if len(hashtag) > 50:
 
-                raise forms.ValidationError(
+                self.add_error(
+                    field_name,
                     "ハッシュタグは1つ50文字以内で入力してください。"
                 )
+
+                continue
 
             if hashtag not in cleaned_hashtags:
 
@@ -208,11 +313,16 @@ class TripForm(forms.ModelForm):
                     hashtag
                 )
 
-        return cleaned_hashtags
+            cleaned_data[field_name] = hashtag
 
-    def clean(self):
+        # 既存のTrip保存処理との互換性を保つ
+        cleaned_data[
+            "hashtags"
+        ] = cleaned_hashtags
 
-        cleaned_data = super().clean()
+        # =================================
+        # 旅行期間
+        # =================================
 
         start_date = cleaned_data.get(
             "start_date"
@@ -222,11 +332,11 @@ class TripForm(forms.ModelForm):
             "end_date"
         )
 
-        if not start_date or not end_date:
-
-            return cleaned_data
-
-        if end_date < start_date:
+        if (
+            start_date
+            and end_date
+            and end_date < start_date
+        ):
 
             self.add_error(
                 "end_date",
@@ -403,41 +513,75 @@ class TripCompleteForm(forms.ModelForm):
         return cleaned_data
 
 
-# Spot作成・編集フォーム
+# =========================================
+# 参考URL共通フォームMixin
+# =========================================
 
-class SpotForm(forms.ModelForm):
+class ReferenceUrlFormMixin:
+
+    def clean(self):
+
+        cleaned_data = super().clean()
+
+        title = (
+            cleaned_data.get(
+                "title",
+                ""
+            )
+            or ""
+        ).strip()
+
+        url = (
+            cleaned_data.get(
+                "url",
+                ""
+            )
+            or ""
+        ).strip()
+
+        cleaned_data["title"] = title
+        cleaned_data["url"] = url
+
+        # URL名だけ入力してURLが空欄の場合はエラー
+        if title and not url:
+
+            self.add_error(
+                "url",
+                "参考URLを入力してください。"
+            )
+
+        return cleaned_data
+
+
+# =========================================
+# Trip参考URLフォーム
+# =========================================
+
+class TripReferenceUrlForm(
+    ReferenceUrlFormMixin,
+    forms.ModelForm,
+):
 
     class Meta:
 
-        model = Spot
+        model = TripReferenceUrl
 
         fields = (
-            "time",
-            "name",
+            "title",
             "url",
-            "memo",
         )
 
         labels = {
-            "time": "時間",
-            "name": "場所名",
+            "title": "参考URL名",
             "url": "URL",
-            "memo": "メモ",
         }
 
         widgets = {
 
-            "time": forms.TimeInput(
-                attrs={
-                    "type": "time",
-                    "class": "form-control",
-                }
-            ),
-
-            "name": forms.TextInput(
+            "title": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "placeholder": "場所名を入力してください",
+                    "placeholder": "例：航空会社、旅行情報、公式サイト",
                 }
             ),
 
@@ -447,18 +591,266 @@ class SpotForm(forms.ModelForm):
                     "placeholder": "https://example.com",
                 }
             ),
+        }
 
-            "memo": forms.Textarea(
+
+TripReferenceUrlFormSet = forms.inlineformset_factory(
+    Trip,
+    TripReferenceUrl,
+    form=TripReferenceUrlForm,
+    extra=1,
+    can_delete=True,
+)
+
+
+# =========================================
+# Day参考URLフォーム
+# =========================================
+
+class DayReferenceUrlForm(
+    ReferenceUrlFormMixin,
+    forms.ModelForm,
+):
+
+    class Meta:
+
+        model = DayReferenceUrl
+
+        fields = (
+            "title",
+            "url",
+        )
+
+        labels = {
+            "title": "参考URL名",
+            "url": "URL",
+        }
+
+        widgets = {
+
+            "title": forms.TextInput(
                 attrs={
                     "class": "form-control",
-                    "rows": 4,
-                    "placeholder": "メモを入力してください",
+                    "placeholder": "例：モデルコース、観光情報、公式サイト",
+                }
+            ),
+
+            "url": forms.URLInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "https://example.com",
                 }
             ),
         }
 
 
-# Trip共通費用作成・編集フォーム
+DayReferenceUrlFormSet = forms.inlineformset_factory(
+    Day,
+    DayReferenceUrl,
+    form=DayReferenceUrlForm,
+    extra=1,
+    can_delete=True,
+)
+
+
+# =========================================
+# スケジュール作成・編集フォーム
+#
+# 現在はモデル名がSpotのままなので
+# SpotFormというクラス名を維持する
+# =========================================
+
+class SpotForm(forms.ModelForm):
+
+    class Meta:
+
+        model = Spot
+
+        fields = (
+            "start_time",
+            "end_time",
+            "name",
+            "memo",
+        )
+
+        labels = {
+            "start_time": "開始時間",
+            "end_time": "終了時間",
+            "name": "スケジュール名",
+            "memo": "メモ",
+        }
+
+        widgets = {
+
+            "start_time": forms.TimeInput(
+                attrs={
+                    "type": "time",
+                    "class": "form-control",
+                },
+                format="%H:%M",
+            ),
+
+            "end_time": forms.TimeInput(
+                attrs={
+                    "type": "time",
+                    "class": "form-control",
+                },
+                format="%H:%M",
+            ),
+
+            "name": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "例：ホテル出発、中央市場、空港へ移動",
+                }
+            ),
+
+            "memo": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 4,
+                    "placeholder": "予定や補足を入力してください",
+                }
+            ),
+        }
+
+    def clean(self):
+
+        cleaned_data = super().clean()
+
+        start_time = cleaned_data.get(
+            "start_time"
+        )
+
+        end_time = cleaned_data.get(
+            "end_time"
+        )
+
+        if (
+            start_time is None
+            and end_time is not None
+        ):
+
+            self.add_error(
+                "start_time",
+                "終了時間を入力する場合は開始時間も入力してください。"
+            )
+
+        if (
+            start_time is not None
+            and end_time is not None
+            and end_time < start_time
+        ):
+
+            self.add_error(
+                "end_time",
+                "終了時間は開始時間以降にしてください。"
+            )
+
+        return cleaned_data
+
+
+# =========================================
+# スケジュール参考URLフォーム
+# =========================================
+
+class SpotReferenceUrlForm(
+    ReferenceUrlFormMixin,
+    forms.ModelForm,
+):
+
+    class Meta:
+
+        model = SpotReferenceUrl
+
+        fields = (
+            "title",
+            "url",
+        )
+
+        labels = {
+            "title": "参考URL名",
+            "url": "URL",
+        }
+
+        widgets = {
+
+            "title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "例：Googleマップ、公式サイト、予約ページ",
+                }
+            ),
+
+            "url": forms.URLInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "https://example.com",
+                }
+            ),
+        }
+
+
+SpotReferenceUrlFormSet = forms.inlineformset_factory(
+    Spot,
+    SpotReferenceUrl,
+    form=SpotReferenceUrlForm,
+    extra=1,
+    can_delete=True,
+)
+
+
+# =========================================
+# 全体費用参考URLフォーム
+# =========================================
+
+class TripExpenseReferenceUrlForm(
+    ReferenceUrlFormMixin,
+    forms.ModelForm,
+):
+
+    class Meta:
+
+        model = TripExpenseReferenceUrl
+
+        fields = (
+            "title",
+            "url",
+        )
+
+        labels = {
+            "title": "参考URL名",
+            "url": "URL",
+        }
+
+        widgets = {
+
+            "title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "例：予約ページ、料金表、公式サイト",
+                }
+            ),
+
+            "url": forms.URLInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "https://example.com",
+                }
+            ),
+        }
+
+
+TripExpenseReferenceUrlFormSet = forms.inlineformset_factory(
+    TripExpense,
+    TripExpenseReferenceUrl,
+    form=TripExpenseReferenceUrlForm,
+    extra=1,
+    can_delete=True,
+)
+
+
+# 全体費用作成・編集フォーム
 
 class TripExpenseForm(forms.ModelForm):
 
@@ -545,7 +937,9 @@ class TripExpenseForm(forms.ModelForm):
         return cleaned_data
 
 
+# =========================================
 # Day費用作成・編集フォーム
+# =========================================
 
 class DayExpenseForm(forms.ModelForm):
 
@@ -580,3 +974,54 @@ class DayExpenseForm(forms.ModelForm):
                 }
             ),
         }
+
+    def clean(self):
+
+        cleaned_data = super().clean()
+
+        name = (
+            cleaned_data.get(
+                "name",
+                ""
+            )
+            or ""
+        ).strip()
+
+        amount = cleaned_data.get(
+            "amount"
+        )
+
+        cleaned_data["name"] = name
+
+        # 費用名だけ入力され、
+        # 金額が空欄の場合は保存しない
+        if (
+            name
+            and amount is None
+        ):
+
+            self.add_error(
+                "amount",
+                "費用を登録する場合は金額を入力してください。"
+            )
+
+        return cleaned_data
+
+
+# =========================================
+# Day費用 FormSet
+#
+# 旅の記録フォームの中で
+# 複数の費用明細をまとめて編集する
+#
+# 「＋ 費用を追加」ではDB保存せず、
+# 最後の「保存」で旅の記録と一括保存する
+# =========================================
+
+DayExpenseFormSet = forms.inlineformset_factory(
+    Day,
+    DayExpense,
+    form=DayExpenseForm,
+    extra=1,
+    can_delete=True,
+)

@@ -45,6 +45,27 @@
     {% csrf_token %}
 
 
+    {% if form.non_field_errors %}
+
+        <div class="mb-3">
+
+            {% for error in form.non_field_errors %}
+
+                <p class="text-danger">
+                    {{ error }}
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+
+
+    {# ======================================== #}
+    {# Tripタイトル #}
+    {# ======================================== #}
 
     <div class="mb-3">
 
@@ -62,11 +83,9 @@
 
         {% for error in form.title.errors %}
 
-
             <p class="text-danger">
                 {{ error }}
             </p>
-
 
         {% endfor %}
 
@@ -74,6 +93,10 @@
     </div>
 
 
+
+    {# ======================================== #}
+    {# カテゴリ #}
+    {# ======================================== #}
 
     <div class="mb-3">
 
@@ -91,11 +114,9 @@
 
         {% for error in form.category.errors %}
 
-
             <p class="text-danger">
                 {{ error }}
             </p>
-
 
         {% endfor %}
 
@@ -103,6 +124,10 @@
     </div>
 
 
+
+    {# ======================================== #}
+    {# 旅行開始日 #}
+    {# ======================================== #}
 
     <div class="mb-3">
 
@@ -120,18 +145,25 @@
 
         {% for error in form.start_date.errors %}
 
-
             <p class="text-danger">
                 {{ error }}
             </p>
 
-
         {% endfor %}
+
+
+        <div class="form-text">
+            カレンダーから日付を選択してください。
+        </div>
 
 
     </div>
 
 
+
+    {# ======================================== #}
+    {# 旅行終了日 #}
+    {# ======================================== #}
 
     <div class="mb-3">
 
@@ -149,20 +181,27 @@
 
         {% for error in form.end_date.errors %}
 
-
             <p class="text-danger">
                 {{ error }}
             </p>
 
-
         {% endfor %}
+
+
+        <div class="form-text">
+            カレンダーから日付を選択してください。
+        </div>
 
 
     </div>
 
 
 
-    <div class="mb-3">
+    {# ======================================== #}
+    {# メモ #}
+    {# ======================================== #}
+
+    <div class="mb-4">
 
 
         <label
@@ -183,11 +222,9 @@
 
         {% for error in form.memo.errors %}
 
-
             <p class="text-danger">
                 {{ error }}
             </p>
-
 
         {% endfor %}
 
@@ -196,58 +233,281 @@
 
 
 
-    <div class="mb-3">
+    {# ======================================== #}
+    {# ハッシュタグ #}
+    {# ======================================== #}
+
+    <div class="mb-4">
 
 
-        <label
-            for="{{ form.hashtags.id_for_label }}"
-            class="form-label"
-        >
+        <label class="form-label">
             ハッシュタグ
         </label>
 
 
-        {{ form.hashtags }}
+        <p class="text-muted small">
+            最大4つまで登録できます。
+            入力しない欄があっても、そのまま保存できます。
+            「#」は入力する必要はありません。
+        </p>
 
 
-        {% if form.hashtags.help_text %}
+        <div class="row g-2">
 
 
-            <div class="form-text">
-                {{ form.hashtags.help_text }}
+            <div class="col-12 col-sm-6 col-lg-3">
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        #
+                    </span>
+
+                    {{ form.hashtag_1 }}
+
+                </div>
+
+
+                {% for error in form.hashtag_1.errors %}
+
+                    <p class="text-danger mb-0 mt-1">
+                        {{ error }}
+                    </p>
+
+                {% endfor %}
+
             </div>
 
 
-        {% endif %}
+            <div class="col-12 col-sm-6 col-lg-3">
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        #
+                    </span>
+
+                    {{ form.hashtag_2 }}
+
+                </div>
 
 
-        {% for error in form.hashtags.errors %}
+                {% for error in form.hashtag_2.errors %}
+
+                    <p class="text-danger mb-0 mt-1">
+                        {{ error }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
 
 
-            <p class="text-danger">
-                {{ error }}
-            </p>
+            <div class="col-12 col-sm-6 col-lg-3">
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        #
+                    </span>
+
+                    {{ form.hashtag_3 }}
+
+                </div>
 
 
-        {% endfor %}
+                {% for error in form.hashtag_3.errors %}
+
+                    <p class="text-danger mb-0 mt-1">
+                        {{ error }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+
+            <div class="col-12 col-sm-6 col-lg-3">
+
+                <div class="input-group">
+
+                    <span class="input-group-text">
+                        #
+                    </span>
+
+                    {{ form.hashtag_4 }}
+
+                </div>
+
+
+                {% for error in form.hashtag_4.errors %}
+
+                    <p class="text-danger mb-0 mt-1">
+                        {{ error }}
+                    </p>
+
+                {% endfor %}
+
+            </div>
+
+
+        </div>
 
 
     </div>
 
 
 
-    {% if form.non_field_errors %}
+    {# ======================================== #}
+    {# Trip参考URL #}
+    {# ======================================== #}
+
+    <div class="mb-4">
 
 
-        <div class="mb-3">
+        {# FormSetで必須 #}
+
+        {{ reference_url_formset.management_form }}
 
 
-            {% for error in form.non_field_errors %}
+        {% if reference_url_formset.non_form_errors %}
 
+            {% for error in reference_url_formset.non_form_errors %}
 
                 <p class="text-danger">
                     {{ error }}
                 </p>
+
+            {% endfor %}
+
+        {% endif %}
+
+
+
+        {# ==================================== #}
+        {# 現在表示されている参考URL #}
+        {# ==================================== #}
+
+        <div id="reference-url-forms">
+
+
+            {% for url_form in reference_url_formset %}
+
+
+                <div
+                    class="reference-url-form mb-3"
+                >
+
+
+                    {% for hidden in url_form.hidden_fields %}
+
+                        {{ hidden }}
+
+                    {% endfor %}
+
+
+                    {% if url_form.non_field_errors %}
+
+                        {% for error in url_form.non_field_errors %}
+
+                            <p class="text-danger">
+                                {{ error }}
+                            </p>
+
+                        {% endfor %}
+
+                    {% endif %}
+
+
+                    <div class="mb-2">
+
+
+                        <label
+                            for="{{ url_form.title.id_for_label }}"
+                            class="form-label"
+                        >
+                            参考URL名
+                        </label>
+
+
+                        {{ url_form.title }}
+
+
+                        {% for error in url_form.title.errors %}
+
+                            <p class="text-danger mb-0">
+                                {{ error }}
+                            </p>
+
+                        {% endfor %}
+
+
+                    </div>
+
+
+                    <div class="mb-2">
+
+
+                        <label
+                            for="{{ url_form.url.id_for_label }}"
+                            class="form-label"
+                        >
+                            URL
+                        </label>
+
+
+                        {{ url_form.url }}
+
+
+                        {% for error in url_form.url.errors %}
+
+                            <p class="text-danger mb-0">
+                                {{ error }}
+                            </p>
+
+                        {% endfor %}
+
+
+                    </div>
+
+
+                    <div
+                        class="delete-field"
+                        style="display: none;"
+                    >
+
+                        {{ url_form.DELETE }}
+
+                    </div>
+
+
+                    <div class="d-flex gap-2">
+
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-primary btn-sm register-reference-url"
+                        >
+                            {% if url_form.instance.pk %}
+                                登録済み
+                            {% else %}
+                                登録
+                            {% endif %}
+                        </button>
+
+
+                        <button
+                            type="button"
+                            class="btn btn-outline-danger btn-sm remove-reference-url"
+                        >
+                            削除
+                        </button>
+
+
+                    </div>
+
+
+                </div>
 
 
             {% endfor %}
@@ -256,9 +516,109 @@
         </div>
 
 
-    {% endif %}
+
+        {# ==================================== #}
+        {# JavaScript追加用の空フォーム #}
+        {# ==================================== #}
+
+        <template id="empty-reference-url-form">
 
 
+            <div
+                class="reference-url-form mb-3"
+            >
+
+
+                {% for hidden in reference_url_formset.empty_form.hidden_fields %}
+
+                    {{ hidden }}
+
+                {% endfor %}
+
+
+                <div class="mb-2">
+
+
+                    <label class="form-label">
+                        参考URL名
+                    </label>
+
+
+                    {{ reference_url_formset.empty_form.title }}
+
+
+                </div>
+
+
+                <div class="mb-2">
+
+
+                    <label class="form-label">
+                        URL
+                    </label>
+
+
+                    {{ reference_url_formset.empty_form.url }}
+
+
+                </div>
+
+
+                <div
+                    class="delete-field"
+                    style="display: none;"
+                >
+
+                    {{ reference_url_formset.empty_form.DELETE }}
+
+                </div>
+
+
+                <div class="d-flex gap-2">
+
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-primary btn-sm register-reference-url"
+                    >
+                        登録
+                    </button>
+
+
+                    <button
+                        type="button"
+                        class="btn btn-outline-danger btn-sm remove-reference-url"
+                    >
+                        削除
+                    </button>
+
+
+                </div>
+
+
+            </div>
+
+
+        </template>
+
+
+
+        <button
+            type="button"
+            id="add-reference-url"
+            class="btn btn-outline-primary"
+        >
+            ＋ 参考URL
+        </button>
+
+
+    </div>
+
+
+
+    {# ======================================== #}
+    {# Trip保存 #}
+    {# ======================================== #}
 
     <div class="d-flex gap-2">
 
@@ -281,7 +641,7 @@
                 type="submit"
                 class="btn btn-primary"
             >
-                Tripを作成
+                作成
             </button>
 
 
@@ -336,6 +696,308 @@
 
 
 </form>
+
+
+
+{# ======================================== #}
+{# 参考URL・カレンダー JavaScript #}
+{# ======================================== #}
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+
+            // =====================================
+            // カレンダー
+            // =====================================
+
+            const dateInputs = [
+                document.getElementById(
+                    "{{ form.start_date.id_for_label }}"
+                ),
+                document.getElementById(
+                    "{{ form.end_date.id_for_label }}"
+                ),
+            ];
+
+
+            dateInputs.forEach(
+                function (dateInput) {
+
+                    if (!dateInput) {
+
+                        return;
+                    }
+
+
+                    dateInput.addEventListener(
+                        "click",
+                        function () {
+
+                            if (
+                                typeof dateInput.showPicker
+                                === "function"
+                            ) {
+
+                                try {
+
+                                    dateInput.showPicker();
+
+                                } catch (error) {
+
+                                    // ブラウザ標準の
+                                    // date input表示に任せる
+                                }
+                            }
+                        }
+                    );
+
+                }
+            );
+
+
+
+            // =====================================
+            // 参考URL
+            // =====================================
+
+            const formContainer =
+                document.getElementById(
+                    "reference-url-forms"
+                );
+
+            const addButton =
+                document.getElementById(
+                    "add-reference-url"
+                );
+
+            const emptyFormTemplate =
+                document.getElementById(
+                    "empty-reference-url-form"
+                );
+
+            const totalFormsInput =
+                document.getElementById(
+                    "id_reference_urls-TOTAL_FORMS"
+                );
+
+
+            if (
+                !formContainer
+                || !addButton
+                || !emptyFormTemplate
+                || !totalFormsInput
+            ) {
+
+                return;
+            }
+
+
+
+            // =====================================
+            // 参考URLを追加
+            // =====================================
+
+            addButton.addEventListener(
+                "click",
+                function () {
+
+
+                    const formIndex =
+                        parseInt(
+                            totalFormsInput.value
+                        );
+
+
+                    const newFormHtml =
+                        emptyFormTemplate
+                        .innerHTML
+                        .replace(
+                            /__prefix__/g,
+                            formIndex
+                        );
+
+
+                    formContainer.insertAdjacentHTML(
+                        "beforeend",
+                        newFormHtml
+                    );
+
+
+                    totalFormsInput.value =
+                        formIndex + 1;
+
+
+                }
+            );
+
+
+
+            // =====================================
+            // 参考URLの登録・削除
+            // =====================================
+
+            formContainer.addEventListener(
+                "click",
+                function (event) {
+
+
+                    const formElement =
+                        event.target.closest(
+                            ".reference-url-form"
+                        );
+
+
+                    if (!formElement) {
+
+                        return;
+                    }
+
+
+
+                    // =================================
+                    // 登録
+                    //
+                    // 「登録済み」にしても
+                    // 入力欄は編集可能なまま
+                    // =================================
+
+                    if (
+                        event.target.classList.contains(
+                            "register-reference-url"
+                        )
+                    ) {
+
+
+                        const urlInput =
+                            formElement.querySelector(
+                                'input[name$="-url"]'
+                            );
+
+
+                        if (
+                            !urlInput
+                            || !urlInput.value.trim()
+                        ) {
+
+                            alert(
+                                "URLを入力してください。"
+                            );
+
+                            return;
+                        }
+
+
+                        event.target.textContent =
+                            "登録済み";
+
+
+                        return;
+
+
+                    }
+
+
+
+                    // =================================
+                    // 削除
+                    // =================================
+
+                    if (
+                        event.target.classList.contains(
+                            "remove-reference-url"
+                        )
+                    ) {
+
+
+                        const deleteInput =
+                            formElement.querySelector(
+                                'input[name$="-DELETE"]'
+                            );
+
+
+                        if (deleteInput) {
+
+                            deleteInput.checked =
+                                true;
+                        }
+
+
+                        formElement.style.display =
+                            "none";
+
+
+                    }
+
+
+                }
+            );
+
+
+
+            // =====================================
+            // 登録後に内容を編集した場合
+            //
+            // もう一度「登録」を押せるように
+            // 表示だけ戻す
+            // =====================================
+
+            formContainer.addEventListener(
+                "input",
+                function (event) {
+
+
+                    if (
+                        !event.target.matches(
+                            'input[name$="-title"], input[name$="-url"]'
+                        )
+                    ) {
+
+                        return;
+                    }
+
+
+                    const formElement =
+                        event.target.closest(
+                            ".reference-url-form"
+                        );
+
+
+                    if (!formElement) {
+
+                        return;
+                    }
+
+
+                    const registerButton =
+                        formElement.querySelector(
+                            ".register-reference-url"
+                        );
+
+
+                    if (
+                        registerButton
+                        && registerButton.textContent.trim()
+                        === "登録済み"
+                    ) {
+
+                        registerButton.textContent =
+                            "登録";
+
+                    }
+
+
+                }
+            );
+
+
+        }
+    );
+
+</script>
 
 
 

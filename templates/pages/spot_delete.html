@@ -1,76 +1,146 @@
 {% extends "base.html" %}
 
 {% block title %}
-Spot削除 | Tripper
+スケジュール削除 | Tripper
 {% endblock %}
 
 {% block main %}
 
 
 <h1>
-    Spot削除
+    スケジュール削除
 </h1>
 
 
 <p>
-    以下のSpotを削除してもよろしいですか？
+    以下のスケジュールを削除してもよろしいですか？
 </p>
 
 
-<div>
+<div class="mb-4">
+
+
+    {# ======================================== #}
+    {# 時間 #}
+    {# ======================================== #}
 
     <p>
 
-        {% if object.time %}
+        <strong>
 
-            <strong>
-                {{ object.time|time:"H:i" }}
-            </strong>
+            {% if object.start_time %}
 
-        {% else %}
+                {{ object.start_time|time:"H:i" }}
 
-            <strong>
+                {% if object.end_time %}
+
+                    〜{{ object.end_time|time:"H:i" }}
+
+                {% endif %}
+
+            {% else %}
+
                 時間未定
-            </strong>
 
-        {% endif %}
+            {% endif %}
 
-        {{ object.name }}
+        </strong>
 
     </p>
 
 
-    {% if object.url %}
+    {# ======================================== #}
+    {# スケジュール名 #}
+    {# ======================================== #}
 
-        <p>
-            URL：
+    <p>
 
-            <a
-                href="{{ object.url }}"
-                target="_blank"
-                rel="noopener noreferrer"
-            >
-                {{ object.url }}
-            </a>
-        </p>
+        <strong>
+            {{ object.name }}
+        </strong>
+
+    </p>
+
+
+    {# ======================================== #}
+    {# 参考URL #}
+    {# ======================================== #}
+
+    {% if object.reference_urls.all %}
+
+        <div class="mb-3">
+
+            <p class="mb-1">
+
+                <strong>
+                    参考URL：
+                </strong>
+
+            </p>
+
+
+            {% for reference_url in object.reference_urls.all %}
+
+                <p class="mb-1">
+
+                    {% if reference_url.title %}
+
+                        {{ reference_url.title }}：
+
+                    {% endif %}
+
+
+                    <a
+                        href="{{ reference_url.url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {{ reference_url.url }}
+                    </a>
+
+                </p>
+
+            {% endfor %}
+
+        </div>
 
     {% endif %}
 
+
+    {# ======================================== #}
+    {# メモ #}
+    {# ======================================== #}
 
     {% if object.memo %}
 
-        <p>
-            メモ：
-            {{ object.memo }}
-        </p>
+        <div class="mb-3">
+
+            <p class="mb-1">
+
+                <strong>
+                    メモ：
+                </strong>
+
+            </p>
+
+            <p>
+                {{ object.memo|linebreaksbr }}
+            </p>
+
+        </div>
 
     {% endif %}
+
 
 </div>
 
 
 <hr>
 
+
+{# ======================================== #}
+{# 削除 #}
+{# ======================================== #}
 
 <form method="post">
 
@@ -79,6 +149,7 @@ Spot削除 | Tripper
     <button
         type="submit"
         class="btn btn-danger"
+        onclick="return confirm('このスケジュールを削除しますか？');"
     >
         削除する
     </button>
@@ -89,15 +160,23 @@ Spot削除 | Tripper
 <hr>
 
 
+{# ======================================== #}
+{# 戻る #}
+{# ======================================== #}
+
 {% if trip.status == "draft" %}
 
-    <a href="{% url 'trip_detail' trip.trip_id %}">
+    <a
+        href="{% url 'trip_detail' trip.trip_id %}#day-{{ day.day_id }}"
+    >
         Trip詳細に戻る
     </a>
 
 {% else %}
 
-    <a href="{% url 'trip_detail' trip.trip_id %}?edit=1">
+    <a
+        href="{% url 'trip_detail' trip.trip_id %}?edit=1#day-{{ day.day_id }}"
+    >
         Trip編集画面に戻る
     </a>
 

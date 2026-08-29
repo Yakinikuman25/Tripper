@@ -16,27 +16,51 @@ class Spot(models.Model):
         verbose_name="Day",
     )
 
-    time = models.TimeField(
+    # =====================================
+    # 開始時間
+    # =====================================
+
+    start_time = models.TimeField(
         null=True,
         blank=True,
-        verbose_name="時間",
+        verbose_name="開始時間",
     )
+
+    # =====================================
+    # 終了時間
+    # =====================================
+
+    end_time = models.TimeField(
+        null=True,
+        blank=True,
+        verbose_name="終了時間",
+    )
+
+    # =====================================
+    # スケジュール名
+    # =====================================
 
     name = models.CharField(
         max_length=100,
-        verbose_name="場所名",
+        verbose_name="スケジュール名",
     )
 
-    url = models.URLField(
-        max_length=255,
-        blank=True,
-        verbose_name="URL",
-    )
+    # =====================================
+    # メモ
+    # =====================================
 
     memo = models.TextField(
         blank=True,
         verbose_name="メモ",
     )
+
+    # =====================================
+    # 表示順
+    #
+    # 現在は内部名をspot_orderのまま使用
+    # Spot → Scheduleへの完全改名時に
+    # schedule_orderへ変更する
+    # =====================================
 
     spot_order = models.IntegerField(
         default=0,
@@ -47,9 +71,9 @@ class Spot(models.Model):
 
         db_table = "spots"
 
-        verbose_name = "Spot"
+        verbose_name = "スケジュール"
 
-        verbose_name_plural = "Spot"
+        verbose_name_plural = "スケジュール"
 
         ordering = [
             "spot_order",
@@ -57,4 +81,7 @@ class Spot(models.Model):
 
     def __str__(self):
 
-        return f"{self.day} - {self.name}"
+        return (
+            f"{self.day} - "
+            f"{self.name}"
+        )

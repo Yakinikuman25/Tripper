@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.db.models import F, Max
+from django.db.models import F, Max, Q
 from django.shortcuts import (
     get_object_or_404,
     redirect,
@@ -23,8 +23,11 @@ from base.models import (
     Trip,
     Day,
     Hashtag,
+    TripReferenceUrl,
     TripHashtag,
     TripExpense,
+    TripExpenseReferenceUrl,
+    Category,
 )
 
 from base.forms import (
@@ -32,6 +35,8 @@ from base.forms import (
     TripCompleteForm,
     DayRecordForm,
     TripExpenseForm,
+    TripReferenceUrlFormSet,
+    TripExpenseReferenceUrlFormSet,
 )
 
 
@@ -82,9 +87,9 @@ def sync_trip_days(trip):
     # ここまで来る時点では削除してよいDayなので削除
     outside_days.delete()
 
-    # Dayから使われなくなったLocationを削除
+    # DayLocationから使われなくなったLocationを削除
     trip.locations.filter(
-        days__isnull=True
+        day_locations__isnull=True
     ).delete()
 
 
@@ -116,6 +121,188 @@ def sync_trip_hashtags(
 
 
 # =========================================
+# Trip参考URL FormSetから
+# 保存対象データを取り出す関数
+# =========================================
+
+def get_trip_reference_url_items(
+    formset,
+):
+
+    reference_url_items = []
+
+    for url_form in formset.forms:
+
+        cleaned_data = getattr(
+            url_form,
+            "cleaned_data",
+            None,
+        )
+
+        if not cleaned_data:
+
+            continue
+
+        if cleaned_data.get(
+            "DELETE"
+        ):
+
+            continue
+
+        url = (
+            cleaned_data.get(
+                "url",
+                "",
+            )
+            or ""
+        ).strip()
+
+        title = (
+            cleaned_data.get(
+                "title",
+                "",
+            )
+            or ""
+        ).strip()
+
+        # URLが空欄の追加フォームは保存しない
+        if not url:
+
+            continue
+
+        reference_url_items.append(
+            {
+                "title": title,
+                "url": url,
+            }
+        )
+
+    return reference_url_items
+
+
+# =========================================
+# Trip参考URLを保存・整理する関数
+#
+# 編集時は現在の参考URLを一度削除して、
+# フォーム上に残っているURLを
+# 表示順どおりに作り直す
+# =========================================
+
+def sync_trip_reference_urls(
+    trip,
+    reference_url_items,
+):
+
+    trip.reference_urls.all().delete()
+
+    for url_order, item in enumerate(
+        reference_url_items,
+        start=1,
+    ):
+
+        TripReferenceUrl.objects.create(
+            trip=trip,
+            title=item.get(
+                "title",
+                "",
+            ),
+            url=item["url"],
+            url_order=url_order,
+        )
+
+
+# =========================================
+# Trip全体費用参考URL FormSetから
+# 保存対象データを取り出す関数
+# =========================================
+
+def get_trip_expense_reference_url_items(
+    formset,
+):
+
+    reference_url_items = []
+
+    for url_form in formset.forms:
+
+        cleaned_data = getattr(
+            url_form,
+            "cleaned_data",
+            None,
+        )
+
+        if not cleaned_data:
+
+            continue
+
+        if cleaned_data.get(
+            "DELETE"
+        ):
+
+            continue
+
+        title = (
+            cleaned_data.get(
+                "title",
+                "",
+            )
+            or ""
+        ).strip()
+
+        url = (
+            cleaned_data.get(
+                "url",
+                "",
+            )
+            or ""
+        ).strip()
+
+        # URLが空欄の追加フォームは保存しない
+        if not url:
+
+            continue
+
+        reference_url_items.append(
+            {
+                "title": title,
+                "url": url,
+            }
+        )
+
+    return reference_url_items
+
+
+# =========================================
+# Trip全体費用参考URLを保存・整理する関数
+#
+# 現在の参考URLを一度削除して、
+# フォーム上に残っているURLを
+# 表示順どおりに作り直す
+# =========================================
+
+def sync_trip_expense_reference_urls(
+    trip_expense,
+    reference_url_items,
+):
+
+    trip_expense.reference_urls.all().delete()
+
+    for url_order, item in enumerate(
+        reference_url_items,
+        start=1,
+    ):
+
+        TripExpenseReferenceUrl.objects.create(
+            trip_expense=trip_expense,
+            title=item.get(
+                "title",
+                "",
+            ),
+            url=item["url"],
+            url_order=url_order,
+        )
+
+
+# =========================================
 # Dayに何か記入されているか確認する関数
 # =========================================
 
@@ -129,6 +316,7 @@ def day_has_data(day):
         or day.budget is not None
         or day.actual_cost is not None
         or day.locations.exists()
+        or day.reference_urls.exists()
         or day.spots.exists()
         or day.day_expenses.exists()
     )
@@ -173,6 +361,95 @@ def sync_trip_status(trip):
                 "status"
             ]
         )
+
+
+# =========================================
+# 旅行全体の実際費用を計算する関数
+#
+# 1. Trip.total_cost が手入力されている場合
+#    → その金額を最優先
+#
+# 2. Trip.total_cost が未入力の場合
+#    → Trip全体費用の実績合計
+#      ＋ 各Dayの採用実績
+#
+# Dayの採用実績
+# ・day.actual_cost がある場合
+#   → day.actual_cost
+# ・day.actual_cost がなくDayExpenseがある場合
+#   → DayExpenseの合計
+#
+# 3. 実績が1件もない場合
+#    → None
+# =========================================
+
+def calculate_trip_actual_total(trip):
+
+    # -------------------------
+    # 手入力されたTrip全体費用を最優先
+    # -------------------------
+    if trip.total_cost is not None:
+
+        return trip.total_cost
+
+    actual_total = 0
+    has_actual_cost = False
+
+    # =====================================
+    # Trip全体費用の実績
+    # =====================================
+
+    for expense in trip.trip_expenses.all():
+
+        if expense.actual_amount is not None:
+
+            actual_total += expense.actual_amount
+            has_actual_cost = True
+
+    # =====================================
+    # Day実績
+    # =====================================
+
+    for day in trip.days.all():
+
+        # -------------------------
+        # Day全体の実際費用がある場合
+        # -------------------------
+        if day.actual_cost is not None:
+
+            actual_total += day.actual_cost
+            has_actual_cost = True
+
+        # -------------------------
+        # Day全体の実際費用がない場合
+        # → DayExpenseを合計
+        # -------------------------
+        else:
+
+            day_expense_total = 0
+            has_day_expense = False
+
+            for expense in day.day_expenses.all():
+
+                if expense.amount is not None:
+
+                    day_expense_total += expense.amount
+                    has_day_expense = True
+
+            if has_day_expense:
+
+                actual_total += day_expense_total
+                has_actual_cost = True
+
+    # =====================================
+    # 実績が1件もない場合
+    # =====================================
+
+    if not has_actual_cost:
+
+        return None
+
+    return actual_total
 
 
 # =========================================
@@ -261,6 +538,545 @@ class TripListView(
 
         return trips
 
+# =========================================
+# みんなのTrip一覧
+# =========================================
+
+class PublicTripListView(
+    LoginRequiredMixin,
+    ListView,
+):
+
+    model = Trip
+
+    template_name = (
+        "pages/public_trip.html"
+    )
+
+    context_object_name = (
+        "public_trips"
+    )
+
+    # 1ページに表示する公開Trip数
+    paginate_by = 30
+
+    # =====================================
+    # GETパラメータを整数に変換する関数
+    #
+    # 空欄・数字以外・条件外の値は
+    # Noneとして扱う
+    # =====================================
+
+    def parse_int_param(
+        self,
+        name,
+        minimum=None,
+    ):
+
+        value = self.request.GET.get(
+            name,
+            "",
+        ).strip()
+
+        if not value:
+
+            return None
+
+        try:
+
+            number = int(value)
+
+        except ValueError:
+
+            return None
+
+        if (
+            minimum is not None
+            and number < minimum
+        ):
+
+            return None
+
+        return number
+
+    # =====================================
+    # 公開Trip取得・検索・絞り込み
+    # =====================================
+
+    def get_queryset(self):
+
+        self.filter_errors = []
+
+        trips = (
+            Trip.objects
+            .filter(
+                status="completed",
+                is_public=True,
+            )
+            .select_related(
+                "user",
+                "user__profile",
+                "category",
+            )
+            .prefetch_related(
+                "locations",
+                "trip_hashtags__hashtag",
+                "trip_expenses",
+                "days__day_expenses",
+            )
+        )
+
+        # =====================================
+        # キーワード検索
+        #
+        # 対象
+        # ・Tripタイトル
+        # ・訪問国
+        # ・地域
+        # ・カテゴリ
+        # ・ハッシュタグ
+        # ・感想
+        # =====================================
+
+        keyword = self.request.GET.get(
+            "q",
+            "",
+        ).strip()
+
+        if keyword:
+
+            trips = trips.filter(
+                Q(
+                    title__icontains=(
+                        keyword
+                    )
+                )
+                | Q(
+                    locations__country__icontains=(
+                        keyword
+                    )
+                )
+                | Q(
+                    locations__region__icontains=(
+                        keyword
+                    )
+                )
+                | Q(
+                    category__name__icontains=(
+                        keyword
+                    )
+                )
+                | Q(
+                    trip_hashtags__hashtag__name__icontains=(
+                        keyword
+                    )
+                )
+                | Q(
+                    overview__icontains=(
+                        keyword
+                    )
+                )
+            )
+
+        # =====================================
+        # カテゴリ絞り込み
+        # =====================================
+
+        category_id = (
+            self.parse_int_param(
+                "category",
+                minimum=1,
+            )
+        )
+
+        if category_id is not None:
+
+            trips = trips.filter(
+                category_id=category_id
+            )
+
+        # =====================================
+        # ハッシュタグ絞り込み
+        #
+        # 入力された文字を含む
+        # ハッシュタグを対象にする
+        # =====================================
+
+        hashtag = self.request.GET.get(
+            "hashtag",
+            "",
+        ).strip()
+
+        # 先頭に#が入力されても検索できるようにする
+        hashtag = hashtag.lstrip("#")
+
+        if hashtag:
+
+            trips = trips.filter(
+                trip_hashtags__hashtag__name__icontains=(
+                    hashtag
+                )
+            )
+
+        # M2M・訪問先検索による重複を除外
+        trips = trips.distinct()
+
+        # =====================================
+        # 旅行日数条件
+        # =====================================
+
+        min_days = self.parse_int_param(
+            "min_days",
+            minimum=1,
+        )
+
+        max_days = self.parse_int_param(
+            "max_days",
+            minimum=1,
+        )
+
+        if (
+            min_days is not None
+            and max_days is not None
+            and min_days > max_days
+        ):
+
+            self.filter_errors.append(
+                "旅行日数は、最低日数を最高日数以下にしてください。"
+            )
+
+        # =====================================
+        # 費用条件
+        # =====================================
+
+        min_cost = self.parse_int_param(
+            "min_cost",
+            minimum=0,
+        )
+
+        max_cost = self.parse_int_param(
+            "max_cost",
+            minimum=0,
+        )
+
+        if (
+            min_cost is not None
+            and max_cost is not None
+            and min_cost > max_cost
+        ):
+
+            self.filter_errors.append(
+                "費用は、最低費用を最高費用以下にしてください。"
+            )
+
+        # =====================================
+        # QuerySetをリスト化して
+        # 計算値を各Tripへ設定
+        # =====================================
+
+        trip_list = list(trips)
+
+        for trip in trip_list:
+
+            # -------------------------
+            # 訪問先を国ごとにまとめる
+            # -------------------------
+
+            locations_by_country = {}
+
+            for location in trip.locations.all():
+
+                if (
+                    location.country
+                    not in locations_by_country
+                ):
+
+                    locations_by_country[
+                        location.country
+                    ] = []
+
+                if (
+                    location.region
+                    not in locations_by_country[
+                        location.country
+                    ]
+                ):
+
+                    locations_by_country[
+                        location.country
+                    ].append(
+                        location.region
+                    )
+
+            trip.locations_by_country = (
+                locations_by_country
+            )
+
+            # -------------------------
+            # 旅行日数
+            #
+            # 開始日と終了日を含めるため
+            # +1日する
+            # -------------------------
+
+            trip.trip_days = (
+                trip.end_date
+                - trip.start_date
+            ).days + 1
+
+            # -------------------------
+            # 旅行全体の実際費用
+            # -------------------------
+
+            trip.final_actual_total = (
+                calculate_trip_actual_total(
+                    trip
+                )
+            )
+
+        # =====================================
+        # 入力条件に矛盾がある場合
+        # 検索結果を表示しない
+        # =====================================
+
+        if self.filter_errors:
+
+            return []
+
+        # =====================================
+        # 旅行日数で絞り込み
+        #
+        # 最低のみ
+        # → その日数以上
+        #
+        # 最高のみ
+        # → その日数以下
+        # =====================================
+
+        if min_days is not None:
+
+            trip_list = [
+                trip
+                for trip in trip_list
+                if trip.trip_days
+                >= min_days
+            ]
+
+        if max_days is not None:
+
+            trip_list = [
+                trip
+                for trip in trip_list
+                if trip.trip_days
+                <= max_days
+            ]
+
+        # =====================================
+        # 費用で絞り込み
+        #
+        # 費用条件が指定されている場合
+        # 費用未登録Tripは表示しない
+        # =====================================
+
+        if (
+            min_cost is not None
+            or max_cost is not None
+        ):
+
+            trip_list = [
+                trip
+                for trip in trip_list
+                if (
+                    trip.final_actual_total
+                    is not None
+                )
+            ]
+
+        if min_cost is not None:
+
+            trip_list = [
+                trip
+                for trip in trip_list
+                if (
+                    trip.final_actual_total
+                    >= min_cost
+                )
+            ]
+
+        if max_cost is not None:
+
+            trip_list = [
+                trip
+                for trip in trip_list
+                if (
+                    trip.final_actual_total
+                    <= max_cost
+                )
+            ]
+
+        # =====================================
+        # 並び順
+        # =====================================
+
+        sort = self.request.GET.get(
+            "sort",
+            "new",
+        )
+
+        # -------------------------
+        # 古い順
+        # -------------------------
+
+        if sort == "old":
+
+            trip_list.sort(
+                key=lambda trip: (
+                    trip.updated_at
+                )
+            )
+
+        # -------------------------
+        # 費用が安い順
+        #
+        # 費用未登録は最後
+        # -------------------------
+
+        elif sort == "cost_asc":
+
+            trip_list.sort(
+                key=lambda trip: (
+                    trip.final_actual_total
+                    is None,
+                    (
+                        trip.final_actual_total
+                        if trip.final_actual_total
+                        is not None
+                        else 0
+                    ),
+                )
+            )
+
+        # -------------------------
+        # 費用が高い順
+        #
+        # 費用未登録は最後
+        # -------------------------
+
+        elif sort == "cost_desc":
+
+            trip_list.sort(
+                key=lambda trip: (
+                    trip.final_actual_total
+                    is None,
+                    -(
+                        trip.final_actual_total
+                        if trip.final_actual_total
+                        is not None
+                        else 0
+                    ),
+                )
+            )
+
+        # -------------------------
+        # 旅行期間が短い順
+        # -------------------------
+
+        elif sort == "days_asc":
+
+            trip_list.sort(
+                key=lambda trip: (
+                    trip.trip_days
+                )
+            )
+
+        # -------------------------
+        # 旅行期間が長い順
+        # -------------------------
+
+        elif sort == "days_desc":
+
+            trip_list.sort(
+                key=lambda trip: (
+                    trip.trip_days
+                ),
+                reverse=True,
+            )
+
+        # -------------------------
+        # 新しい順
+        # デフォルト
+        # -------------------------
+
+        else:
+
+            trip_list.sort(
+                key=lambda trip: (
+                    trip.updated_at
+                ),
+                reverse=True,
+            )
+
+        return trip_list
+
+    # =====================================
+    # Templateへ渡す追加データ
+    # =====================================
+
+    def get_context_data(
+        self,
+        **kwargs
+    ):
+
+        context = (
+            super().get_context_data(
+                **kwargs
+            )
+        )
+
+        # カテゴリ選択欄で使用
+        context["categories"] = (
+            Category.objects.order_by(
+                "name"
+            )
+        )
+
+        # 入力条件のエラー
+        context["filter_errors"] = getattr(
+            self,
+            "filter_errors",
+            [],
+        )
+
+        # 並び順の選択肢
+        context["sort_choices"] = [
+            (
+                "new",
+                "新しい順",
+            ),
+            (
+                "old",
+                "古い順",
+            ),
+            (
+                "cost_asc",
+                "費用が安い順",
+            ),
+            (
+                "cost_desc",
+                "費用が高い順",
+            ),
+            (
+                "days_asc",
+                "旅行期間が短い順",
+            ),
+            (
+                "days_desc",
+                "旅行期間が長い順",
+            ),
+        ]
+
+        return context
+
 
 # =========================================
 # Trip作成
@@ -281,6 +1097,76 @@ class TripCreateView(
 
     success_url = "/trips/"
 
+    # =====================================
+    # Trip参考URL FormSet
+    # =====================================
+
+    def get_reference_url_formset(
+        self,
+        instance=None,
+    ):
+
+        if instance is None:
+
+            instance = Trip()
+
+        if self.request.method == "POST":
+
+            return TripReferenceUrlFormSet(
+                self.request.POST,
+                instance=instance,
+                prefix="reference_urls",
+            )
+
+        return TripReferenceUrlFormSet(
+            instance=instance,
+            prefix="reference_urls",
+        )
+
+    # =====================================
+    # Context
+    # =====================================
+
+    def get_context_data(
+        self,
+        **kwargs
+    ):
+
+        context = (
+            super().get_context_data(
+                **kwargs
+            )
+        )
+
+        if (
+            "reference_url_formset"
+            not in context
+        ):
+
+            form = context.get(
+                "form"
+            )
+
+            instance = (
+                form.instance
+                if form is not None
+                else Trip()
+            )
+
+            context[
+                "reference_url_formset"
+            ] = (
+                self.get_reference_url_formset(
+                    instance=instance
+                )
+            )
+
+        return context
+
+    # =====================================
+    # 保存
+    # =====================================
+
     def form_valid(
         self,
         form
@@ -292,21 +1178,58 @@ class TripCreateView(
 
         form.instance.status = "draft"
 
-        response = super().form_valid(
-            form
+        reference_url_formset = (
+            self.get_reference_url_formset(
+                instance=form.instance
+            )
         )
 
-        sync_trip_hashtags(
-            self.object,
-            form.cleaned_data.get(
-                "hashtags",
-                [],
-            ),
+        # Tripフォームが有効でも、
+        # 参考URLにエラーがあれば保存しない
+        if not (
+            reference_url_formset
+            .is_valid()
+        ):
+
+            return self.render_to_response(
+                self.get_context_data(
+                    form=form,
+                    reference_url_formset=(
+                        reference_url_formset
+                    ),
+                )
+            )
+
+        reference_url_items = (
+            get_trip_reference_url_items(
+                reference_url_formset
+            )
         )
 
-        sync_trip_days(
-            self.object
-        )
+        with transaction.atomic():
+
+            response = (
+                super().form_valid(
+                    form
+                )
+            )
+
+            sync_trip_hashtags(
+                self.object,
+                form.cleaned_data.get(
+                    "hashtags",
+                    [],
+                ),
+            )
+
+            sync_trip_reference_urls(
+                self.object,
+                reference_url_items,
+            )
+
+            sync_trip_days(
+                self.object
+            )
 
         return response
 
@@ -330,8 +1253,22 @@ class TripDetailView(
 
     def get_queryset(self):
 
-        return Trip.objects.filter(
-            user=self.request.user
+        return (
+            Trip.objects
+            .filter(
+                Q(user=self.request.user)
+                | Q(
+                    status="completed",
+                    is_public=True,
+                )
+            )
+            .prefetch_related(
+                "reference_urls",
+                "trip_expenses__reference_urls",
+                "days__reference_urls",
+                "days__spots__reference_urls",
+            )
+            .distinct()
         )
 
     def get_object(
@@ -353,15 +1290,27 @@ class TripDetailView(
     # Trip全体編集モードか
     # =====================================
 
+    def is_owner(self):
+
+        return (
+            self.object.user
+            == self.request.user
+        )
+
+    # =====================================
+    # Trip全体編集モードか
+    # =====================================
+
     def is_edit_mode(self):
 
         return (
-            self.request.GET.get("edit")
+            self.is_owner()
+            and self.request.GET.get("edit")
             == "1"
         )
 
     # =====================================
-    # Trip共通費用を新しく追加できるか
+    # Trip全体費用を新しく追加できるか
     #
     # 作成中・出発待ち・旅中
     # → 今までどおり追加可能
@@ -372,6 +1321,10 @@ class TripDetailView(
 
     def can_add_trip_expense(self):
 
+        if not self.is_owner():
+
+            return False
+
         if self.object.status != "completed":
 
             return True
@@ -379,7 +1332,7 @@ class TripDetailView(
         return self.is_edit_mode()
 
     # =====================================
-    # Trip共通費用1件を編集できるか
+    # Trip全体費用1件を編集できるか
     #
     # 作成中
     # → 常に編集可能
@@ -397,51 +1350,104 @@ class TripDetailView(
         trip_expense,
     ):
 
-        # -------------------------
-        # 作成中
-        # -------------------------
-        if self.object.status == "draft":
+        if not self.is_owner():
 
-            return True
+            return False
 
-        # -------------------------
-        # Trip全体編集モード
-        # -------------------------
-        if self.is_edit_mode():
+        if self.object.status == "completed":
 
-            return True
+            return self.is_edit_mode()
 
-        # -------------------------
-        # 作成完了後の通常画面
-        #
-        # 実際支払額が未入力なら
-        # 編集可能
-        # -------------------------
-        if (
-            trip_expense.actual_amount
-            is None
-        ):
-
-            return True
-
-        # -------------------------
-        # 実際支払額入力済み
-        # → 通常画面では編集不可
-        # -------------------------
-        return False
+        return True
 
     # =====================================
-    # Trip共通費用操作後の戻り先
+    # Trip全体費用を並び替えできるか
+    #
+    # 基本的には編集可否と同じ条件にする
+    # =====================================
+
+    def can_move_trip_expense(
+        self,
+        trip_expense,
+    ):
+
+        return self.can_edit_trip_expense(
+            trip_expense
+        )
+
+    # =====================================
+    # Trip全体費用参考URL FormSet
+    # =====================================
+
+    def get_new_trip_expense_reference_url_formset(
+        self,
+        data=None,
+    ):
+
+        instance = TripExpense(
+            trip=self.object
+        )
+
+        return TripExpenseReferenceUrlFormSet(
+            data,
+            instance=instance,
+            prefix=(
+                "expense_reference_urls_new"
+            ),
+        )
+
+    def get_trip_expense_reference_url_formset(
+        self,
+        trip_expense,
+        data=None,
+    ):
+
+        return TripExpenseReferenceUrlFormSet(
+            data,
+            instance=trip_expense,
+            prefix=(
+                "expense_reference_urls_"
+                f"{trip_expense.trip_expense_id}"
+            ),
+        )
+
+    def has_trip_expense_reference_url_formset_data(
+        self,
+        request,
+        prefix,
+    ):
+
+        return (
+            f"{prefix}-TOTAL_FORMS"
+            in request.POST
+        )
+
+    # =====================================
+    # Trip全体費用操作後の戻り先
     # =====================================
 
     def get_trip_expense_return_url(
-        self
+        self,
+        expense_id=None,
     ):
 
-        return get_trip_detail_url(
+        url = get_trip_detail_url(
             self.object,
             edit_mode=self.is_edit_mode(),
         )
+
+        if expense_id is not None:
+
+            url += (
+                f"#trip-expense-"
+                f"{expense_id}"
+            )
+
+        else:
+
+            url += "#trip-expenses"
+
+        return url
 
     # =====================================
     # Context
@@ -461,6 +1467,10 @@ class TripDetailView(
         today = timezone.localdate()
 
         context["today"] = today
+
+        context["is_owner"] = (
+            self.is_owner()
+        )
 
         # -------------------------
         # Trip全体編集モード
@@ -484,16 +1494,35 @@ class TripDetailView(
         )
 
         # =====================================
-        # Trip共通費用
+        # Trip全体費用
         # =====================================
 
         trip_expenses = list(
-            self.object.trip_expenses.all()
+            self.object
+            .trip_expenses
+            .order_by(
+                "expense_order",
+                "trip_expense_id",
+            )
+        )
+
+        editing_expense_id = kwargs.get(
+            "editing_expense_id"
+        )
+
+        editing_reference_url_formset = (
+            kwargs.get(
+                "editing_reference_url_formset"
+            )
+        )
+
+        editing_expense_form = kwargs.get(
+            "editing_expense_form"
         )
 
         # -------------------------
-        # Trip共通費用1件ごとの
-        # 編集可否を設定
+        # Trip全体費用1件ごとの
+        # 編集可否・参考URL FormSetを設定
         # -------------------------
 
         for trip_expense in trip_expenses:
@@ -503,6 +1532,60 @@ class TripDetailView(
                     trip_expense
                 )
             )
+
+            trip_expense.can_move = (
+                self.can_move_trip_expense(
+                    trip_expense
+                )
+            )
+
+            # 通常は未バインドFormSet
+            trip_expense.reference_url_formset = (
+                None
+            )
+
+            trip_expense.edit_form = None
+
+            if trip_expense.can_edit:
+
+                if (
+                    editing_expense_id
+                    == trip_expense.trip_expense_id
+                    and editing_reference_url_formset
+                    is not None
+                ):
+
+                    trip_expense.reference_url_formset = (
+                        editing_reference_url_formset
+                    )
+
+                else:
+
+                    trip_expense.reference_url_formset = (
+                        self
+                        .get_trip_expense_reference_url_formset(
+                            trip_expense
+                        )
+                    )
+
+                if (
+                    editing_expense_id
+                    == trip_expense.trip_expense_id
+                    and editing_expense_form
+                    is not None
+                ):
+
+                    trip_expense.edit_form = (
+                        editing_expense_form
+                    )
+
+                else:
+
+                    trip_expense.edit_form = (
+                        TripExpenseForm(
+                            instance=trip_expense
+                        )
+                    )
 
         context["trip_expenses"] = (
             trip_expenses
@@ -519,9 +1602,6 @@ class TripDetailView(
 
         # -------------------------
         # 既存HTMLとの互換用
-        #
-        # 次にtrip_detail.html側で
-        # can_add_trip_expenseへ変更する
         # -------------------------
 
         context[
@@ -536,6 +1616,23 @@ class TripDetailView(
             context[
                 "trip_expense_form"
             ] = TripExpenseForm()
+
+        # -------------------------
+        # 新規Trip全体費用用
+        # 参考URL FormSet
+        # -------------------------
+
+        if (
+            "trip_expense_reference_url_formset"
+            not in context
+        ):
+
+            context[
+                "trip_expense_reference_url_formset"
+            ] = (
+                self
+                .get_new_trip_expense_reference_url_formset()
+            )
 
         # -------------------------
         # 旅を完了できるか
@@ -560,6 +1657,20 @@ class TripDetailView(
                 "hashtag"
             )
             .all()
+        )
+
+        # -------------------------
+        # Trip参考URL
+        # -------------------------
+
+        context[
+            "trip_reference_urls"
+        ] = (
+            self.object
+            .reference_urls
+            .order_by(
+                "url_order"
+            )
         )
 
         # =====================================
@@ -599,11 +1710,94 @@ class TripDetailView(
         ] = locations_by_country
 
         # =====================================
+        # Trip全体の訪問ルート
+        #
+        # Dayの日付順
+        # ↓
+        # そのDay内のlocation_order順
+        #
+        # 連続して同じ訪問先が続く場合は
+        # 1回だけ表示する
+        #
+        # 例：
+        # 東京（9/17）
+        # ↓
+        # 仁川（9/17）
+        # ↓
+        # アルマトイ（9/18）
+        # =====================================
+
+        trip_route = []
+
+        route_days = (
+            self.object.days
+            .order_by(
+                "day_order"
+            )
+        )
+
+        previous_location_id = None
+
+        for route_day in route_days:
+
+            route_day_locations = (
+                route_day
+                .day_locations
+                .select_related(
+                    "location"
+                )
+                .order_by(
+                    "location_order"
+                )
+            )
+
+            for day_location in (
+                route_day_locations
+            ):
+
+                location = (
+                    day_location.location
+                )
+
+                # -------------------------
+                # 前の訪問先と同じ場合は
+                # 連続重複として表示しない
+                # -------------------------
+
+                if (
+                    previous_location_id
+                    == location.location_id
+                ):
+
+                    continue
+
+                trip_route.append(
+                    {
+                        "location": location,
+                        "date": route_day.date,
+                        "day_order": (
+                            route_day.day_order
+                        ),
+                        "location_order": (
+                            day_location.location_order
+                        ),
+                    }
+                )
+
+                previous_location_id = (
+                    location.location_id
+                )
+
+        context[
+            "trip_route"
+        ] = trip_route
+
+        # =====================================
         # 費用計算
         # =====================================
 
         # -------------------------
-        # Trip共通費用
+        # Trip全体費用
         # 予定合計
         # -------------------------
 
@@ -625,7 +1819,7 @@ class TripDetailView(
                 has_trip_planned_cost = True
 
         # -------------------------
-        # Trip共通費用
+        # Trip全体費用
         # 実績合計
         # -------------------------
 
@@ -768,9 +1962,23 @@ class TripDetailView(
 
             day_locations = {}
 
-            for location in (
-                day.locations.all()
+            ordered_day_locations = (
+                day.day_locations
+                .select_related(
+                    "location"
+                )
+                .order_by(
+                    "location_order"
+                )
+            )
+
+            for day_location in (
+                ordered_day_locations
             ):
+
+                location = (
+                    day_location.location
+                )
 
                 if (
                     location.country
@@ -799,12 +2007,21 @@ class TripDetailView(
             )
 
             # =====================================
-            # Spotの並び順
+            # スケジュールの並び順
+            #
+            # 開始時間がある場合
+            # → start_timeの早い順
+            #
+            # 開始時間が未設定の場合
+            # → 最後に表示
+            #
+            # 同じ開始時間・時間未定の場合
+            # → spot_order順
             # =====================================
 
             day.spots_sorted = (
                 day.spots.order_by(
-                    F("time").asc(
+                    F("start_time").asc(
                         nulls_last=True
                     ),
                     "spot_order",
@@ -973,44 +2190,28 @@ class TripDetailView(
 
         # =====================================
         # Trip最終実績
+        #
+        # 共通関数を使用して、
+        # 詳細画面と公開Trip一覧・検索で
+        # 同じ計算方法を使う
         # =====================================
 
-        if (
+        final_actual_total = (
+            calculate_trip_actual_total(
+                self.object
+            )
+        )
+
+        has_final_actual_cost = (
+            final_actual_total is not None
+        )
+
+        context[
+            "is_manual_total_cost"
+        ] = (
             self.object.total_cost
             is not None
-        ):
-
-            final_actual_total = (
-                self.object.total_cost
-            )
-
-            has_final_actual_cost = True
-
-            context[
-                "is_manual_total_cost"
-            ] = True
-
-        elif has_reference_actual_cost:
-
-            final_actual_total = (
-                reference_actual_total
-            )
-
-            has_final_actual_cost = True
-
-            context[
-                "is_manual_total_cost"
-            ] = False
-
-        else:
-
-            final_actual_total = None
-
-            has_final_actual_cost = False
-
-            context[
-                "is_manual_total_cost"
-            ] = False
+        )
 
         context[
             "final_actual_total"
@@ -1053,7 +2254,7 @@ class TripDetailView(
         return context
 
     # =====================================
-    # Trip詳細からTrip共通費用を操作
+    # Trip詳細からTrip全体費用を操作
     # =====================================
 
     def post(
@@ -1066,6 +2267,14 @@ class TripDetailView(
         self.object = (
             self.get_object()
         )
+
+        if not self.is_owner():
+
+            return redirect(
+                get_trip_detail_url(
+                    self.object
+                )
+            )
 
         action = request.POST.get(
             "action"
@@ -1125,7 +2334,12 @@ class TripDetailView(
             ):
 
                 return redirect(
-                    self.get_trip_expense_return_url()
+                    self.get_trip_expense_return_url(
+                        expense_id=(
+                            trip_expense
+                            .trip_expense_id
+                        ),
+                    )
                 )
 
             return (
@@ -1133,6 +2347,54 @@ class TripDetailView(
                     request,
                     trip_expense,
                 )
+            )
+
+        # =================================
+        # 並び替え
+        # =================================
+
+        if (
+            action
+            == "move_trip_expense"
+        ):
+
+            trip_expense = (
+                get_object_or_404(
+                    TripExpense,
+                    trip_expense_id=(
+                        request.POST.get(
+                            "expense_id"
+                        )
+                    ),
+                    trip=self.object,
+                )
+            )
+
+            if not (
+                self.can_move_trip_expense(
+                    trip_expense
+                )
+            ):
+
+                return redirect(
+                    self.get_trip_expense_return_url(
+                        expense_id=(
+                            trip_expense
+                            .trip_expense_id
+                        ),
+                    )
+                )
+
+            direction = (
+                request.POST.get(
+                    "direction",
+                    ""
+                )
+            )
+
+            return self.move_trip_expense(
+                trip_expense,
+                direction,
             )
 
         # =================================
@@ -1168,7 +2430,12 @@ class TripDetailView(
             ):
 
                 return redirect(
-                    self.get_trip_expense_return_url()
+                    self.get_trip_expense_return_url(
+                        expense_id=(
+                            trip_expense
+                            .trip_expense_id
+                        ),
+                    )
                 )
 
             return (
@@ -1182,7 +2449,7 @@ class TripDetailView(
         )
 
     # =====================================
-    # Trip共通費用追加
+    # Trip全体費用追加
     # =====================================
 
     def add_trip_expense(
@@ -1196,49 +2463,140 @@ class TripDetailView(
             )
         )
 
-        if expense_form.is_valid():
+        expense_name = (
+            request.POST.get(
+                "name",
+                "",
+            )
+            .strip()
+        )
 
-            trip_expense = (
-                expense_form.save(
-                    commit=False
+        if not expense_name:
+
+            expense_form.add_error(
+                "name",
+                "費用名を入力してください。",
+            )
+
+        # =================================
+        # 新規全体費用の参考URL FormSet
+        #
+        # HTML側がまだ旧版でも動くように、
+        # management_formがPOSTされている時だけ
+        # URL FormSetを保存対象にする
+        # =================================
+
+        reference_url_prefix = (
+            "expense_reference_urls_new"
+        )
+
+        has_reference_url_data = (
+            self
+            .has_trip_expense_reference_url_formset_data(
+                request,
+                reference_url_prefix,
+            )
+        )
+
+        if has_reference_url_data:
+
+            reference_url_formset = (
+                self
+                .get_new_trip_expense_reference_url_formset(
+                    data=request.POST
                 )
             )
 
-            trip_expense.trip = (
-                self.object
+            reference_urls_valid = (
+                reference_url_formset.is_valid()
             )
 
-            max_order = (
-                self.object
-                .trip_expenses
-                .aggregate(
-                    Max(
-                        "expense_order"
+        else:
+
+            reference_url_formset = (
+                self
+                .get_new_trip_expense_reference_url_formset()
+            )
+
+            reference_urls_valid = True
+
+        if (
+            expense_form.is_valid()
+            and reference_urls_valid
+        ):
+
+            with transaction.atomic():
+
+                trip_expense = (
+                    expense_form.save(
+                        commit=False
                     )
-                )[
-                    "expense_order__max"
-                ]
-            )
+                )
 
-            if max_order is None:
+                trip_expense.name = (
+                    expense_name
+                )
 
-                max_order = 0
+                trip_expense.trip = (
+                    self.object
+                )
 
-            trip_expense.expense_order = (
-                max_order + 1
-            )
+                max_order = (
+                    self.object
+                    .trip_expenses
+                    .aggregate(
+                        Max(
+                            "expense_order"
+                        )
+                    )[
+                        "expense_order__max"
+                    ]
+                )
 
-            trip_expense.save()
+                if max_order is None:
+
+                    max_order = 0
+
+                trip_expense.expense_order = (
+                    max_order + 1
+                )
+
+                trip_expense.save()
+
+                # -------------------------
+                # 参考URL
+                # -------------------------
+
+                if has_reference_url_data:
+
+                    reference_url_items = (
+                        get_trip_expense_reference_url_items(
+                            reference_url_formset
+                        )
+                    )
+
+                    sync_trip_expense_reference_urls(
+                        trip_expense,
+                        reference_url_items,
+                    )
 
             return redirect(
-                self.get_trip_expense_return_url()
+                self.get_trip_expense_return_url(
+                    expense_id=(
+                        trip_expense
+                        .trip_expense_id
+                    ),
+                )
             )
 
         context = (
             self.get_context_data(
                 trip_expense_form=(
                     expense_form
-                )
+                ),
+                trip_expense_reference_url_formset=(
+                    reference_url_formset
+                ),
             )
         )
 
@@ -1249,7 +2607,7 @@ class TripDetailView(
         )
 
     # =====================================
-    # Trip共通費用編集
+    # Trip全体費用編集
     # =====================================
 
     def update_trip_expense(
@@ -1265,16 +2623,378 @@ class TripDetailView(
             )
         )
 
-        if expense_form.is_valid():
+        expense_name = (
+            request.POST.get(
+                "name",
+                "",
+            )
+            .strip()
+        )
 
-            expense_form.save()
+        if not expense_name:
 
-        return redirect(
-            self.get_trip_expense_return_url()
+            expense_form.add_error(
+                "name",
+                "費用名を入力してください。",
+            )
+
+        # =================================
+        # 既存全体費用の参考URL FormSet
+        #
+        # 「実際支払額だけ登録」の簡易フォームは
+        # URL FormSetをPOSTしないため、
+        # management_formがある場合だけ
+        # 参考URLを更新する
+        # =================================
+
+        reference_url_prefix = (
+            "expense_reference_urls_"
+            f"{trip_expense.trip_expense_id}"
+        )
+
+        has_reference_url_data = (
+            self
+            .has_trip_expense_reference_url_formset_data(
+                request,
+                reference_url_prefix,
+            )
+        )
+
+        if has_reference_url_data:
+
+            reference_url_formset = (
+                self
+                .get_trip_expense_reference_url_formset(
+                    trip_expense,
+                    data=request.POST,
+                )
+            )
+
+            reference_urls_valid = (
+                reference_url_formset.is_valid()
+            )
+
+        else:
+
+            reference_url_formset = (
+                self
+                .get_trip_expense_reference_url_formset(
+                    trip_expense
+                )
+            )
+
+            reference_urls_valid = True
+
+        if (
+            expense_form.is_valid()
+            and reference_urls_valid
+        ):
+
+            with transaction.atomic():
+
+                updated_expense = (
+                    expense_form.save(
+                        commit=False
+                    )
+                )
+
+                updated_expense.name = (
+                    expense_name
+                )
+
+                updated_expense.save()
+
+                if has_reference_url_data:
+
+                    reference_url_items = (
+                        get_trip_expense_reference_url_items(
+                            reference_url_formset
+                        )
+                    )
+
+                    sync_trip_expense_reference_urls(
+                        updated_expense,
+                        reference_url_items,
+                    )
+
+            return redirect(
+                self.get_trip_expense_return_url(
+                    expense_id=(
+                        trip_expense
+                        .trip_expense_id
+                    ),
+                )
+            )
+
+        # ---------------------------------
+        # エラー時は詳細画面へ戻し、
+        # 該当費用の入力内容とURLエラーを保持
+        # ---------------------------------
+
+        context = self.get_context_data(
+            editing_expense_id=(
+                trip_expense.trip_expense_id
+            ),
+            editing_expense_form=(
+                expense_form
+            ),
+            editing_reference_url_formset=(
+                reference_url_formset
+            ),
+        )
+
+        return self.render_to_response(
+            context
         )
 
     # =====================================
-    # Trip共通費用削除
+    # Trip全体費用並び替え
+    #
+    # expense_orderそのものを入れ替える
+    # Dayのように中身を交換する必要はない
+    # =====================================
+
+    def move_trip_expense(
+        self,
+        trip_expense,
+        direction,
+    ):
+
+        if direction not in (
+            "up",
+            "down",
+        ):
+
+            return redirect(
+                self.get_trip_expense_return_url(
+                    expense_id=(
+                        trip_expense
+                        .trip_expense_id
+                    ),
+                )
+            )
+
+        ordered_expenses = list(
+            self.object
+            .trip_expenses
+            .order_by(
+                "expense_order",
+                "trip_expense_id",
+            )
+        )
+
+        current_index = None
+
+        for index, expense in enumerate(
+            ordered_expenses
+        ):
+
+            if (
+                expense.trip_expense_id
+                == trip_expense.trip_expense_id
+            ):
+
+                current_index = index
+                break
+
+        if current_index is None:
+
+            return redirect(
+                self.get_trip_expense_return_url()
+            )
+
+        if direction == "up":
+
+            target_index = (
+                current_index - 1
+            )
+
+        else:
+
+            target_index = (
+                current_index + 1
+            )
+
+        # 一番上でさらに上、
+        # 一番下でさらに下へ動かそうとした場合
+        if (
+            target_index < 0
+            or target_index
+            >= len(ordered_expenses)
+        ):
+
+            return redirect(
+                self.get_trip_expense_return_url(
+                    expense_id=(
+                        trip_expense
+                        .trip_expense_id
+                    ),
+                )
+            )
+
+        target_expense = (
+            ordered_expenses[
+                target_index
+            ]
+        )
+
+        current_order = (
+            trip_expense.expense_order
+        )
+
+        target_order = (
+            target_expense.expense_order
+        )
+
+        # 万一expense_orderが同値になっていても
+        # 並び替え後に順序が確実に変わるようにする
+        if current_order == target_order:
+
+            with transaction.atomic():
+
+                for order, expense in enumerate(
+                    ordered_expenses,
+                    start=1,
+                ):
+
+                    expense.expense_order = (
+                        order
+                    )
+
+                    expense.save(
+                        update_fields=[
+                            "expense_order"
+                        ]
+                    )
+
+            # 正規化後にもう一度取得して処理
+            trip_expense.refresh_from_db()
+
+            ordered_expenses = list(
+                self.object
+                .trip_expenses
+                .order_by(
+                    "expense_order",
+                    "trip_expense_id",
+                )
+            )
+
+            current_index = next(
+                index
+                for index, expense
+                in enumerate(
+                    ordered_expenses
+                )
+                if (
+                    expense.trip_expense_id
+                    == trip_expense.trip_expense_id
+                )
+            )
+
+            if direction == "up":
+
+                target_index = (
+                    current_index - 1
+                )
+
+            else:
+
+                target_index = (
+                    current_index + 1
+                )
+
+            if (
+                target_index < 0
+                or target_index
+                >= len(ordered_expenses)
+            ):
+
+                return redirect(
+                    self.get_trip_expense_return_url(
+                        expense_id=(
+                            trip_expense
+                            .trip_expense_id
+                        ),
+                    )
+                )
+
+            target_expense = (
+                ordered_expenses[
+                    target_index
+                ]
+            )
+
+            current_order = (
+                trip_expense.expense_order
+            )
+
+            target_order = (
+                target_expense.expense_order
+            )
+
+        # unique制約が将来付いても安全に交換できるよう、
+        # 一時的に未使用の最大値+1へ退避してから入れ替える
+        max_order = (
+            self.object
+            .trip_expenses
+            .aggregate(
+                Max(
+                    "expense_order"
+                )
+            )[
+                "expense_order__max"
+            ]
+            or 0
+        )
+
+        temporary_order = (
+            max_order + 1
+        )
+
+        with transaction.atomic():
+
+            trip_expense.expense_order = (
+                temporary_order
+            )
+
+            trip_expense.save(
+                update_fields=[
+                    "expense_order"
+                ]
+            )
+
+            target_expense.expense_order = (
+                current_order
+            )
+
+            target_expense.save(
+                update_fields=[
+                    "expense_order"
+                ]
+            )
+
+            trip_expense.expense_order = (
+                target_order
+            )
+
+            trip_expense.save(
+                update_fields=[
+                    "expense_order"
+                ]
+            )
+
+        return redirect(
+            self.get_trip_expense_return_url(
+                expense_id=(
+                    trip_expense
+                    .trip_expense_id
+                ),
+            )
+        )
+
+
+    # =====================================
+    # Trip全体費用削除
     # =====================================
 
     def delete_trip_expense(
@@ -1282,7 +3002,38 @@ class TripDetailView(
         trip_expense,
     ):
 
-        trip_expense.delete()
+        with transaction.atomic():
+
+            trip_expense.delete()
+
+            remaining_expenses = (
+                self.object
+                .trip_expenses
+                .order_by(
+                    "expense_order",
+                    "trip_expense_id",
+                )
+            )
+
+            for expense_order, expense in enumerate(
+                remaining_expenses,
+                start=1,
+            ):
+
+                if (
+                    expense.expense_order
+                    != expense_order
+                ):
+
+                    expense.expense_order = (
+                        expense_order
+                    )
+
+                    expense.save(
+                        update_fields=[
+                            "expense_order"
+                        ]
+                    )
 
         return redirect(
             self.get_trip_expense_return_url()
@@ -1312,10 +3063,87 @@ class TripUpdateView(
             user=self.request.user
         )
 
+    # =====================================
+    # Trip参考URL FormSet
+    # =====================================
+
+    def get_reference_url_formset(self):
+
+        if self.request.method == "POST":
+
+            return TripReferenceUrlFormSet(
+                self.request.POST,
+                instance=self.object,
+                prefix="reference_urls",
+            )
+
+        return TripReferenceUrlFormSet(
+            instance=self.object,
+            prefix="reference_urls",
+        )
+
+    # =====================================
+    # Context
+    # =====================================
+
+    def get_context_data(
+        self,
+        **kwargs
+    ):
+
+        context = (
+            super().get_context_data(
+                **kwargs
+            )
+        )
+
+        if (
+            "reference_url_formset"
+            not in context
+        ):
+
+            context[
+                "reference_url_formset"
+            ] = (
+                self.get_reference_url_formset()
+            )
+
+        return context
+
+    # =====================================
+    # 保存
+    # =====================================
+
     def form_valid(
         self,
         form
     ):
+
+        reference_url_formset = (
+            self.get_reference_url_formset()
+        )
+
+        # Tripフォームが有効でも、
+        # 参考URLにエラーがあれば保存しない
+        if not (
+            reference_url_formset
+            .is_valid()
+        ):
+
+            return self.render_to_response(
+                self.get_context_data(
+                    form=form,
+                    reference_url_formset=(
+                        reference_url_formset
+                    ),
+                )
+            )
+
+        reference_url_items = (
+            get_trip_reference_url_items(
+                reference_url_formset
+            )
+        )
 
         new_start_date = (
             form.cleaned_data[
@@ -1354,6 +3182,14 @@ class TripUpdateView(
                 filled_outside_days.append(
                     day
                 )
+
+        # =====================================
+        # 期間短縮で記入済みDayが削除対象になる場合
+        #
+        # Trip本体だけでなく、
+        # ハッシュタグ・参考URLも
+        # セッションへ一時保存する
+        # =====================================
 
         if filled_outside_days:
 
@@ -1401,6 +3237,10 @@ class TripUpdateView(
                 "hashtags": (
                     hashtag_names
                 ),
+
+                "reference_urls": (
+                    reference_url_items
+                ),
             }
 
             return redirect(
@@ -1408,24 +3248,31 @@ class TripUpdateView(
                 pk=self.object.trip_id,
             )
 
-        response = (
-            super().form_valid(
-                form
+        with transaction.atomic():
+
+            response = (
+                super().form_valid(
+                    form
+                )
             )
-        )
 
-        sync_trip_hashtags(
-            self.object,
-            hashtag_names,
-        )
+            sync_trip_hashtags(
+                self.object,
+                hashtag_names,
+            )
 
-        sync_trip_days(
-            self.object
-        )
+            sync_trip_reference_urls(
+                self.object,
+                reference_url_items,
+            )
 
-        sync_trip_status(
-            self.object
-        )
+            sync_trip_days(
+                self.object
+            )
+
+            sync_trip_status(
+                self.object
+            )
 
         return response
 
@@ -1703,6 +3550,14 @@ class TripPeriodConfirmView(
                     trip,
                     pending_data.get(
                         "hashtags",
+                        [],
+                    ),
+                )
+
+                sync_trip_reference_urls(
+                    trip,
+                    pending_data.get(
+                        "reference_urls",
                         [],
                     ),
                 )

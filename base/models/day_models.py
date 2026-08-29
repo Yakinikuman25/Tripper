@@ -5,6 +5,10 @@ from .trip_models import Trip
 from .location_models import Location
 
 
+# =========================================
+# Day
+# =========================================
+
 class Day(models.Model):
 
     day_id = models.AutoField(
@@ -18,8 +22,20 @@ class Day(models.Model):
         verbose_name="Trip",
     )
 
+    # =====================================
+    # 訪問先
+    #
+    # DayLocationを中間モデルとして使用し、
+    # Day内での訪問順も管理する
+    # =====================================
+
     locations = models.ManyToManyField(
         Location,
+        through="DayLocation",
+        through_fields=(
+            "day",
+            "location",
+        ),
         related_name="days",
         verbose_name="ロケーション",
         blank=True,
@@ -108,4 +124,107 @@ class Day(models.Model):
         return (
             f"{self.trip.title} "
             f"- Day {self.day_order}"
+        )
+
+
+# =========================================
+# DayLocation
+#
+# DayとLocationの中間モデル
+#
+# Day内での訪問順を管理する
+#
+# 例：
+#
+# Day1
+# 1. 東京
+# 2. 仁川
+#
+# Day2
+# 1. 仁川
+# 2. アルマトイ
+# =========================================
+
+class DayLocation(models.Model):
+
+    day_location_id = models.AutoField(
+        primary_key=True
+    )
+
+    day = models.ForeignKey(
+        Day,
+        on_delete=models.CASCADE,
+        related_name="day_locations",
+        verbose_name="Day",
+    )
+
+    location = models.ForeignKey(
+        Location,
+        on_delete=models.CASCADE,
+        related_name="day_locations",
+        verbose_name="訪問先",
+    )
+
+    # =====================================
+    # そのDay内での訪問順
+    #
+    # 1 = 最初
+    # 2 = 2番目
+    # 3 = 3番目...
+    # =====================================
+
+    location_order = models.PositiveIntegerField(
+        default=1,
+        validators=[
+            MinValueValidator(1)
+        ],
+        verbose_name="訪問順",
+    )
+
+    class Meta:
+
+        db_table = "day_locations"
+
+        verbose_name = "Day訪問先"
+        verbose_name_plural = "Day訪問先"
+
+        ordering = [
+            "location_order"
+        ]
+
+        constraints = [
+
+            # -------------------------
+            # 同じDayに
+            # 同じLocationを重複登録しない
+            # -------------------------
+
+            models.UniqueConstraint(
+                fields=[
+                    "day",
+                    "location",
+                ],
+                name="unique_day_location",
+            ),
+
+            # -------------------------
+            # 同じDayの中で
+            # 同じ訪問順を重複させない
+            # -------------------------
+
+            models.UniqueConstraint(
+                fields=[
+                    "day",
+                    "location_order",
+                ],
+                name="unique_day_location_order",
+            ),
+        ]
+
+    def __str__(self):
+
+        return (
+            f"{self.day} "
+            f"- {self.location_order}. "
+            f"{self.location}"
         )
