@@ -12,7 +12,15 @@ from django.conf.urls.static import static
 
 from django.contrib.auth.views import LogoutView
 
-from base.views.account_views import (
+
+# =========================================
+# Views
+# =========================================
+
+from base.views import (
+    # =====================================
+    # Account
+    # =====================================
     Login,
     SignUpView,
     ProfileUpdateView,
@@ -23,11 +31,15 @@ from base.views.account_views import (
     PasswordResetConfirm,
     PasswordResetComplete,
     AccountDeleteView,
-)
 
-from base.views.home_views import HomeView
+    # =====================================
+    # Home
+    # =====================================
+    HomeView,
 
-from base.views.trip_views import (
+    # =====================================
+    # Trip
+    # =====================================
     TripListView,
     PublicTripListView,
     TripCreateView,
@@ -38,22 +50,25 @@ from base.views.trip_views import (
     TripStatusUpdateView,
     TripCompleteView,
     TripPublicUpdateView,
-)
 
-from base.views.day_views import (
+    # =====================================
+    # Day
+    # =====================================
     DayUpdateView,
     DayRecordUpdateView,
     DayMoveView,
     DayResetView,
-)
 
-from base.views.schedule_views import (
+    # =====================================
+    # Schedule
+    # =====================================
     ScheduleCreateView,
     ScheduleUpdateView,
     ScheduleDeleteView,
-)
 
-from base.views.expense_views import (
+    # =====================================
+    # Expense
+    # =====================================
     TripExpenseCreateView,
     DayExpenseCreateView,
 )
@@ -61,90 +76,116 @@ from base.views.expense_views import (
 
 urlpatterns = [
 
+    # =========================================
     # 管理画面
+    # =========================================
+
     path(
         "admin/",
-        admin.site.urls
+        admin.site.urls,
     ),
 
+    # =========================================
     # アカウント
+    # =========================================
+
+    # ログイン
     path(
         "login/",
         Login.as_view(),
-        name="login"
+        name="login",
     ),
 
+    # ログアウト
     path(
         "logout/",
         LogoutView.as_view(
             next_page="/"
         ),
-        name="logout"
+        name="logout",
     ),
 
+    # アカウント作成
     path(
         "signup/",
         SignUpView.as_view(),
-        name="signup"
+        name="signup",
     ),
 
+    # プロフィール編集
     path(
         "profile/",
         ProfileUpdateView.as_view(),
-        name="profile"
+        name="profile",
     ),
 
+    # =========================================
     # メールアドレス変更
+    # =========================================
+
     path(
         "email/change/",
         EmailUpdateView.as_view(),
-        name="email_change"
+        name="email_change",
     ),
 
+    # =========================================
     # パスワード変更
+    # =========================================
+
     path(
         "password/change/",
         PasswordChange.as_view(),
-        name="password_change"
+        name="password_change",
     ),
 
+    # =========================================
     # パスワードリセット
+    # =========================================
+
     path(
         "password/reset/",
         PasswordReset.as_view(),
-        name="password_reset"
+        name="password_reset",
     ),
 
     path(
         "password/reset/done/",
         PasswordResetDone.as_view(),
-        name="password_reset_done"
+        name="password_reset_done",
     ),
 
     path(
         "password/reset/confirm/<uidb64>/<token>/",
         PasswordResetConfirm.as_view(),
-        name="password_reset_confirm"
+        name="password_reset_confirm",
     ),
 
     path(
         "password/reset/complete/",
         PasswordResetComplete.as_view(),
-        name="password_reset_complete"
+        name="password_reset_complete",
     ),
 
+    # =========================================
     # アカウント削除
+    # =========================================
+
     path(
         "account/delete/",
         AccountDeleteView.as_view(),
-        name="account_delete"
+        name="account_delete",
     ),
+
+    # =========================================
+    # Trip
+    # =========================================
 
     # Trip一覧
     path(
         "trips/",
         TripListView.as_view(),
-        name="trip_list"
+        name="trip_list",
     ),
 
     # 公開Trip一覧
@@ -158,14 +199,14 @@ urlpatterns = [
     path(
         "trips/create/",
         TripCreateView.as_view(),
-        name="trip_create"
+        name="trip_create",
     ),
 
     # Trip詳細
     path(
         "trips/<int:pk>/",
         TripDetailView.as_view(),
-        name="trip_detail"
+        name="trip_detail",
     ),
 
     # Trip編集
@@ -210,12 +251,19 @@ urlpatterns = [
         name="trip_public_update",
     ),
 
-    # Trip共通費用作成
+    # =========================================
+    # Trip共通費用
+    # =========================================
+
     path(
         "trips/<int:trip_id>/expenses/create/",
         TripExpenseCreateView.as_view(),
         name="trip_expense_create",
     ),
+
+    # =========================================
+    # Day
+    # =========================================
 
     # Day編集
     path(
@@ -245,12 +293,19 @@ urlpatterns = [
         name="day_record_edit",
     ),
 
-    # Day費用作成
+    # =========================================
+    # Day費用
+    # =========================================
+
     path(
         "days/<int:day_id>/expenses/create/",
         DayExpenseCreateView.as_view(),
         name="day_expense_create",
     ),
+
+    # =========================================
+    # Schedule
+    # =========================================
 
     # スケジュール作成
     path(
@@ -273,18 +328,23 @@ urlpatterns = [
         name="schedule_delete",
     ),
 
-    # トップページ
+    # =========================================
+    # Home
+    # =========================================
+
     path(
         "",
         HomeView.as_view(),
-        name="home"
+        name="home",
     ),
 ]
 
 
+# =========================================
 # 開発環境でメディアファイルを表示する設定
+# =========================================
 
 urlpatterns += static(
     settings.MEDIA_URL,
-    document_root=settings.MEDIA_ROOT
+    document_root=settings.MEDIA_ROOT,
 )
