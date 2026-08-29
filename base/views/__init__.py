@@ -6,3 +6,4 @@ from .hashtag import *
 from .home import *
 from .schedule import *
 from .trip import *
+from .save import *

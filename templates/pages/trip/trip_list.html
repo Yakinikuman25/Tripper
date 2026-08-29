@@ -1,18 +1,27 @@
 {% extends "base.html" %}
 
+
 {% block title %}
 My Trip | Tripper
 {% endblock %}
 
+
 {% block main %}
 
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+{# ======================================== #}
+{# My Trip / 保存Trip 切り替え #}
+{# ======================================== #}
 
-    <h1>
-        My Trip
-    </h1>
+{% include "pages/trip/includes/trip_list_tabs.html" %}
 
+
+
+{# ======================================== #}
+{# Trip作成 #}
+{# ======================================== #}
+
+<div class="d-flex justify-content-end mb-4">
 
     <a
         href="{% url 'trip_create' %}"
@@ -23,6 +32,11 @@ My Trip | Tripper
 
 </div>
 
+
+
+{# ======================================== #}
+{# My Trip一覧 #}
+{# ======================================== #}
 
 <div class="row">
 

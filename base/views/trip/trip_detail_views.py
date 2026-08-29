@@ -15,6 +15,7 @@ from django.views.generic import DetailView
 from base.models import (
     Trip,
     TripExpense,
+    TripSave,
 )
 
 from base.forms import (
@@ -338,6 +339,46 @@ class TripDetailView(
         ] = (
             self.is_owner()
         )
+
+        # =====================================
+        # Trip保存
+        #
+        # ・自分のTripは保存不可
+        # ・旅完了かつ公開中のTripのみ保存可能
+        # ・現在のユーザーが保存済みか判定
+        # =====================================
+
+        can_save_trip = (
+            not self.is_owner()
+            and self.object.status
+            == "completed"
+            and self.object.is_public
+        )
+
+        context[
+            "can_save_trip"
+        ] = (
+            can_save_trip
+        )
+
+        if can_save_trip:
+
+            context[
+                "is_saved"
+            ] = (
+                TripSave.objects
+                .filter(
+                    user=self.request.user,
+                    trip=self.object,
+                )
+                .exists()
+            )
+
+        else:
+
+            context[
+                "is_saved"
+            ] = False
 
         # =====================================
         # Trip全体編集モード

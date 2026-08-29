@@ -1,0 +1,42 @@
+{# ======================================== #}
+{# Trip保存・保存解除 #}
+{# ======================================== #}
+
+{% if can_save_trip %}
+
+    <div class="mb-4">
+
+        <form
+            method="post"
+            action="{% url 'trip_save_toggle' trip.trip_id %}"
+            class="m-0"
+        >
+
+            {% csrf_token %}
+
+
+            {% if is_saved %}
+
+                <button
+                    type="submit"
+                    class="btn btn-secondary"
+                >
+                    保存済み
+                </button>
+
+            {% else %}
+
+                <button
+                    type="submit"
+                    class="btn btn-outline-primary"
+                >
+                    保存
+                </button>
+
+            {% endif %}
+
+        </form>
+
+    </div>
+
+{% endif %}

@@ -9,3 +9,4 @@ from .trip_hashtag_models import *
 from .trip_expense_models import *
 from .day_expense_models import *
 from .url_models import *
+from .save_models import *

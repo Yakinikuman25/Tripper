@@ -1,0 +1,58 @@
+{# ======================================== #}
+{# My Trip / 保存Trip 切り替え #}
+{# ======================================== #}
+
+<div class="mb-4">
+
+    <ul class="nav nav-tabs">
+
+        {# ======================================== #}
+        {# My Trip #}
+        {# ======================================== #}
+
+        <li class="nav-item">
+
+            <a
+                href="{% url 'trip_list' %}"
+                class="
+                    nav-link
+                    {% if request.resolver_match.url_name == 'trip_list' %}
+                        active
+                    {% endif %}
+                "
+                {% if request.resolver_match.url_name == 'trip_list' %}
+                    aria-current="page"
+                {% endif %}
+            >
+                My Trip
+            </a>
+
+        </li>
+
+
+        {# ======================================== #}
+        {# 保存Trip #}
+        {# ======================================== #}
+
+        <li class="nav-item">
+
+            <a
+                href="{% url 'saved_trip_list' %}"
+                class="
+                    nav-link
+                    {% if request.resolver_match.url_name == 'saved_trip_list' %}
+                        active
+                    {% endif %}
+                "
+                {% if request.resolver_match.url_name == 'saved_trip_list' %}
+                    aria-current="page"
+                {% endif %}
+            >
+                保存Trip
+            </a>
+
+        </li>
+
+    </ul>
+
+</div>

@@ -52,6 +52,12 @@ from base.views import (
     TripPublicUpdateView,
 
     # =====================================
+    # Save
+    # =====================================
+    TripSaveToggleView,
+    SavedTripListView,
+
+    # =====================================
     # Day
     # =====================================
     DayUpdateView,
@@ -202,6 +208,21 @@ urlpatterns = [
         name="trip_create",
     ),
 
+    # =========================================
+    # Save
+    # =========================================
+
+    # 保存Trip一覧
+    path(
+        "trips/saved/",
+        SavedTripListView.as_view(),
+        name="saved_trip_list",
+    ),
+
+    # =========================================
+    # Trip詳細・編集
+    # =========================================
+
     # Trip詳細
     path(
         "trips/<int:pk>/",
@@ -249,6 +270,17 @@ urlpatterns = [
         "trips/<int:pk>/public/",
         TripPublicUpdateView.as_view(),
         name="trip_public_update",
+    ),
+
+    # =========================================
+    # Save
+    # =========================================
+
+    # 公開Tripの保存・保存解除
+    path(
+        "trips/<int:pk>/save/",
+        TripSaveToggleView.as_view(),
+        name="trip_save_toggle",
     ),
 
     # =========================================
