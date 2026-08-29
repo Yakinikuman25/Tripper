@@ -4,12 +4,12 @@ from django.contrib.auth import get_user_model
 from base.models import (
     Trip,
     Day,
-    Spot,
+    Schedule,
     TripExpense,
     DayExpense,
     TripReferenceUrl,
     DayReferenceUrl,
-    SpotReferenceUrl,
+    ScheduleReferenceUrl,
     TripExpenseReferenceUrl,
 )
 
@@ -655,16 +655,13 @@ DayReferenceUrlFormSet = forms.inlineformset_factory(
 
 # =========================================
 # スケジュール作成・編集フォーム
-#
-# 現在はモデル名がSpotのままなので
-# SpotFormというクラス名を維持する
 # =========================================
 
-class SpotForm(forms.ModelForm):
+class ScheduleForm(forms.ModelForm):
 
     class Meta:
 
-        model = Spot
+        model = Schedule
 
         fields = (
             "start_time",
@@ -754,14 +751,14 @@ class SpotForm(forms.ModelForm):
 # スケジュール参考URLフォーム
 # =========================================
 
-class SpotReferenceUrlForm(
+class ScheduleReferenceUrlForm(
     ReferenceUrlFormMixin,
     forms.ModelForm,
 ):
 
     class Meta:
 
-        model = SpotReferenceUrl
+        model = ScheduleReferenceUrl
 
         fields = (
             "title",
@@ -791,10 +788,10 @@ class SpotReferenceUrlForm(
         }
 
 
-SpotReferenceUrlFormSet = forms.inlineformset_factory(
-    Spot,
-    SpotReferenceUrl,
-    form=SpotReferenceUrlForm,
+ScheduleReferenceUrlFormSet = forms.inlineformset_factory(
+    Schedule,
+    ScheduleReferenceUrl,
+    form=ScheduleReferenceUrlForm,
     extra=1,
     can_delete=True,
 )

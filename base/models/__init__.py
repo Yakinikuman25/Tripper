@@ -4,7 +4,7 @@ from .location_models import *
 from .category_models import *
 from .hashtag_models import *
 from .day_models import *
-from .spot_models import *
+from .schedule_models import *
 from .trip_hashtag_models import *
 from .trip_expense_models import *
 from .day_expense_models import *

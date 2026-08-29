@@ -317,7 +317,7 @@ def day_has_data(day):
         or day.actual_cost is not None
         or day.locations.exists()
         or day.reference_urls.exists()
-        or day.spots.exists()
+        or day.schedules.exists()
         or day.day_expenses.exists()
     )
 
@@ -1266,7 +1266,7 @@ class TripDetailView(
                 "reference_urls",
                 "trip_expenses__reference_urls",
                 "days__reference_urls",
-                "days__spots__reference_urls",
+                "days__schedules__reference_urls",
             )
             .distinct()
         )
@@ -2016,15 +2016,15 @@ class TripDetailView(
             # → 最後に表示
             #
             # 同じ開始時間・時間未定の場合
-            # → spot_order順
+            # → schedule_order順
             # =====================================
 
-            day.spots_sorted = (
-                day.spots.order_by(
+            day.schedules_sorted = (
+                day.schedules.order_by(
                     F("start_time").asc(
                         nulls_last=True
                     ),
-                    "spot_order",
+                    "schedule_order",
                 )
             )
 

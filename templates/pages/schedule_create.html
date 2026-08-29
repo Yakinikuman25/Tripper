@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 
 {% block title %}
-スケジュール編集 | Tripper
+スケジュール追加 | Tripper
 {% endblock %}
 
 {% block main %}
 
 
 <h1>
-    スケジュール編集
+    スケジュール追加
 </h1>
 
 
@@ -90,6 +90,7 @@
 
         {% endfor %}
 
+
         <p class="text-muted small mt-1 mb-0">
             終了時間は任意です。
             開始時間だけ入力することもできます。
@@ -152,7 +153,7 @@
 
     {# ======================================== #}
     {# 参考URL #}
-    {# SpotReferenceUrl FormSet #}
+    {# ScheduleReferenceUrl FormSet #}
     {# ======================================== #}
 
     <div class="mb-4">
@@ -178,7 +179,7 @@
 
 
         {# ==================================== #}
-        {# 既存・追加済み参考URLフォーム #}
+        {# 現在表示されているURLフォーム #}
         {# ==================================== #}
 
         <div id="reference-url-forms">
@@ -253,7 +254,7 @@
 
 
                     {# ------------------------- #}
-                    {# FormSet削除フィールド #}
+                    {# 削除 #}
                     {# ------------------------- #}
 
                     <div
@@ -272,11 +273,7 @@
                             type="button"
                             class="btn btn-outline-primary btn-sm register-reference-url"
                         >
-                            {% if url_form.instance.pk %}
-                                登録済み
-                            {% else %}
-                                登録
-                            {% endif %}
+                            登録
                         </button>
 
                         <button
@@ -379,14 +376,14 @@
 
 
     {# ======================================== #}
-    {# 保存 #}
+    {# スケジュール登録 #}
     {# ======================================== #}
 
     <button
         type="submit"
         class="btn btn-primary"
     >
-        保存
+        追加
     </button>
 
 
@@ -538,7 +535,7 @@
                         // 編集可能なままにする
                         //
                         // DBへの保存は最後の
-                        // 「保存」で行う
+                        // 「追加」で行う
                         // -------------------------
 
                         event.target.textContent =

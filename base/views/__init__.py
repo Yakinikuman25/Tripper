@@ -4,5 +4,5 @@ from .trip_views import *
 from .category_views import *
 from .hashtag_views import *
 from .day_views import *
-from .spot_views import *
+from .schedule_views import *
 from .expense_views import *

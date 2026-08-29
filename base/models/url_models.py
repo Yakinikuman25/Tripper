@@ -2,7 +2,7 @@ from django.db import models
 
 from .trip_models import Trip
 from .day_models import Day
-from .spot_models import Spot
+from .schedule_models import Schedule
 from .trip_expense_models import TripExpense
 
 
@@ -114,19 +114,18 @@ class DayReferenceUrl(models.Model):
 
 # =========================================
 # スケジュール参考URL
-#
-# 現在はモデル名がSpotのため
-# SpotReferenceUrlとして作成
 # =========================================
 
-class SpotReferenceUrl(models.Model):
+class ScheduleReferenceUrl(models.Model):
 
-    spot_reference_url_id = models.AutoField(
-        primary_key=True
+    schedule_reference_url_id = (
+        models.AutoField(
+            primary_key=True
+        )
     )
 
-    spot = models.ForeignKey(
-        Spot,
+    schedule = models.ForeignKey(
+        Schedule,
         on_delete=models.CASCADE,
         related_name="reference_urls",
         verbose_name="スケジュール",
@@ -150,7 +149,7 @@ class SpotReferenceUrl(models.Model):
 
     class Meta:
 
-        db_table = "spot_reference_urls"
+        db_table = "schedule_reference_urls"
 
         verbose_name = "スケジュール参考URL"
 
@@ -163,7 +162,7 @@ class SpotReferenceUrl(models.Model):
     def __str__(self):
 
         return (
-            f"{self.spot} - "
+            f"{self.schedule} - "
             f"{self.title or self.url}"
         )
 

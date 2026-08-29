@@ -3,16 +3,16 @@ from django.db import models
 from .day_models import Day
 
 
-class Spot(models.Model):
+class Schedule(models.Model):
 
-    spot_id = models.AutoField(
+    schedule_id = models.AutoField(
         primary_key=True
     )
 
     day = models.ForeignKey(
         Day,
         on_delete=models.CASCADE,
-        related_name="spots",
+        related_name="schedules",
         verbose_name="Day",
     )
 
@@ -56,27 +56,23 @@ class Spot(models.Model):
 
     # =====================================
     # 表示順
-    #
-    # 現在は内部名をspot_orderのまま使用
-    # Spot → Scheduleへの完全改名時に
-    # schedule_orderへ変更する
     # =====================================
 
-    spot_order = models.IntegerField(
+    schedule_order = models.IntegerField(
         default=0,
         verbose_name="表示順",
     )
 
     class Meta:
 
-        db_table = "spots"
+        db_table = "schedules"
 
         verbose_name = "スケジュール"
 
         verbose_name_plural = "スケジュール"
 
         ordering = [
-            "spot_order",
+            "schedule_order",
         ]
 
     def __str__(self):

@@ -13,7 +13,7 @@ from django.views.generic import UpdateView
 from base.models import (
     Day,
     Location,
-    Spot,
+    Schedule,
     DayExpense,
     DayReferenceUrl,
 )
@@ -134,7 +134,7 @@ def sync_day_reference_urls(
 # ・実際の合計費用
 # ・訪問先
 # ・Day参考URL
-# ・Spot
+# ・Schedule
 # ・Day費用明細
 #
 # 入れ替えないもの
@@ -381,18 +381,18 @@ class DayMoveView(
             )
 
             # -------------------------
-            # Spotを退避
+            # Scheduleを退避
             # -------------------------
 
-            day_spot_ids = list(
-                day.spots.values_list(
+            day_schedule_ids = list(
+                day.schedules.values_list(
                     "pk",
                     flat=True,
                 )
             )
 
-            target_spot_ids = list(
-                target_day.spots.values_list(
+            target_schedule_ids = list(
+                target_day.schedules.values_list(
                     "pk",
                     flat=True,
                 )
@@ -567,21 +567,21 @@ class DayMoveView(
                 )
 
             # =====================================
-            # Spotを交換
+            # Scheduleを交換
             # =====================================
 
-            if day_spot_ids:
+            if day_schedule_ids:
 
-                Spot.objects.filter(
-                    pk__in=day_spot_ids
+                Schedule.objects.filter(
+                    pk__in=day_schedule_ids
                 ).update(
                     day=target_day
                 )
 
-            if target_spot_ids:
+            if target_schedule_ids:
 
-                Spot.objects.filter(
-                    pk__in=target_spot_ids
+                Schedule.objects.filter(
+                    pk__in=target_schedule_ids
                 ).update(
                     day=day
                 )
@@ -1085,7 +1085,7 @@ class DayUpdateView(
 # リセットしないもの
 # ・日付
 # ・Day番号
-# ・Spot
+# ・Schedule
 # ・旅の記録
 # ・写真
 # ・実際の合計費用

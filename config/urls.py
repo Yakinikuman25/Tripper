@@ -44,13 +44,13 @@ from base.views.day_views import (
     DayUpdateView,
     DayRecordUpdateView,
     DayMoveView,
-    DayResetView
+    DayResetView,
 )
 
-from base.views.spot_views import (
-    SpotCreateView,
-    SpotUpdateView,
-    SpotDeleteView,
+from base.views.schedule_views import (
+    ScheduleCreateView,
+    ScheduleUpdateView,
+    ScheduleDeleteView,
 )
 
 from base.views.expense_views import (
@@ -226,9 +226,9 @@ urlpatterns = [
 
     # Dayリセット
     path(
-    "days/<int:pk>/reset/",
-    DayResetView.as_view(),
-    name="day_reset",
+        "days/<int:pk>/reset/",
+        DayResetView.as_view(),
+        name="day_reset",
     ),
 
     # Day入れ替え
@@ -252,25 +252,25 @@ urlpatterns = [
         name="day_expense_create",
     ),
 
-    # Spot作成
+    # スケジュール作成
     path(
-        "days/<int:day_pk>/spots/create/",
-        SpotCreateView.as_view(),
-        name="spot_create",
+        "days/<int:day_pk>/schedules/create/",
+        ScheduleCreateView.as_view(),
+        name="schedule_create",
     ),
 
-    # Spot編集
+    # スケジュール編集
     path(
-        "spots/<int:pk>/edit/",
-        SpotUpdateView.as_view(),
-        name="spot_edit",
+        "schedules/<int:pk>/edit/",
+        ScheduleUpdateView.as_view(),
+        name="schedule_edit",
     ),
 
-    # Spot削除
+    # スケジュール削除
     path(
-        "spots/<int:pk>/delete/",
-        SpotDeleteView.as_view(),
-        name="spot_delete",
+        "schedules/<int:pk>/delete/",
+        ScheduleDeleteView.as_view(),
+        name="schedule_delete",
     ),
 
     # トップページ

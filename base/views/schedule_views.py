@@ -10,12 +10,12 @@ from django.views.generic import (
 
 from base.models import (
     Day,
-    Spot,
+    Schedule,
 )
 
 from base.forms import (
-    SpotForm,
-    SpotReferenceUrlFormSet,
+    ScheduleForm,
+    ScheduleReferenceUrlFormSet,
 )
 
 
@@ -23,9 +23,9 @@ from base.forms import (
 # スケジュール参考URLを保存する共通関数
 # =========================================
 
-def save_spot_reference_urls(
+def save_schedule_reference_urls(
     formset,
-    spot,
+    schedule,
 ):
 
     url_order = 1
@@ -79,7 +79,7 @@ def save_spot_reference_urls(
             )
         )
 
-        reference_url.spot = spot
+        reference_url.schedule = schedule
 
         reference_url.url_order = (
             url_order
@@ -92,22 +92,19 @@ def save_spot_reference_urls(
 
 # =========================================
 # スケジュール作成
-#
-# 現在はモデル名がSpotのままなので
-# View名もSpotCreateViewを維持する
 # =========================================
 
-class SpotCreateView(
+class ScheduleCreateView(
     LoginRequiredMixin,
     CreateView,
 ):
 
-    model = Spot
+    model = Schedule
 
-    form_class = SpotForm
+    form_class = ScheduleForm
 
     template_name = (
-        "pages/spot_create.html"
+        "pages/schedule_create.html"
     )
 
     # =====================================
@@ -144,14 +141,14 @@ class SpotCreateView(
 
         if instance is None:
 
-            instance = Spot(
+            instance = Schedule(
                 day=self.day
             )
 
         if self.request.method == "POST":
 
             return (
-                SpotReferenceUrlFormSet(
+                ScheduleReferenceUrlFormSet(
                     self.request.POST,
                     instance=instance,
                     prefix="reference_urls",
@@ -159,7 +156,7 @@ class SpotCreateView(
             )
 
         return (
-            SpotReferenceUrlFormSet(
+            ScheduleReferenceUrlFormSet(
                 instance=instance,
                 prefix="reference_urls",
             )
@@ -227,30 +224,27 @@ class SpotCreateView(
 
         # -------------------------
         # 表示順を自動採番
-        #
-        # 現在はDB上のフィールド名が
-        # spot_orderのためそのまま使用
         # -------------------------
 
-        last_spot = (
+        last_schedule = (
             self.day
-            .spots
+            .schedules
             .order_by(
-                "-spot_order"
+                "-schedule_order"
             )
             .first()
         )
 
-        if last_spot:
+        if last_schedule:
 
-            form.instance.spot_order = (
-                last_spot.spot_order
+            form.instance.schedule_order = (
+                last_schedule.schedule_order
                 + 1
             )
 
         else:
 
-            form.instance.spot_order = 1
+            form.instance.schedule_order = 1
 
         # -------------------------
         # 参考URL FormSet
@@ -303,7 +297,7 @@ class SpotCreateView(
                 self.object
             )
 
-            save_spot_reference_urls(
+            save_schedule_reference_urls(
                 reference_url_formset,
                 self.object,
             )
@@ -358,22 +352,19 @@ class SpotCreateView(
 
 # =========================================
 # スケジュール編集
-#
-# 現在はモデル名がSpotのままなので
-# View名もSpotUpdateViewを維持する
 # =========================================
 
-class SpotUpdateView(
+class ScheduleUpdateView(
     LoginRequiredMixin,
     UpdateView,
 ):
 
-    model = Spot
+    model = Schedule
 
-    form_class = SpotForm
+    form_class = ScheduleForm
 
     template_name = (
-        "pages/spot_edit.html"
+        "pages/schedule_edit.html"
     )
 
     # =====================================
@@ -383,7 +374,7 @@ class SpotUpdateView(
     def get_queryset(self):
 
         return (
-            Spot.objects
+            Schedule.objects
             .filter(
                 day__trip__user=(
                     self.request.user
@@ -402,7 +393,7 @@ class SpotUpdateView(
         if self.request.method == "POST":
 
             return (
-                SpotReferenceUrlFormSet(
+                ScheduleReferenceUrlFormSet(
                     self.request.POST,
                     instance=self.object,
                     prefix="reference_urls",
@@ -410,7 +401,7 @@ class SpotUpdateView(
             )
 
         return (
-            SpotReferenceUrlFormSet(
+            ScheduleReferenceUrlFormSet(
                 instance=self.object,
                 prefix="reference_urls",
             )
@@ -463,7 +454,7 @@ class SpotUpdateView(
     ):
 
         reference_url_formset = (
-            SpotReferenceUrlFormSet(
+            ScheduleReferenceUrlFormSet(
                 self.request.POST,
                 instance=self.object,
                 prefix="reference_urls",
@@ -508,7 +499,7 @@ class SpotUpdateView(
                 self.object
             )
 
-            save_spot_reference_urls(
+            save_schedule_reference_urls(
                 reference_url_formset,
                 self.object,
             )
@@ -560,23 +551,20 @@ class SpotUpdateView(
 # =========================================
 # スケジュール削除
 #
-# 現在はモデル名がSpotのままなので
-# View名もSpotDeleteViewを維持する
-#
-# Spotを削除すると、
+# Scheduleを削除すると、
 # ForeignKeyのon_delete=models.CASCADEにより
-# SpotReferenceUrlも自動削除される
+# ScheduleReferenceUrlも自動削除される
 # =========================================
 
-class SpotDeleteView(
+class ScheduleDeleteView(
     LoginRequiredMixin,
     DeleteView,
 ):
 
-    model = Spot
+    model = Schedule
 
     template_name = (
-        "pages/spot_delete.html"
+        "pages/schedule_delete.html"
     )
 
     # =====================================
@@ -586,7 +574,7 @@ class SpotDeleteView(
     def get_queryset(self):
 
         return (
-            Spot.objects
+            Schedule.objects
             .filter(
                 day__trip__user=(
                     self.request.user

@@ -2021,7 +2021,7 @@
 
         <div id="schedule-day-{{ day.day_id }}">
 
-            {% for spot in day.spots_sorted %}
+            {% for schedule in day.schedules_sorted %}
 
                 <div class="mb-4">
 
@@ -2040,13 +2040,13 @@
 
                     <p class="mb-2">
 
-                        {% if spot.start_time %}
+                        {% if schedule.start_time %}
 
-                            {{ spot.start_time|time:"H:i" }}
+                            {{ schedule.start_time|time:"H:i" }}
 
-                            {% if spot.end_time %}
+                            {% if schedule.end_time %}
 
-                                〜{{ spot.end_time|time:"H:i" }}
+                                〜{{ schedule.end_time|time:"H:i" }}
 
                             {% endif %}
 
@@ -2069,7 +2069,7 @@
                     <p class="mb-2">
 
                         <strong>
-                            {{ spot.name }}
+                            {{ schedule.name }}
                         </strong>
 
                     </p>
@@ -2078,10 +2078,10 @@
                     {% comment %}
                     参考URL
 
-                    SpotReferenceUrlを複数表示
+                    ScheduleReferenceUrlを複数表示
                     {% endcomment %}
 
-                    {% if spot.reference_urls.all %}
+                    {% if schedule.reference_urls.all %}
 
                         <div class="mb-2">
 
@@ -2091,7 +2091,7 @@
                                 </strong>
                             </p>
 
-                            {% for reference_url in spot.reference_urls.all %}
+                            {% for reference_url in schedule.reference_urls.all %}
 
                                 <p class="mb-1">
 
@@ -2118,10 +2118,10 @@
                     {% endif %}
 
 
-                    {% if spot.memo %}
+                    {% if schedule.memo %}
 
                         <p class="mb-2">
-                            {{ spot.memo|linebreaksbr }}
+                            {{ schedule.memo|linebreaksbr }}
                         </p>
 
                     {% endif %}
@@ -2132,14 +2132,14 @@
                         <div class="d-flex gap-2">
 
                             <a
-                                href="{% url 'spot_edit' spot.spot_id %}"
+                                href="{% url 'schedule_edit' schedule.schedule_id %}"
                                 class="btn btn-outline-primary btn-sm"
                             >
                                 編集
                             </a>
 
                             <a
-                                href="{% url 'spot_delete' spot.spot_id %}"
+                                href="{% url 'schedule_delete' schedule.schedule_id %}"
                                 class="btn btn-danger btn-sm"
                             >
                                 削除
@@ -2164,7 +2164,7 @@
 
                 <p>
                     <a
-                        href="{% url 'spot_create' day.day_id %}"
+                        href="{% url 'schedule_create' day.day_id %}"
                         class="btn btn-outline-primary"
                     >
                         ＋ 追加
