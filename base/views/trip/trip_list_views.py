@@ -25,7 +25,7 @@ class TripListView(
     model = Trip
 
     template_name = (
-        "pages/trip_list.html"
+        "pages/trip/trip_list.html"
     )
 
     context_object_name = "trips"
@@ -112,7 +112,7 @@ class PublicTripListView(
     model = Trip
 
     template_name = (
-        "pages/public_trip.html"
+        "pages/trip/public_trip.html"
     )
 
     context_object_name = (

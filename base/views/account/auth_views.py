@@ -16,7 +16,7 @@ class SignUpView(
     form_class = UserCreationForm
 
     template_name = (
-        "pages/signup.html"
+        "pages/account/signup.html"
     )
 
     success_url = "/"
@@ -56,5 +56,5 @@ class Login(
 ):
 
     template_name = (
-        "pages/login.html"
+        "pages/account/login.html"
     )

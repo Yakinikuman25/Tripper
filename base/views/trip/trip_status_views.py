@@ -198,7 +198,7 @@ class TripCompleteView(
     )
 
     template_name = (
-        "pages/trip_complete.html"
+        "pages/trip/trip_complete.html"
     )
 
     # =====================================

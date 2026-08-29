@@ -1,0 +1,253 @@
+{# ======================================== #}
+{# Trip全体の編集操作 #}
+{# ======================================== #}
+
+{% if trip.user == request.user %}
+
+{% if trip.status == "draft" %}
+
+    <div class="mb-4">
+
+        <a href="{% url 'trip_edit' trip.trip_id %}">
+            Tripを編集
+        </a>
+
+        <a href="{% url 'trip_delete' trip.trip_id %}">
+            Tripを削除
+        </a>
+
+    </div>
+
+
+{% else %}
+
+    <div class="mb-4">
+
+        {% if edit_mode %}
+
+            <p>
+                <strong>
+                    Trip全体を編集中です
+                </strong>
+            </p>
+
+
+            <a
+                href="{% url 'trip_detail' trip.trip_id %}"
+                class="btn btn-outline-secondary"
+            >
+                編集を終了
+            </a>
+
+
+            <a
+                href="{% url 'trip_edit' trip.trip_id %}"
+                class="btn btn-outline-primary"
+            >
+                Tripを編集
+            </a>
+
+
+            <a
+                href="{% url 'trip_delete' trip.trip_id %}"
+                class="btn btn-danger"
+            >
+                Tripを削除
+            </a>
+
+
+        {% else %}
+
+            <a
+                href="{% url 'trip_detail' trip.trip_id %}?edit=1"
+                class="btn btn-outline-primary"
+            >
+                Trip全体を編集
+            </a>
+
+        {% endif %}
+
+    </div>
+
+{% endif %}
+
+{% endif %}
+
+
+<hr>
+
+
+
+{# ======================================== #}
+{# Tripステータス #}
+{# ======================================== #}
+
+{% if trip.user == request.user %}
+
+{% if trip.status == "draft" %}
+
+    <p>
+        現在のステータス：
+        <strong>
+            作成中
+        </strong>
+    </p>
+
+
+    <form
+        method="post"
+        action="{% url 'trip_status_update' trip.trip_id %}"
+    >
+
+        {% csrf_token %}
+
+        <button
+            type="submit"
+            name="action"
+            value="complete_plan"
+        >
+            コース作成完了
+        </button>
+
+    </form>
+
+
+{% elif trip.status == "planned" %}
+
+    <p>
+        現在のステータス：
+        <strong>
+            出発待ち
+        </strong>
+    </p>
+
+
+{% elif trip.status == "traveling" %}
+
+    <p>
+        現在のステータス：
+        <strong>
+            旅中
+        </strong>
+    </p>
+
+
+    {% if today >= trip.end_date %}
+
+        <a href="{% url 'trip_complete' trip.trip_id %}">
+            旅を完了する
+        </a>
+
+    {% endif %}
+
+
+{% elif trip.status == "completed" %}
+
+    <p>
+        現在のステータス：
+        <strong>
+            旅完了
+        </strong>
+    </p>
+
+
+    <p>
+        公開設定：
+
+        {% if trip.is_public %}
+
+            公開
+
+        {% else %}
+
+            非公開
+
+        {% endif %}
+
+    </p>
+
+
+    {% if edit_mode %}
+
+        <div class="mb-3">
+
+            <a
+                href="{% url 'trip_complete' trip.trip_id %}"
+                class="btn btn-outline-primary"
+            >
+                代表写真・感想を編集
+            </a>
+
+        </div>
+
+
+        <form
+            method="post"
+            action="{% url 'trip_status_update' trip.trip_id %}"
+            class="mb-3"
+        >
+
+            {% csrf_token %}
+
+            <button
+                type="submit"
+                name="action"
+                value="reopen_trip"
+                class="btn btn-outline-warning"
+            >
+                旅中に戻す
+            </button>
+
+        </form>
+
+
+        {% if trip.is_public %}
+
+            <form
+                method="post"
+                action="{% url 'trip_public_update' trip.trip_id %}"
+            >
+
+                {% csrf_token %}
+
+                <button
+                    type="submit"
+                    name="action"
+                    value="private"
+                >
+                    非公開に変更
+                </button>
+
+            </form>
+
+
+        {% else %}
+
+            {% if trip.main_media and trip.overview %}
+
+                <form
+                    method="post"
+                    action="{% url 'trip_public_update' trip.trip_id %}"
+                >
+
+                    {% csrf_token %}
+
+                    <button
+                        type="submit"
+                        name="action"
+                        value="public"
+                    >
+                        公開に変更
+                    </button>
+
+                </form>
+
+            {% endif %}
+
+        {% endif %}
+
+    {% endif %}
+
+{% endif %}
+
+{% endif %}

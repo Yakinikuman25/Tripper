@@ -131,7 +131,10 @@ class DayUpdateView(
 
     model = Day
     form_class = DayForm
-    template_name = "pages/day_edit.html"
+
+    template_name = (
+        "pages/day/day_edit.html"
+    )
 
     # =====================================
     # 初期処理
@@ -161,7 +164,9 @@ class DayUpdateView(
     # Dayだけ取得可能にする
     # =====================================
 
-    def get_queryset(self):
+    def get_queryset(
+        self,
+    ):
 
         return Day.objects.filter(
             trip__user=self.request.user

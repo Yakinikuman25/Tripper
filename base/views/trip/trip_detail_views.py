@@ -44,7 +44,7 @@ class TripDetailView(
     model = Trip
 
     template_name = (
-        "pages/trip_detail.html"
+        "pages/trip/trip_detail.html"
     )
 
     context_object_name = "trip"
@@ -659,11 +659,6 @@ class TripDetailView(
                     day_location.location
                 )
 
-                # =====================================
-                # 前の訪問先と同じ場合は
-                # 連続重複として表示しない
-                # =====================================
-
                 if (
                     previous_location_id
                     == location.location_id
@@ -700,11 +695,6 @@ class TripDetailView(
         # 費用計算
         # =====================================
 
-        # =====================================
-        # Trip全体費用
-        # 予定合計
-        # =====================================
-
         trip_planned_total = 0
 
         has_trip_planned_cost = (
@@ -727,11 +717,6 @@ class TripDetailView(
                 has_trip_planned_cost = (
                     True
                 )
-
-        # =====================================
-        # Trip全体費用
-        # 実績合計
-        # =====================================
 
         trip_actual_total = 0
 
@@ -767,18 +752,11 @@ class TripDetailView(
         )
 
         day_budget_total = 0
-
         day_actual_total = 0
-
         has_day_budget = False
-
         has_day_actual_cost = False
 
         for day in days:
-
-            # =====================================
-            # Day予算
-            # =====================================
 
             if (
                 day.budget
@@ -793,15 +771,8 @@ class TripDetailView(
                     True
                 )
 
-            # =====================================
-            # Day費用明細合計
-            # =====================================
-
             day_expense_total = 0
-
-            has_day_expense = (
-                False
-            )
+            has_day_expense = False
 
             for expense in (
                 day.day_expenses.all()
@@ -820,11 +791,6 @@ class TripDetailView(
                         True
                     )
 
-            # =====================================
-            # HTML側で使用する
-            # Day費用明細参考合計
-            # =====================================
-
             if has_day_expense:
 
                 day.day_expense_total = (
@@ -840,17 +806,6 @@ class TripDetailView(
             day.has_day_expense = (
                 has_day_expense
             )
-
-            # =====================================
-            # Day採用実績
-            #
-            # actual_costあり
-            # → actual_cost
-            #
-            # actual_costなし
-            # DayExpenseあり
-            # → 費用明細合計
-            # =====================================
 
             if (
                 day.actual_cost
@@ -885,10 +840,6 @@ class TripDetailView(
                     False
                 )
 
-            # =====================================
-            # Trip全体のDay実績へ加算
-            # =====================================
-
             if day.has_actual_cost:
 
                 day_actual_total += (
@@ -898,10 +849,6 @@ class TripDetailView(
                 has_day_actual_cost = (
                     True
                 )
-
-            # =====================================
-            # Dayごとの訪問先
-            # =====================================
 
             day_locations = {}
 
@@ -949,19 +896,6 @@ class TripDetailView(
                 day_locations
             )
 
-            # =====================================
-            # スケジュールの並び順
-            #
-            # 開始時間あり
-            # → start_timeの早い順
-            #
-            # 開始時間なし
-            # → 最後
-            #
-            # 同時刻・時間未定
-            # → schedule_order順
-            # =====================================
-
             day.schedules_sorted = (
                 day.schedules
                 .order_by(
@@ -974,21 +908,9 @@ class TripDetailView(
                 )
             )
 
-            # =====================================
-            # 旅の記録を
-            # 入力・編集できるか
-            # =====================================
-
             day.can_edit_record = (
                 False
             )
-
-            # =====================================
-            # 旅中
-            #
-            # 今日・過去のDayのみ
-            # 入力可能
-            # =====================================
 
             if (
                 self.object.status
@@ -1004,13 +926,6 @@ class TripDetailView(
                         True
                     )
 
-            # =====================================
-            # 旅完了
-            #
-            # Trip全体編集モードのみ
-            # 入力・編集可能
-            # =====================================
-
             elif (
                 self.object.status
                 == "completed"
@@ -1021,11 +936,6 @@ class TripDetailView(
                     day.can_edit_record = (
                         True
                     )
-
-            # =====================================
-            # 編集可能な場合のみ
-            # DayRecordFormを作る
-            # =====================================
 
             if day.can_edit_record:
 
@@ -1166,10 +1076,6 @@ class TripDetailView(
 
         # =====================================
         # Trip最終実績
-        #
-        # 共通関数を使用して
-        # 詳細画面と公開Trip一覧で
-        # 同じ計算方法を使う
         # =====================================
 
         final_actual_total = (
@@ -1250,10 +1156,6 @@ class TripDetailView(
             self.get_object()
         )
 
-        # =====================================
-        # 所有者以外は操作不可
-        # =====================================
-
         if not self.is_owner():
 
             return redirect(
@@ -1267,10 +1169,6 @@ class TripDetailView(
                 "action"
             )
         )
-
-        # =====================================
-        # 新規追加
-        # =====================================
 
         if (
             action
@@ -1290,10 +1188,6 @@ class TripDetailView(
                     request
                 )
             )
-
-        # =====================================
-        # 更新
-        # =====================================
 
         if (
             action
@@ -1333,10 +1227,6 @@ class TripDetailView(
                     trip_expense,
                 )
             )
-
-        # =====================================
-        # 並び替え
-        # =====================================
 
         if (
             action
@@ -1383,10 +1273,6 @@ class TripDetailView(
                     direction,
                 )
             )
-
-        # =====================================
-        # 削除
-        # =====================================
 
         if (
             action
@@ -1459,13 +1345,6 @@ class TripDetailView(
                 "name",
                 "費用名を入力してください。",
             )
-
-        # =====================================
-        # 新規全体費用の参考URL FormSet
-        #
-        # management_formがPOSTされている時だけ
-        # URL FormSetを保存対象にする
-        # =====================================
 
         reference_url_prefix = (
             "expense_reference_urls_new"
@@ -1550,10 +1429,6 @@ class TripDetailView(
 
                 trip_expense.save()
 
-                # =====================================
-                # 参考URL
-                # =====================================
-
                 if has_reference_url_data:
 
                     reference_url_items = (
@@ -1626,13 +1501,6 @@ class TripDetailView(
                 "name",
                 "費用名を入力してください。",
             )
-
-        # =====================================
-        # 既存全体費用の参考URL FormSet
-        #
-        # management_formがある場合だけ
-        # 参考URLを更新する
-        # =====================================
 
         reference_url_prefix = (
             "expense_reference_urls_"
@@ -1716,13 +1584,6 @@ class TripDetailView(
                 )
             )
 
-        # =====================================
-        # エラー時
-        #
-        # 該当費用の入力内容と
-        # 参考URLエラーを保持する
-        # =====================================
-
         context = (
             self.get_context_data(
                 editing_expense_id=(
@@ -1746,8 +1607,6 @@ class TripDetailView(
 
     # =====================================
     # Trip全体費用並び替え
-    #
-    # expense_orderそのものを入れ替える
     # =====================================
 
     def move_trip_expense(
@@ -1820,11 +1679,6 @@ class TripDetailView(
                 current_index + 1
             )
 
-        # =====================================
-        # 一番上でさらに上、
-        # 一番下でさらに下の場合
-        # =====================================
-
         if (
             target_index < 0
             or target_index
@@ -1857,13 +1711,6 @@ class TripDetailView(
             target_expense
             .expense_order
         )
-
-        # =====================================
-        # expense_orderが同値の場合
-        #
-        # 1,2,3... に正規化してから
-        # 再度入れ替える
-        # =====================================
 
         if (
             current_order
@@ -1958,11 +1805,6 @@ class TripDetailView(
                 .expense_order
             )
 
-        # =====================================
-        # 一時的に最大値+1へ退避して
-        # 安全に順番を交換する
-        # =====================================
-
         max_order = (
             self.object
             .trip_expenses
@@ -2042,12 +1884,6 @@ class TripDetailView(
                     "trip_expense_id",
                 )
             )
-
-            # =====================================
-            # 削除後
-            # expense_orderを1,2,3...へ
-            # 振り直す
-            # =====================================
 
             for expense_order, expense in enumerate(
                 remaining_expenses,

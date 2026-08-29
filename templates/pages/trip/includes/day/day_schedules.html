@@ -1,0 +1,164 @@
+{# ======================================== #}
+{# スケジュール #}
+{# ======================================== #}
+
+<h4>
+    スケジュール
+</h4>
+
+
+<div id="schedule-day-{{ day.day_id }}">
+
+    {% for schedule in day.schedules_sorted %}
+
+        <div class="mb-4">
+
+            {% comment %}
+            時間表示
+
+            開始・終了あり
+            → 09:00〜10:30
+
+            開始のみ
+            → 09:00
+
+            開始なし
+            → 時間未定
+            {% endcomment %}
+
+            <p class="mb-2">
+
+                {% if schedule.start_time %}
+
+                    {{ schedule.start_time|time:"H:i" }}
+
+                    {% if schedule.end_time %}
+
+                        〜{{ schedule.end_time|time:"H:i" }}
+
+                    {% endif %}
+
+                {% else %}
+
+                    時間未定
+
+                {% endif %}
+
+            </p>
+
+
+            {% comment %}
+            スケジュール名
+
+            時刻とは別の行にして、
+            どのスケジュールも同じ位置から表示
+            {% endcomment %}
+
+            <p class="mb-2">
+
+                <strong>
+                    {{ schedule.name }}
+                </strong>
+
+            </p>
+
+
+            {% comment %}
+            参考URL
+
+            ScheduleReferenceUrlを複数表示
+            {% endcomment %}
+
+            {% if schedule.reference_urls.all %}
+
+                <div class="mb-2">
+
+                    <p class="mb-1">
+                        <strong>
+                            参考URL：
+                        </strong>
+                    </p>
+
+                    {% for reference_url in schedule.reference_urls.all %}
+
+                        <p class="mb-1">
+
+                            {% if reference_url.title %}
+
+                                {{ reference_url.title }}：
+
+                            {% endif %}
+
+                            <a
+                                href="{{ reference_url.url }}"
+                                target="_blank"
+                                rel="noopener noreferrer"
+                            >
+                                {{ reference_url.url }}
+                            </a>
+
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+
+            {% if schedule.memo %}
+
+                <p class="mb-2">
+                    {{ schedule.memo|linebreaksbr }}
+                </p>
+
+            {% endif %}
+
+
+            {% if trip.user == request.user and trip.status == "draft" or trip.user == request.user and edit_mode %}
+
+                <div class="d-flex gap-2">
+
+                    <a
+                        href="{% url 'schedule_edit' schedule.schedule_id %}"
+                        class="btn btn-outline-primary btn-sm"
+                    >
+                        編集
+                    </a>
+
+                    <a
+                        href="{% url 'schedule_delete' schedule.schedule_id %}"
+                        class="btn btn-danger btn-sm"
+                    >
+                        削除
+                    </a>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+    {% empty %}
+
+        <p>
+            スケジュールはまだ登録されていません。
+        </p>
+
+    {% endfor %}
+
+
+    {% if trip.user == request.user and trip.status == "draft" or trip.user == request.user and edit_mode %}
+
+        <p>
+            <a
+                href="{% url 'schedule_create' day.day_id %}"
+                class="btn btn-outline-primary"
+            >
+                ＋ 追加
+            </a>
+        </p>
+
+    {% endif %}
+
+</div>

@@ -104,7 +104,7 @@ class ScheduleCreateView(
     form_class = ScheduleForm
 
     template_name = (
-        "pages/schedule_create.html"
+        "pages/schedule/schedule_create.html"
     )
 
     # =====================================
@@ -316,7 +316,9 @@ class ScheduleCreateView(
     # どちらも操作したDayまで戻る
     # =====================================
 
-    def get_success_url(self):
+    def get_success_url(
+        self,
+    ):
 
         trip = (
             self.day.trip
@@ -364,14 +366,16 @@ class ScheduleUpdateView(
     form_class = ScheduleForm
 
     template_name = (
-        "pages/schedule_edit.html"
+        "pages/schedule/schedule_edit.html"
     )
 
     # =====================================
     # 自分のTripのスケジュールだけ取得
     # =====================================
 
-    def get_queryset(self):
+    def get_queryset(
+        self,
+    ):
 
         return (
             Schedule.objects
@@ -510,7 +514,9 @@ class ScheduleUpdateView(
     # 編集後の戻り先
     # =====================================
 
-    def get_success_url(self):
+    def get_success_url(
+        self,
+    ):
 
         day = (
             self.object.day
@@ -564,14 +570,16 @@ class ScheduleDeleteView(
     model = Schedule
 
     template_name = (
-        "pages/schedule_delete.html"
+        "pages/schedule/schedule_delete.html"
     )
 
     # =====================================
     # 自分のTripのスケジュールだけ取得
     # =====================================
 
-    def get_queryset(self):
+    def get_queryset(
+        self,
+    ):
 
         return (
             Schedule.objects
@@ -616,7 +624,9 @@ class ScheduleDeleteView(
     # 必要なIDをここで取得してURLを作る
     # =====================================
 
-    def get_success_url(self):
+    def get_success_url(
+        self,
+    ):
 
         day = (
             self.object.day

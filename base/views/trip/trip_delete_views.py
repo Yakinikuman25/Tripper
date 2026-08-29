@@ -17,7 +17,7 @@ class TripDeleteView(
     model = Trip
 
     template_name = (
-        "pages/trip_delete.html"
+        "pages/trip/trip_delete.html"
     )
 
     # =====================================

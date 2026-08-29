@@ -29,7 +29,7 @@ class TripCreateView(
     model = Trip
 
     template_name = (
-        "pages/trip_create.html"
+        "pages/trip/trip_create.html"
     )
 
     form_class = TripForm

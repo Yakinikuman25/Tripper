@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% load static %}
+
+
+{% block title %}
+{{ trip.title }} | Tripper
+{% endblock %}
+
+
+
+{# ======================================== #}
+{# Trip詳細画面専用CSS #}
+{# ======================================== #}
+
+{% block extra_css %}
+
+    <link
+        rel="stylesheet"
+        href="{% static 'css/trip/trip_detail.css' %}"
+    >
+
+{% endblock %}
+
+
+
+{% block main %}
+
+
+{# ======================================== #}
+{# Trip基本情報 #}
+{# ======================================== #}
+
+{% include "pages/trip/includes/trip_overview.html" %}
+
+
+
+{# ======================================== #}
+{# Trip編集・ステータス・公開設定 #}
+{# ======================================== #}
+
+{% include "pages/trip/includes/trip_actions.html" %}
+
+
+
+<hr>
+
+
+
+{# ======================================== #}
+{# 費用サマリー #}
+{# ======================================== #}
+
+{% include "pages/trip/includes/trip_cost_summary.html" %}
+
+
+
+<hr>
+
+
+
+{# ======================================== #}
+{# Trip全体費用 #}
+{# ======================================== #}
+
+{% include "pages/trip/includes/trip_expenses.html" %}
+
+
+
+<hr>
+
+
+
+{# ======================================== #}
+{# Day一覧 #}
+{# ======================================== #}
+
+{% for day in days %}
+
+    {% include "pages/trip/includes/day_card.html" %}
+
+{% empty %}
+
+    <p>
+        Dayがありません。
+    </p>
+
+{% endfor %}
+
+
+{% endblock %}
+
+
+
+{# ======================================== #}
+{# Trip詳細画面専用JavaScript #}
+{# ======================================== #}
+
+{% block extra_js %}
+
+    <script
+        src="{% static 'js/trip/trip_detail.js' %}"
+    ></script>
+
+{% endblock %}

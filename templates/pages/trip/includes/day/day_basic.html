@@ -1,0 +1,308 @@
+{% load humanize %}
+
+
+{# ======================================== #}
+{# Day基本情報 #}
+{# ======================================== #}
+
+<div class="d-flex align-items-center justify-content-between mb-2">
+
+
+    <h3 class="mb-0">
+        Day {{ day.day_order }}
+    </h3>
+
+
+    {# ======================================== #}
+    {# Day入れ替えボタン #}
+    {# ======================================== #}
+
+    {% if trip.user == request.user and trip.status == "draft" or trip.user == request.user and edit_mode %}
+
+        <div class="d-flex gap-2">
+
+
+            {# ------------------------- #}
+            {# 1つ前のDayと入れ替え #}
+            {# ------------------------- #}
+
+            {% if not forloop.first %}
+
+                <form
+                    method="post"
+                    action="{% url 'day_move' day.day_id %}"
+                    class="m-0"
+                >
+
+                    {% csrf_token %}
+
+
+                    <input
+                        type="hidden"
+                        name="direction"
+                        value="up"
+                    >
+
+
+                    {% if edit_mode %}
+
+                        <input
+                            type="hidden"
+                            name="edit_mode"
+                            value="1"
+                        >
+
+                    {% endif %}
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-outline-secondary btn-sm"
+                        title="前のDayと入れ替える"
+                    >
+                        ↑
+                    </button>
+
+                </form>
+
+            {% endif %}
+
+
+            {# ------------------------- #}
+            {# 1つ後ろのDayと入れ替え #}
+            {# ------------------------- #}
+
+            {% if not forloop.last %}
+
+                <form
+                    method="post"
+                    action="{% url 'day_move' day.day_id %}"
+                    class="m-0"
+                >
+
+                    {% csrf_token %}
+
+
+                    <input
+                        type="hidden"
+                        name="direction"
+                        value="down"
+                    >
+
+
+                    {% if edit_mode %}
+
+                        <input
+                            type="hidden"
+                            name="edit_mode"
+                            value="1"
+                        >
+
+                    {% endif %}
+
+
+                    <button
+                        type="submit"
+                        class="btn btn-outline-secondary btn-sm"
+                        title="次のDayと入れ替える"
+                    >
+                        ↓
+                    </button>
+
+                </form>
+
+            {% endif %}
+
+
+        </div>
+
+    {% endif %}
+
+
+</div>
+
+
+<p>
+    日付：
+    {{ day.date }}
+</p>
+
+
+{% if day.title %}
+
+    <h4>
+        {{ day.title }}
+    </h4>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# Day訪問先 #}
+{# ======================================== #}
+
+<div>
+
+    <strong>
+        訪問先：
+    </strong>
+
+
+    {% for country, regions in day.location_groups.items %}
+
+        <p>
+
+            {{ country }}：
+
+            {% for region in regions %}
+
+                {{ region }}
+
+                {% if not forloop.last %}
+                    ・
+                {% endif %}
+
+            {% endfor %}
+
+        </p>
+
+    {% empty %}
+
+        <p>
+            訪問先はまだ登録されていません。
+        </p>
+
+    {% endfor %}
+
+</div>
+
+
+
+{# ======================================== #}
+{# Dayメモ #}
+{# ======================================== #}
+
+{% if day.memo %}
+
+    <div class="mb-3">
+
+        <p>
+            <strong>
+                メモ：
+            </strong>
+        </p>
+
+        <p>
+            {{ day.memo|linebreaksbr }}
+        </p>
+
+    </div>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# Day参考URL #}
+{# Dayメモの下に表示 #}
+{# ======================================== #}
+
+{% with day_reference_urls=day.reference_urls.all %}
+
+    {% if day_reference_urls %}
+
+        <div class="mb-3">
+
+            <p class="mb-1">
+                <strong>
+                    参考URL：
+                </strong>
+            </p>
+
+
+            {% for reference_url in day_reference_urls %}
+
+                <p class="mb-1">
+
+                    {% if reference_url.title %}
+
+                        {{ reference_url.title }}：
+
+                    {% endif %}
+
+                    <a
+                        href="{{ reference_url.url }}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        {{ reference_url.url }}
+                    </a>
+
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+    {% endif %}
+
+{% endwith %}
+
+
+
+{# ======================================== #}
+{# Day予算 #}
+{# ======================================== #}
+
+<p>
+    予算：
+
+    {% if day.budget != None %}
+
+        {{ day.budget|intcomma }}円
+
+    {% else %}
+
+        －
+
+    {% endif %}
+</p>
+
+
+
+{# ======================================== #}
+{# 作成完了後だけDay実績を表示 #}
+{# ======================================== #}
+
+{% if show_day_actual %}
+
+    <p>
+        実績：
+
+        {% if day.has_actual_cost %}
+
+            {{ day.adopted_actual_cost|intcomma }}円
+
+        {% else %}
+
+            －
+
+        {% endif %}
+    </p>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# Day編集 #}
+{# ======================================== #}
+
+{% if trip.user == request.user and trip.status == "draft" or trip.user == request.user and edit_mode %}
+
+    <a href="{% url 'day_edit' day.day_id %}">
+        Dayを編集
+    </a>
+
+{% endif %}

@@ -22,7 +22,7 @@ class ProfileUpdateView(
     model = Profile
 
     template_name = (
-        "pages/profile.html"
+        "pages/account/profile.html"
     )
 
     fields = (
@@ -176,7 +176,7 @@ class EmailUpdateView(
 
         return render(
             request,
-            "pages/email_change.html",
+            "pages/account/email_change.html",
             {
                 "form": form,
             },
@@ -208,7 +208,7 @@ class EmailUpdateView(
 
         return render(
             request,
-            "pages/email_change.html",
+            "pages/account/email_change.html",
             {
                 "form": form,
             },

@@ -1,0 +1,67 @@
+{% load humanize %}
+
+{# ======================================== #}
+{# 費用サマリー #}
+{# ======================================== #}
+
+<h3>
+    旅行費用
+</h3>
+
+
+<div class="row g-3 mb-4">
+
+    <div class="col-12 col-md-6">
+
+        <p class="mb-1">
+            <strong>
+                予定
+            </strong>
+        </p>
+
+        <p class="mb-0">
+            予定合計：
+
+            {% if has_planned_cost %}
+
+                <strong>
+                    {{ planned_total|intcomma }}円
+                </strong>
+
+            {% else %}
+
+                －
+
+            {% endif %}
+        </p>
+
+    </div>
+
+
+    <div class="col-12 col-md-6">
+
+        <p class="mb-1">
+            <strong>
+                実際
+            </strong>
+        </p>
+
+        <p class="mb-0">
+            実際の合計：
+
+            {% if has_final_actual_cost %}
+
+                <strong>
+                    {{ final_actual_total|intcomma }}円
+                </strong>
+
+            {% else %}
+
+                －
+
+            {% endif %}
+        </p>
+
+    </div>
+
+</div>

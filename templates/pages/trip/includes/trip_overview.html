@@ -1,0 +1,221 @@
+{% if trip.main_media %}
+
+    <div class="mb-4">
+
+        <img
+            src="{{ trip.main_media.url }}"
+            alt="{{ trip.title }}"
+            class="img-fluid w-100 rounded trip-main-image"
+        >
+
+    </div>
+
+{% endif %}
+
+
+{% if trip.overview %}
+
+    <div class="mb-4">
+
+        <h3>
+            旅の感想
+        </h3>
+
+        <p>
+            {{ trip.overview|linebreaksbr }}
+        </p>
+
+    </div>
+
+{% endif %}
+
+
+<h1 class="mb-3">
+    {{ trip.title }}
+</h1>
+
+
+{% if trip_hashtags %}
+
+    <div class="mb-3">
+
+        {% for trip_hashtag in trip_hashtags %}
+
+            <span class="badge bg-primary me-1">
+                #{{ trip_hashtag.hashtag.name }}
+            </span>
+
+        {% endfor %}
+
+    </div>
+
+{% endif %}
+
+
+<p>
+    カテゴリ：
+
+    {% if trip.category %}
+
+        {{ trip.category }}
+
+    {% else %}
+
+        未設定
+
+    {% endif %}
+</p>
+
+
+<p id="trip-period-line">
+    旅行期間：
+    {{ trip.start_date }}
+    ～
+    {{ trip.end_date }}
+</p>
+
+
+<h3>
+    訪問先
+</h3>
+
+
+{% for country, regions in locations_by_country.items %}
+
+    <p>
+
+        {{ country }}：
+
+        {% for region in regions %}
+
+            {{ region }}
+
+            {% if not forloop.last %}
+                ・
+            {% endif %}
+
+        {% endfor %}
+
+    </p>
+
+{% empty %}
+
+    <p>
+        まだ訪問先が登録されていません。
+    </p>
+
+{% endfor %}
+
+
+{# ======================================== #}
+{# Trip全体の訪問ルート #}
+{# ======================================== #}
+
+{% if trip_route %}
+
+    <div class="mb-4">
+
+        <h3>
+            旅行ルート
+        </h3>
+
+
+        <div
+            id="trip-route-line"
+            class="d-flex flex-wrap align-items-center trip-route-line"
+        >
+
+            {% for route in trip_route %}
+
+                <span
+                    class="d-inline-flex align-items-center trip-route-item"
+                >
+
+                    <strong>
+                        {{ route.location.region }}
+                    </strong>
+
+                    <span>
+                        （{{ route.date|date:"n/j" }}）
+                    </span>
+
+
+                    {% if not forloop.last %}
+
+                        <span class="mx-1">
+                            →
+                        </span>
+
+                    {% endif %}
+
+                </span>
+
+            {% endfor %}
+
+        </div>
+
+    </div>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# Tripメモ #}
+{# ======================================== #}
+
+{% if trip.user == request.user and trip.memo %}
+
+    <div class="mb-4">
+
+        <h3>
+            メモ
+        </h3>
+
+        <p>
+            {{ trip.memo|linebreaksbr }}
+        </p>
+
+    </div>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# Trip参考URL #}
+{# ======================================== #}
+
+{% if trip_reference_urls %}
+
+    <div class="mb-4">
+
+        <h3>
+            参考URL
+        </h3>
+
+        {% for reference_url in trip_reference_urls %}
+
+            <p class="mb-1">
+
+                {% if reference_url.title %}
+
+                    {{ reference_url.title }}：
+
+                {% endif %}
+
+                <a
+                    href="{{ reference_url.url }}"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {{ reference_url.url }}
+                </a>
+
+            </p>
+
+        {% endfor %}
+
+    </div>
+
+{% endif %}

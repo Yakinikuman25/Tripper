@@ -42,7 +42,7 @@ class TripUpdateView(
     form_class = TripForm
 
     template_name = (
-        "pages/trip_create.html"
+        "pages/trip/trip_create.html"
     )
 
     # =====================================
@@ -398,7 +398,7 @@ class TripPeriodConfirmView(
 ):
 
     template_name = (
-        "pages/trip_period_confirm.html"
+        "pages/trip/trip_period_confirm.html"
     )
 
     # =====================================

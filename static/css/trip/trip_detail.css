@@ -1,0 +1,68 @@
+/* ========================================
+   Trip詳細
+======================================== */
+
+
+/* ========================================
+   Trip代表写真
+======================================== */
+
+.trip-main-image {
+    max-height: 500px;
+    object-fit: cover;
+}
+
+
+/* ========================================
+   Trip旅行ルート
+======================================== */
+
+.trip-route-line {
+    gap: 4px 0;
+    width: fit-content;
+    max-width: 100%;
+}
+
+
+.trip-route-item {
+    white-space: nowrap;
+}
+
+
+/* ========================================
+   Day 旅の記録写真
+======================================== */
+
+.day-record-image {
+    max-width: 500px;
+    max-height: 400px;
+    object-fit: cover;
+}
+
+
+/* ========================================
+   Trip全体費用
+======================================== */
+
+/* 全体費用の編集フォーム */
+.trip-expense-edit {
+    display: none;
+}
+
+
+/* FormSetのDELETEフィールド */
+.trip-expense-delete-field {
+    display: none;
+}
+
+
+/* 全体費用の新規追加フォーム */
+.trip-expense-add-form {
+    display: none;
+}
+
+
+/* 入力エラー時の追加ボタン非表示 */
+.trip-expense-add-button-hidden {
+    display: none;
+}

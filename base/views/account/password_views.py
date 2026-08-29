@@ -17,7 +17,7 @@ class PasswordChange(
 ):
 
     template_name = (
-        "pages/password_change.html"
+        "pages/account/password_change.html"
     )
 
     success_url = reverse_lazy(
@@ -34,12 +34,12 @@ class PasswordReset(
 ):
 
     template_name = (
-        "pages/password_reset/"
+        "pages/account/password_reset/"
         "password_reset.html"
     )
 
     email_template_name = (
-        "pages/password_reset/"
+        "pages/account/password_reset/"
         "password_reset_email.html"
     )
 
@@ -48,7 +48,7 @@ class PasswordReset(
     # =====================================
 
     subject_template_name = (
-        "pages/password_reset/"
+        "pages/account/password_reset/"
         "password_reset_subject.txt"
     )
 
@@ -67,7 +67,7 @@ class PasswordResetDone(
 ):
 
     template_name = (
-        "pages/password_reset/"
+        "pages/account/password_reset/"
         "password_reset_done.html"
     )
 
@@ -82,7 +82,7 @@ class PasswordResetConfirm(
 ):
 
     template_name = (
-        "pages/password_reset/"
+        "pages/account/password_reset/"
         "password_reset_confirm.html"
     )
 
@@ -100,6 +100,6 @@ class PasswordResetComplete(
 ):
 
     template_name = (
-        "pages/password_reset/"
+        "pages/account/password_reset/"
         "password_reset_complete.html"
     )
