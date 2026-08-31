@@ -50,6 +50,7 @@ from base.views import (
     TripStatusUpdateView,
     TripCompleteView,
     TripPublicUpdateView,
+    TripReuseView,
 
     # =====================================
     # Save
@@ -228,6 +229,13 @@ urlpatterns = [
         "trips/<int:pk>/",
         TripDetailView.as_view(),
         name="trip_detail",
+    ),
+
+    # Trip再利用
+    path(
+        "trips/<int:pk>/reuse/",
+        TripReuseView.as_view(),
+        name="trip_reuse",
     ),
 
     # Trip編集

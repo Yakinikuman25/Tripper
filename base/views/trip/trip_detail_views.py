@@ -344,8 +344,10 @@ class TripDetailView(
         # Trip保存
         #
         # ・自分のTripは保存不可
-        # ・旅完了かつ公開中のTripのみ保存可能
-        # ・現在のユーザーが保存済みか判定
+        # ・他ユーザーの旅完了かつ
+        #   公開中のTripのみ保存可能
+        # ・現在のユーザーが
+        #   保存済みか判定
         # =====================================
 
         can_save_trip = (
@@ -363,9 +365,7 @@ class TripDetailView(
 
         if can_save_trip:
 
-            context[
-                "is_saved"
-            ] = (
+            is_saved = (
                 TripSave.objects
                 .filter(
                     user=self.request.user,
@@ -376,9 +376,47 @@ class TripDetailView(
 
         else:
 
-            context[
-                "is_saved"
-            ] = False
+            is_saved = False
+
+        context[
+            "is_saved"
+        ] = (
+            is_saved
+        )
+
+        # =====================================
+        # Trip再利用
+        #
+        # 自分のTrip
+        # → 旅完了なら
+        #   公開・非公開を問わず再利用可能
+        #
+        # 他ユーザーのTrip
+        # → 旅完了・公開中・保存済みの場合のみ
+        #   再利用可能
+        # =====================================
+
+        if self.is_owner():
+
+            can_reuse_trip = (
+                self.object.status
+                == "completed"
+            )
+
+        else:
+
+            can_reuse_trip = (
+                self.object.status
+                == "completed"
+                and self.object.is_public
+                and is_saved
+            )
+
+        context[
+            "can_reuse_trip"
+        ] = (
+            can_reuse_trip
+        )
 
         # =====================================
         # Trip全体編集モード

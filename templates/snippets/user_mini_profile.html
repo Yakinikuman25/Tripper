@@ -1,0 +1,71 @@
+{# ======================================== #}
+{# ユーザー簡易プロフィール #}
+{# ======================================== #}
+
+{% if display_user %}
+
+    <div class="d-flex align-items-center gap-2 user-mini-profile">
+
+
+        {# ======================================== #}
+        {# プロフィール画像 #}
+        {# ======================================== #}
+
+        {% if display_user.profile.profile_image %}
+
+            <img
+                src="{{ display_user.profile.profile_image.url }}"
+                alt="{{ display_user.username }}"
+                class="rounded-circle user-mini-profile-image"
+                width="40"
+                height="40"
+            >
+
+        {% else %}
+
+            <div
+                class="
+                    rounded-circle
+                    bg-light
+                    border
+                    d-flex
+                    align-items-center
+                    justify-content-center
+                    user-mini-profile-image
+                "
+            >
+
+                <span class="text-muted small">
+                    👤
+                </span>
+
+            </div>
+
+        {% endif %}
+
+
+
+        {# ======================================== #}
+        {# ユーザー情報 #}
+        {# ======================================== #}
+
+        <div>
+
+            <div class="fw-semibold">
+
+                {{ display_user.username }}
+
+            </div>
+
+            <div class="text-muted small">
+
+                投稿者
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+{% endif %}

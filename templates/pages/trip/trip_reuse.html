@@ -1,0 +1,259 @@
+{% extends "base.html" %}
+
+
+{% block title %}
+このTripを参考に旅を作る | Tripper
+{% endblock %}
+
+
+{% block main %}
+
+
+<div class="row justify-content-center">
+
+    <div class="col-md-8 col-lg-6">
+
+
+        {# ======================================== #}
+        {# タイトル #}
+        {# ======================================== #}
+
+        <h1 class="mb-4">
+            このTripを参考に旅を作る
+        </h1>
+
+
+
+        {# ======================================== #}
+        {# 参考元Trip #}
+        {# ======================================== #}
+
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-body">
+
+
+                <p class="text-muted mb-2">
+                    参考にするTrip
+                </p>
+
+
+                <h4 class="mb-3">
+                    {{ source_trip.title }}
+                </h4>
+
+
+                <p class="mb-2">
+
+                    参考：
+                    {{ source_trip.user.username }}
+
+                </p>
+
+
+                <p class="mb-2">
+
+                    元の旅行期間：
+
+                    {{ source_trip.start_date }}
+                    ～
+                    {{ source_trip.end_date }}
+
+                </p>
+
+
+                <p class="mb-0">
+
+                    旅行日数：
+                    {{ trip_days }}日間
+
+                </p>
+
+
+            </div>
+
+        </div>
+
+
+
+        {# ======================================== #}
+        {# 再利用説明 #}
+        {# ======================================== #}
+
+        <div class="alert alert-light border mb-4">
+
+            <p class="mb-2">
+
+                新しい旅行開始日を設定すると、
+                元のTripと同じ旅行日数で
+                新しいTripを作成します。
+
+            </p>
+
+
+            <p class="mb-0 text-muted small">
+
+                写真・感想・旅の記録・実際支払額などの
+                実績情報はコピーされません。
+
+            </p>
+
+        </div>
+
+
+
+        {# ======================================== #}
+        {# 開始日入力 #}
+        {# ======================================== #}
+
+        <form method="post">
+
+            {% csrf_token %}
+
+
+            {% if form.non_field_errors %}
+
+                <div class="mb-3">
+
+                    {% for error in form.non_field_errors %}
+
+                        <p class="text-danger">
+                            {{ error }}
+                        </p>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+
+
+            <div class="mb-4">
+
+
+                <label
+                    for="{{ form.start_date.id_for_label }}"
+                    class="form-label"
+                >
+                    新しい旅行開始日
+                </label>
+
+
+                {{ form.start_date }}
+
+
+                {% for error in form.start_date.errors %}
+
+                    <p class="text-danger">
+                        {{ error }}
+                    </p>
+
+                {% endfor %}
+
+
+                <div class="form-text">
+                    カレンダーから日付を選択してください。
+                </div>
+
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# 操作ボタン #}
+            {# ======================================== #}
+
+            <div class="d-flex gap-2">
+
+
+                <button
+                    type="submit"
+                    class="btn btn-primary"
+                >
+                    このTripを参考に旅を作る
+                </button>
+
+
+                <a
+                    href="{% url 'trip_detail' source_trip.trip_id %}"
+                    class="btn btn-outline-secondary"
+                >
+                    キャンセル
+                </a>
+
+
+            </div>
+
+
+        </form>
+
+
+    </div>
+
+</div>
+
+
+
+{# ======================================== #}
+{# カレンダー JavaScript #}
+{# ======================================== #}
+
+<script>
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        function () {
+
+
+            // =====================================
+            // カレンダー
+            // =====================================
+
+            const startDateInput =
+                document.getElementById(
+                    "{{ form.start_date.id_for_label }}"
+                );
+
+
+            if (!startDateInput) {
+
+                return;
+
+            }
+
+
+            startDateInput.addEventListener(
+                "click",
+                function () {
+
+                    if (
+                        typeof startDateInput.showPicker
+                        === "function"
+                    ) {
+
+                        try {
+
+                            startDateInput.showPicker();
+
+                        } catch (error) {
+
+                            // ブラウザ標準の
+                            // date input表示に任せる
+
+                        }
+
+                    }
+
+                }
+            );
+
+
+        }
+    );
+
+</script>
+
+
+{% endblock %}

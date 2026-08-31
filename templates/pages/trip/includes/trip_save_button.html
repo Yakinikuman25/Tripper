@@ -1,41 +1,71 @@
 {# ======================================== #}
-{# Trip保存・保存解除 #}
+{# Trip保存・保存解除・再利用 #}
 {# ======================================== #}
 
-{% if can_save_trip %}
+{% if can_save_trip or can_reuse_trip %}
 
-    <div class="mb-4">
-
-        <form
-            method="post"
-            action="{% url 'trip_save_toggle' trip.trip_id %}"
-            class="m-0"
-        >
-
-            {% csrf_token %}
+    <div class="d-flex flex-wrap gap-2 mb-4">
 
 
-            {% if is_saved %}
+        {# ======================================== #}
+        {# 保存・保存解除 #}
+        {# 自分のTripには表示しない #}
+        {# ======================================== #}
 
-                <button
-                    type="submit"
-                    class="btn btn-secondary"
-                >
-                    保存済み
-                </button>
+        {% if can_save_trip %}
 
-            {% else %}
+            <form
+                method="post"
+                action="{% url 'trip_save_toggle' trip.trip_id %}"
+                class="m-0"
+            >
 
-                <button
-                    type="submit"
-                    class="btn btn-outline-primary"
-                >
-                    保存
-                </button>
+                {% csrf_token %}
 
-            {% endif %}
 
-        </form>
+                {% if is_saved %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-secondary"
+                    >
+                        保存済み
+                    </button>
+
+                {% else %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-outline-primary"
+                    >
+                        保存
+                    </button>
+
+                {% endif %}
+
+            </form>
+
+        {% endif %}
+
+
+
+        {# ======================================== #}
+        {# Trip再利用 #}
+        {# 自分のTrip：旅完了なら表示 #}
+        {# 他ユーザー：公開・保存済みなら表示 #}
+        {# ======================================== #}
+
+        {% if can_reuse_trip %}
+
+            <a
+                href="{% url 'trip_reuse' trip.trip_id %}"
+                class="btn btn-primary"
+            >
+                このTripを参考に旅を作る
+            </a>
+
+        {% endif %}
+
 
     </div>
 

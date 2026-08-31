@@ -35,6 +35,27 @@
 </h1>
 
 
+
+{# ======================================== #}
+{# 参考元ユーザー #}
+{# ======================================== #}
+
+{% if trip.source_user and trip.source_user != trip.user %}
+
+    <div class="d-flex align-items-center gap-2 mb-3">
+
+        <span class="text-muted small">
+            参考：
+        </span>
+
+        {% include "snippets/user_mini_profile.html" with display_user=trip.source_user %}
+
+    </div>
+
+{% endif %}
+
+
+
 {% if trip_hashtags %}
 
     <div class="mb-3">

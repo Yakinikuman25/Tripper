@@ -17,11 +17,50 @@ class Trip(models.Model):
         primary_key=True
     )
 
+    # =====================================
+    # Trip所有者
+    # =====================================
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="trips",
         verbose_name="ユーザー",
+    )
+
+    # =====================================
+    # 参考元Trip
+    #
+    # 他ユーザーの公開Tripを参考に
+    # 新しいTripを作成した場合に保持する
+    #
+    # 元Tripが削除された場合でも
+    # 作成済みのTripは残す
+    # =====================================
+
+    source_trip = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="reused_trips",
+        verbose_name="参考元Trip",
+    )
+
+    # =====================================
+    # 参考元ユーザー
+    #
+    # 元Tripが削除されても
+    # 参考にしたユーザーを保持できるようにする
+    # =====================================
+
+    source_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="referenced_trips",
+        verbose_name="参考元ユーザー",
     )
 
     category = models.ForeignKey(
