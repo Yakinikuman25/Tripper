@@ -20,7 +20,8 @@ from base.models import Day
 # ・タイトル
 # ・訪問先
 # ・メモ
-# ・1日の予算
+# ・自由費予算
+# ・Day予定金額
 # ・Day参考URL
 #
 # リセットしないもの
@@ -29,7 +30,8 @@ from base.models import Day
 # ・Schedule
 # ・旅の記録
 # ・写真
-# ・実際の合計費用
+# ・自由費実績
+# ・Day実際支払額
 # ・Day費用明細
 # =========================================
 
@@ -136,17 +138,23 @@ class DayResetView(
 
             # =====================================
             # Day本体
+            #
+            # actual_cost
+            # actual_amount
+            # は実績なのでリセットしない
             # =====================================
 
             day.title = ""
             day.memo = ""
             day.budget = None
+            day.planned_amount = None
 
             day.save(
                 update_fields=[
                     "title",
                     "memo",
                     "budget",
+                    "planned_amount",
                 ]
             )
 

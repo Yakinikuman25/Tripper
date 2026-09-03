@@ -517,6 +517,16 @@ class TripReuseView(
             source_expenses
         ):
 
+            # =================================
+            # 新Tripの予定金額
+            #
+            # 予定金額あり
+            # → 予定金額
+            #
+            # 予定金額なし
+            # → 実際支払額
+            # =================================
+
             if (
                 source_expense.planned_amount
                 is not None
@@ -547,7 +557,7 @@ class TripReuseView(
                     ),
 
                     # =================================
-                    # 実績はコピーしない
+                    # 実際支払額はコピーしない
                     # =================================
 
                     actual_amount=None,
@@ -648,6 +658,36 @@ class TripReuseView(
             )
 
             # =================================
+            # Day予定金額
+            #
+            # 元の予定金額あり
+            # → 予定金額を使用
+            #
+            # 元の予定金額なし
+            # ＋
+            # 元の実際支払額あり
+            # → 実際支払額を
+            #   新Dayの予定金額として使用
+            # =================================
+
+            if (
+                source_day.planned_amount
+                is not None
+            ):
+
+                planned_amount = (
+                    source_day
+                    .planned_amount
+                )
+
+            else:
+
+                planned_amount = (
+                    source_day
+                    .actual_amount
+                )
+
+            # =================================
             # 計画情報をコピー
             # =================================
 
@@ -663,9 +703,17 @@ class TripReuseView(
                 source_day.budget
             )
 
+            new_day.planned_amount = (
+                planned_amount
+            )
+
             # =================================
-            # 旅の実績はコピーしない
+            # 実際支払額・旅の記録はコピーしない
             # =================================
+
+            new_day.actual_amount = (
+                None
+            )
 
             new_day.actual_cost = (
                 None
@@ -675,13 +723,20 @@ class TripReuseView(
                 ""
             )
 
+            new_day.media = (
+                ""
+            )
+
             new_day.save(
                 update_fields=[
                     "title",
                     "memo",
                     "budget",
+                    "planned_amount",
+                    "actual_amount",
                     "actual_cost",
                     "content",
+                    "media",
                 ]
             )
 
@@ -722,8 +777,8 @@ class TripReuseView(
             # =================================
             # DayExpenseはコピーしない
             #
-            # コンビニ・食事など
-            # 元旅行者の実績明細のため
+            # 食事・コンビニ・細かな交通費など
+            # 元の旅行で実際に使った費用明細のため
             # =================================
 
     # =====================================
@@ -836,6 +891,36 @@ class TripReuseView(
             source_schedules
         ):
 
+            # =================================
+            # Schedule予定金額
+            #
+            # 元の予定金額あり
+            # → 予定金額を使用
+            #
+            # 元の予定金額なし
+            # ＋
+            # 元の実際支払額あり
+            # → 実際支払額を
+            #   新Scheduleの予定金額として使用
+            # =================================
+
+            if (
+                source_schedule.planned_amount
+                is not None
+            ):
+
+                planned_amount = (
+                    source_schedule
+                    .planned_amount
+                )
+
+            else:
+
+                planned_amount = (
+                    source_schedule
+                    .actual_amount
+                )
+
             new_schedule = (
                 Schedule.objects.create(
                     day=(
@@ -855,6 +940,21 @@ class TripReuseView(
                     memo=(
                         source_schedule.memo
                     ),
+
+                    # =================================
+                    # 金額
+                    # =================================
+
+                    planned_amount=(
+                        planned_amount
+                    ),
+
+                    # =================================
+                    # 実際支払額はコピーしない
+                    # =================================
+
+                    actual_amount=None,
+
                     schedule_order=(
                         source_schedule
                         .schedule_order

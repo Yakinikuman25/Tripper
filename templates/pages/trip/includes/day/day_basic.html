@@ -205,7 +205,6 @@
 
 {# ======================================== #}
 {# Day参考URL #}
-{# Dayメモの下に表示 #}
 {# ======================================== #}
 
 {% with day_reference_urls=day.reference_urls.all %}
@@ -252,43 +251,354 @@
 
 
 {# ======================================== #}
-{# Day予算 #}
+{# Day予定金額・実際支払額 #}
 {# ======================================== #}
 
-<p>
-    予算：
+{% if day.planned_amount or day.actual_amount %}
 
-    {% if day.budget != None %}
+    <div class="mb-3">
+
+
+        {# ======================================== #}
+        {# Day予定金額 #}
+        {# ======================================== #}
+
+        {% if day.planned_amount %}
+
+            <p class="mb-2">
+
+                <strong>
+                    Day予定金額：
+                </strong>
+
+                {{ day.planned_amount|intcomma }}円
+
+            </p>
+
+        {% endif %}
+
+
+        {# ======================================== #}
+        {# Day実際支払額 #}
+        {# #}
+        {# 登録済みなら表示のみ #}
+        {# ======================================== #}
+
+        {% if day.actual_amount %}
+
+            <p class="mb-2">
+
+                <strong>
+                    Day実際支払額：
+                </strong>
+
+                {{ day.actual_amount|intcomma }}円
+
+            </p>
+
+
+        {# ======================================== #}
+        {# 実際支払額が未入力の場合 #}
+        {# ======================================== #}
+
+        {% elif day.planned_amount %}
+
+
+            {# ======================================== #}
+            {# 作成中・出発待ち #}
+            {# #}
+            {# 旅の記録がないため #}
+            {# Day基本情報から登録可能 #}
+            {# ======================================== #}
+
+            {% if trip.user == request.user and trip.status == "draft" or trip.user == request.user and trip.status == "planned" %}
+
+                <form
+                    method="post"
+                    action="{% url 'day_record_edit' day.day_id %}"
+                    class="mt-2"
+                >
+
+                    {% csrf_token %}
+
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="save_day_actual_amount"
+                    >
+
+
+                    <label
+                        for="day-actual-amount-{{ day.day_id }}"
+                        class="form-label"
+                    >
+                        <strong>
+                            Day実際支払額
+                        </strong>
+                    </label>
+
+
+                    <div class="d-flex gap-2">
+
+                        <input
+                            type="number"
+                            id="day-actual-amount-{{ day.day_id }}"
+                            name="actual_amount"
+                            class="form-control"
+                            min="1"
+                            placeholder="実際に支払った金額"
+                            required
+                        >
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            登録
+                        </button>
+
+                    </div>
+
+                </form>
+
+
+            {# ======================================== #}
+            {# 旅中・未来のDay #}
+            {# #}
+            {# まだ旅の記録が出ないため #}
+            {# Day基本情報から登録可能 #}
+            {# ======================================== #}
+
+            {% elif trip.user == request.user and trip.status == "traveling" and day.date > today %}
+
+                <form
+                    method="post"
+                    action="{% url 'day_record_edit' day.day_id %}"
+                    class="mt-2"
+                >
+
+                    {% csrf_token %}
+
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="save_day_actual_amount"
+                    >
+
+
+                    <label
+                        for="day-actual-amount-{{ day.day_id }}"
+                        class="form-label"
+                    >
+                        <strong>
+                            Day実際支払額
+                        </strong>
+                    </label>
+
+
+                    <div class="d-flex gap-2">
+
+                        <input
+                            type="number"
+                            id="day-actual-amount-{{ day.day_id }}"
+                            name="actual_amount"
+                            class="form-control"
+                            min="1"
+                            placeholder="実際に支払った金額"
+                            required
+                        >
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            登録
+                        </button>
+
+                    </div>
+
+                </form>
+
+
+            {# ======================================== #}
+            {# 旅完了 #}
+            {# #}
+            {# Trip全体編集モード時のみ #}
+            {# Day基本情報から登録可能 #}
+            {# ======================================== #}
+
+            {% elif trip.user == request.user and trip.status == "completed" and edit_mode %}
+
+                <form
+                    method="post"
+                    action="{% url 'day_record_edit' day.day_id %}"
+                    class="mt-2"
+                >
+
+                    {% csrf_token %}
+
+
+                    <input
+                        type="hidden"
+                        name="action"
+                        value="save_day_actual_amount"
+                    >
+
+
+                    <input
+                        type="hidden"
+                        name="edit_mode"
+                        value="1"
+                    >
+
+
+                    <label
+                        for="day-actual-amount-{{ day.day_id }}"
+                        class="form-label"
+                    >
+                        <strong>
+                            Day実際支払額
+                        </strong>
+                    </label>
+
+
+                    <div class="d-flex gap-2">
+
+                        <input
+                            type="number"
+                            id="day-actual-amount-{{ day.day_id }}"
+                            name="actual_amount"
+                            class="form-control"
+                            min="1"
+                            placeholder="実際に支払った金額"
+                            required
+                        >
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-primary"
+                        >
+                            登録
+                        </button>
+
+                    </div>
+
+                </form>
+
+            {% endif %}
+
+        {% endif %}
+
+    </div>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# 自由費予算 #}
+{# #}
+{# 未入力・0円なら表示しない #}
+{# ======================================== #}
+
+{% if day.budget %}
+
+    <p class="mb-2">
+
+        <strong>
+            自由費予算：
+        </strong>
 
         {{ day.budget|intcomma }}円
 
-    {% else %}
+    </p>
 
-        －
-
-    {% endif %}
-</p>
+{% endif %}
 
 
 
 {# ======================================== #}
-{# 作成完了後だけDay実績を表示 #}
+{# 自由実費 #}
+{# #}
+{# 未入力・0円なら表示しない #}
 {# ======================================== #}
 
-{% if show_day_actual %}
+{% if show_day_actual and day.adopted_actual_cost %}
 
-    <p>
-        実績：
+    <p class="mb-2">
 
-        {% if day.has_actual_cost %}
+        <strong>
+            自由実費：
+        </strong>
 
-            {{ day.adopted_actual_cost|intcomma }}円
+        {{ day.adopted_actual_cost|intcomma }}円
 
-        {% else %}
+    </p>
 
-            －
+{% endif %}
 
-        {% endif %}
+
+
+{# ======================================== #}
+{# この日に最低限必要な金額 #}
+{# #}
+{# = #}
+{# 実際支払額が未入力のDay予定金額 #}
+{# + #}
+{# 実際支払額が未入力のSchedule予定金額 #}
+{# #}
+{# 自由費予算は含めない #}
+{# #}
+{# 0円・未入力の場合は表示しない #}
+{# ======================================== #}
+
+{% if day.minimum_remaining_amount %}
+
+    <div class="mt-3">
+
+        <p class="mb-2">
+
+            <strong>
+                この日に最低限必要な金額：
+            </strong>
+
+            {{ day.minimum_remaining_amount|intcomma }}円
+
+        </p>
+
+    </div>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# 当日予算目安 #}
+{# #}
+{# = #}
+{# この日に最低限必要な金額 #}
+{# + #}
+{# 自由費予算 #}
+{# #}
+{# 自由費予算が登録されている場合のみ表示 #}
+{# 0円の場合は表示しない #}
+{# ======================================== #}
+
+{% if day.budget and day.daily_budget_guide %}
+
+    <p class="mb-3">
+
+        <strong>
+            当日予算目安：
+        </strong>
+
+        {{ day.daily_budget_guide|intcomma }}円
+
     </p>
 
 {% endif %}

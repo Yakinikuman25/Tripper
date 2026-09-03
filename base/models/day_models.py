@@ -75,13 +75,26 @@ class Day(models.Model):
         verbose_name="写真",
     )
 
+    # =====================================
+    # 自由費
+    #
+    # 食事・コンビニ・細かな交通費など
+    #
+    # budget
+    # → その日に使う予定の自由費
+    #
+    # actual_cost
+    # → DayExpenseなどを基にした
+    #   自由費の実績
+    # =====================================
+
     budget = models.PositiveIntegerField(
         null=True,
         blank=True,
         validators=[
             MinValueValidator(1)
         ],
-        verbose_name="1日の予算",
+        verbose_name="自由費予算",
     )
 
     actual_cost = models.PositiveIntegerField(
@@ -90,7 +103,37 @@ class Day(models.Model):
         validators=[
             MinValueValidator(1)
         ],
-        verbose_name="実際の合計費用",
+        verbose_name="自由費実績",
+    )
+
+    # =====================================
+    # Day単位の費用
+    #
+    # 例：
+    # ・1日ツアー
+    # ・1日レンタカー
+    # ・そのDay全体にかかる費用
+    #
+    # Schedule単位ではなく
+    # Dayそのものに属する費用を管理する
+    # =====================================
+
+    planned_amount = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1)
+        ],
+        verbose_name="Day予定金額",
+    )
+
+    actual_amount = models.PositiveIntegerField(
+        null=True,
+        blank=True,
+        validators=[
+            MinValueValidator(1)
+        ],
+        verbose_name="Day実際支払額",
     )
 
     day_order = models.IntegerField(

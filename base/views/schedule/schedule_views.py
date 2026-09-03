@@ -79,7 +79,9 @@ def save_schedule_reference_urls(
             )
         )
 
-        reference_url.schedule = schedule
+        reference_url.schedule = (
+            schedule
+        )
 
         reference_url.url_order = (
             url_order
@@ -92,6 +94,15 @@ def save_schedule_reference_urls(
 
 # =========================================
 # スケジュール作成
+#
+# ScheduleFormで
+# ・開始時間
+# ・終了時間
+# ・スケジュール名
+# ・予定金額
+# ・メモ
+#
+# を保存する
 # =========================================
 
 class ScheduleCreateView(
@@ -207,6 +218,11 @@ class ScheduleCreateView(
 
     # =====================================
     # スケジュール保存
+    #
+    # ScheduleFormに含まれる
+    # planned_amountも
+    # super().form_valid(form)で
+    # 自動的に保存される
     # =====================================
 
     def form_valid(
@@ -244,7 +260,9 @@ class ScheduleCreateView(
 
         else:
 
-            form.instance.schedule_order = 1
+            form.instance.schedule_order = (
+                1
+            )
 
         # -------------------------
         # 参考URL FormSet
@@ -280,6 +298,9 @@ class ScheduleCreateView(
         # =====================================
         # スケジュールと参考URLを
         # まとめて保存
+        #
+        # ScheduleFormにある
+        # planned_amountもここで保存される
         #
         # 途中でエラーになった場合は
         # どちらも保存しない
@@ -354,6 +375,9 @@ class ScheduleCreateView(
 
 # =========================================
 # スケジュール編集
+#
+# ScheduleFormで
+# 予定金額も編集可能
 # =========================================
 
 class ScheduleUpdateView(
@@ -450,6 +474,9 @@ class ScheduleUpdateView(
 
     # =====================================
     # スケジュール編集保存
+    #
+    # ScheduleFormに含まれる
+    # planned_amountも更新される
     # =====================================
 
     def form_valid(
@@ -489,6 +516,9 @@ class ScheduleUpdateView(
         # =====================================
         # スケジュール本体と参考URLを
         # まとめて更新
+        #
+        # planned_amountも
+        # ScheduleFormから自動更新される
         # =====================================
 
         with transaction.atomic():

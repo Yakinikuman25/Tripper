@@ -204,7 +204,12 @@
 
 
             {# ======================================== #}
-            {# 実際の合計費用 #}
+            {# 自由実費 #}
+            {# #}
+            {# 手入力がある場合は手入力を優先 #}
+            {# #}
+            {# 手入力がない場合は #}
+            {# 費用明細合計を自由実費として使用 #}
             {# ======================================== #}
 
             <div class="mb-3">
@@ -212,7 +217,7 @@
                 <div class="d-flex align-items-center justify-content-between mb-1">
 
                     <label class="form-label mb-0">
-                        実際の合計費用
+                        自由実費
                     </label>
 
                     {% if day.actual_cost != None %}
@@ -221,7 +226,7 @@
                             type="submit"
                             form="delete-day-actual-cost-{{ day.day_id }}"
                             class="btn btn-danger btn-sm confirm-day-record-delete"
-                            data-confirm-message="実際の合計費用を削除しますか？"
+                            data-confirm-message="自由実費を削除しますか？"
                         >
                             削除
                         </button>
@@ -232,13 +237,27 @@
 
                 {{ day.record_form.actual_cost }}
 
+
                 {% if day.has_day_expense %}
 
-                    <p class="text-muted small mt-1 mb-0">
-                        入力しない場合は、費用明細の合計
-                        {{ day.day_expense_total|intcomma }}円
-                        をDayの実績として使用します。
-                    </p>
+                    {% if day.actual_cost != None %}
+
+                        <p class="text-muted small mt-1 mb-0">
+                            手入力した自由実費を使用します。
+                            削除した場合は、費用明細の合計
+                            {{ day.day_expense_total|intcomma }}円
+                            を自由実費として使用します。
+                        </p>
+
+                    {% else %}
+
+                        <p class="text-muted small mt-1 mb-0">
+                            入力しない場合は、費用明細の合計
+                            {{ day.day_expense_total|intcomma }}円
+                            を自由実費として使用します。
+                        </p>
+
+                    {% endif %}
 
                 {% endif %}
 
@@ -358,7 +377,10 @@
                     {% endfor %}
 
 
-                    {# inlineformset_factory(extra=1) 分の空フォーム #}
+                    {# ======================================== #}
+                    {# inlineformset_factory(extra=1) #}
+                    {# 空フォーム #}
+                    {# ======================================== #}
 
                     <div class="day-expense-form mb-3">
 
@@ -420,6 +442,10 @@
 
                 </div>
 
+
+                {# ======================================== #}
+                {# JavaScript追加用 空フォーム #}
+                {# ======================================== #}
 
                 <template id="day-expense-empty-{{ day.day_id }}">
 
@@ -498,7 +524,7 @@
                 {% if day.has_day_expense %}
 
                     <p class="mt-3 mb-0">
-                        現在の参考合計金額：
+                        費用明細合計：
                         {{ day.day_expense_total|intcomma }}円
                     </p>
 
@@ -520,14 +546,13 @@
     {# ======================================== #}
     {# 旅完了：通常表示 #}
     {# ======================================== #}
-    {# 閲覧専用。登録・削除・保存は表示しない #}
-    {# 所有者も「Trip全体を編集」を押すまでは閲覧のみ #}
+    {# 閲覧専用 #}
     {# ======================================== #}
 
     {% else %}
 
 
-        {% if day.media or day.content or day.actual_cost != None or day.has_day_expense %}
+        {% if day.media or day.content or day.has_actual_cost or day.has_day_expense %}
 
 
             {# ======================================== #}
@@ -583,23 +608,24 @@
 
 
             {# ======================================== #}
-            {# 実際の合計費用 #}
+            {# 自由実費 #}
+            {# #}
+            {# 手入力があれば手入力 #}
+            {# なければ費用明細合計 #}
+            {# #}
+            {# 未登録なら表示しない #}
             {# ======================================== #}
 
             {% if day.has_actual_cost %}
 
                 <p class="mb-4">
-                    実際の合計費用：
+
+                    自由実費：
 
                     <strong>
                         {{ day.adopted_actual_cost|intcomma }}円
                     </strong>
-                </p>
 
-            {% elif trip.user == request.user %}
-
-                <p class="mb-4">
-                    実際の合計費用：－
                 </p>
 
             {% endif %}
@@ -608,6 +634,8 @@
 
             {# ======================================== #}
             {# 費用明細 #}
+            {# #}
+            {# 登録されている場合だけ表示 #}
             {# ======================================== #}
 
             {% if day.has_day_expense %}
@@ -623,38 +651,39 @@
 
                     {% for expense in day.day_expenses.all %}
 
-                        <p class="mb-1">
+                        {% if expense.amount != None %}
 
-                            {% if expense.name %}
+                            <p class="mb-1">
 
-                                {{ expense.name }}
+                                {% if expense.name %}
 
-                            {% else %}
+                                    {{ expense.name }}
 
-                                費用
+                                {% else %}
 
-                            {% endif %}
+                                    費用
 
-                            ：
-                            {{ expense.amount|intcomma }}円
+                                {% endif %}
 
-                        </p>
+                                ：
+                                {{ expense.amount|intcomma }}円
+
+                            </p>
+
+                        {% endif %}
 
                     {% endfor %}
 
 
                     <p class="mt-2 mb-0">
-                        参考合計金額：
+
+                        費用明細合計：
+
                         {{ day.day_expense_total|intcomma }}円
+
                     </p>
 
                 </div>
-
-            {% elif trip.user == request.user %}
-
-                <p class="mb-4">
-                    費用明細はまだ登録されていません。
-                </p>
 
             {% endif %}
 

@@ -20,13 +20,13 @@ from base.models import (
 
 from base.forms import (
     DayRecordForm,
+    ScheduleRecordForm,
     TripExpenseForm,
     TripExpenseReferenceUrlFormSet,
 )
 
 from .trip_services import (
     sync_trip_status,
-    calculate_trip_actual_total,
     get_trip_detail_url,
     get_trip_expense_reference_url_items,
     sync_trip_expense_reference_urls,
@@ -76,6 +76,7 @@ class TripDetailView(
                 "reference_urls",
                 "trip_expenses__reference_urls",
                 "days__reference_urls",
+                "days__day_expenses",
                 "days__schedules__reference_urls",
             )
             .distinct()
@@ -167,14 +168,6 @@ class TripDetailView(
     # =====================================
     # Trip全体費用1件を
     # 編集できるか
-    #
-    # 所有者のみ編集可能
-    #
-    # 旅完了
-    # → Trip全体編集モードのみ
-    #
-    # それ以外
-    # → 編集可能
     # =====================================
 
     def can_edit_trip_expense(
@@ -342,12 +335,6 @@ class TripDetailView(
 
         # =====================================
         # Trip保存
-        #
-        # ・自分のTripは保存不可
-        # ・他ユーザーの旅完了かつ
-        #   公開中のTripのみ保存可能
-        # ・現在のユーザーが
-        #   保存済みか判定
         # =====================================
 
         can_save_trip = (
@@ -386,14 +373,6 @@ class TripDetailView(
 
         # =====================================
         # Trip再利用
-        #
-        # 自分のTrip
-        # → 旅完了なら
-        #   公開・非公開を問わず再利用可能
-        #
-        # 他ユーザーのTrip
-        # → 旅完了・公開中・保存済みの場合のみ
-        #   再利用可能
         # =====================================
 
         if self.is_owner():
@@ -432,7 +411,7 @@ class TripDetailView(
 
         # =====================================
         # 作成中では
-        # Day実績を表示しない
+        # Day実費を表示しない
         # =====================================
 
         context[
@@ -504,10 +483,6 @@ class TripDetailView(
 
             if trip_expense.can_edit:
 
-                # =====================================
-                # 参考URL FormSet
-                # =====================================
-
                 if (
                     editing_expense_id
                     == trip_expense.trip_expense_id
@@ -529,10 +504,6 @@ class TripDetailView(
                             trip_expense
                         )
                     )
-
-                # =====================================
-                # 費用編集Form
-                # =====================================
 
                 if (
                     editing_expense_id
@@ -692,13 +663,6 @@ class TripDetailView(
 
         # =====================================
         # Trip全体の訪問ルート
-        #
-        # Dayの日付順
-        # ↓
-        # そのDay内のlocation_order順
-        #
-        # 連続して同じ訪問先が続く場合は
-        # 1回だけ表示する
         # =====================================
 
         trip_route = []
@@ -747,12 +711,8 @@ class TripDetailView(
 
                 trip_route.append(
                     {
-                        "location": (
-                            location
-                        ),
-                        "date": (
-                            route_day.date
-                        ),
+                        "location": location,
+                        "date": route_day.date,
                         "day_order": (
                             route_day.day_order
                         ),
@@ -771,12 +731,20 @@ class TripDetailView(
         ] = trip_route
 
         # =====================================
-        # 費用計算
+        # Trip全体費用
+        #
+        # TripExpenseのみの予定・実際支払額
         # =====================================
 
         trip_planned_total = 0
 
         has_trip_planned_cost = (
+            False
+        )
+
+        trip_actual_total = 0
+
+        has_trip_actual_cost = (
             False
         )
 
@@ -796,16 +764,6 @@ class TripDetailView(
                 has_trip_planned_cost = (
                     True
                 )
-
-        trip_actual_total = 0
-
-        has_trip_actual_cost = (
-            False
-        )
-
-        for expense in (
-            trip_expenses
-        ):
 
             if (
                 expense.actual_amount
@@ -830,17 +788,86 @@ class TripDetailView(
             .all()
         )
 
+        # =====================================
+        # Day予定内訳
+        # =====================================
+
         day_budget_total = 0
+
+        day_planned_amount_total = 0
+
+        schedule_planned_total = 0
+
+        day_planned_total = 0
+
+        has_day_budget = (
+            False
+        )
+
+        has_day_planned_amount = (
+            False
+        )
+
+        has_schedule_planned_cost = (
+            False
+        )
+
+        has_day_planned_cost = (
+            False
+        )
+
+        # =====================================
+        # Day実費内訳
+        # =====================================
+
+        day_free_actual_total = 0
+
+        day_actual_amount_total = 0
+
+        schedule_actual_total = 0
+
         day_actual_total = 0
-        has_day_budget = False
-        has_day_actual_cost = False
+
+        has_day_free_actual = (
+            False
+        )
+
+        has_day_actual_amount = (
+            False
+        )
+
+        has_schedule_actual_cost = (
+            False
+        )
+
+        has_day_actual_cost = (
+            False
+        )
 
         for day in days:
+
+            # =====================================
+            # このDayの予定合計
+            # =====================================
+
+            current_day_planned_total = 0
+
+            current_day_has_planned_cost = (
+                False
+            )
+
+            # =====================================
+            # 自由費予算
+            # =====================================
 
             if (
                 day.budget
                 is not None
             ):
+
+                current_day_planned_total += (
+                    day.budget
+                )
 
                 day_budget_total += (
                     day.budget
@@ -850,8 +877,44 @@ class TripDetailView(
                     True
                 )
 
+                current_day_has_planned_cost = (
+                    True
+                )
+
+            # =====================================
+            # Day予定金額
+            # =====================================
+
+            if (
+                day.planned_amount
+                is not None
+            ):
+
+                current_day_planned_total += (
+                    day.planned_amount
+                )
+
+                day_planned_amount_total += (
+                    day.planned_amount
+                )
+
+                has_day_planned_amount = (
+                    True
+                )
+
+                current_day_has_planned_cost = (
+                    True
+                )
+
+            # =====================================
+            # Day費用明細
+            # =====================================
+
             day_expense_total = 0
-            has_day_expense = False
+
+            has_day_expense = (
+                False
+            )
 
             for expense in (
                 day.day_expenses.all()
@@ -886,6 +949,15 @@ class TripDetailView(
                 has_day_expense
             )
 
+            # =====================================
+            # 自由実費
+            #
+            # 手入力を優先
+            #
+            # 手入力なしの場合だけ
+            # 費用明細合計を採用
+            # =====================================
+
             if (
                 day.actual_cost
                 is not None
@@ -919,15 +991,414 @@ class TripDetailView(
                     False
                 )
 
+            # =====================================
+            # Schedule
+            # =====================================
+
+            schedules_sorted = list(
+                day.schedules
+                .order_by(
+                    F(
+                        "start_time"
+                    ).asc(
+                        nulls_last=True
+                    ),
+                    "schedule_order",
+                )
+            )
+
+            day.schedules_sorted = (
+                schedules_sorted
+            )
+
+            # =====================================
+            # このDayのSchedule集計
+            # =====================================
+
+            current_schedule_planned_total = 0
+
+            current_schedule_actual_total = 0
+
+            # =====================================
+            # Day最低必要額の計算用
+            #
+            # 画面には直接表示しない
+            # =====================================
+
+            current_unpaid_schedule_total = 0
+
+            current_has_schedule_planned = (
+                False
+            )
+
+            current_has_schedule_actual = (
+                False
+            )
+
+            for schedule in (
+                schedules_sorted
+            ):
+
+                # =====================================
+                # Schedule予定金額
+                # =====================================
+
+                if (
+                    schedule.planned_amount
+                    is not None
+                ):
+
+                    current_schedule_planned_total += (
+                        schedule.planned_amount
+                    )
+
+                    schedule_planned_total += (
+                        schedule.planned_amount
+                    )
+
+                    has_schedule_planned_cost = (
+                        True
+                    )
+
+                    current_has_schedule_planned = (
+                        True
+                    )
+
+                    current_day_has_planned_cost = (
+                        True
+                    )
+
+                    # =================================
+                    # 実際支払額が未入力の場合だけ
+                    # Day最低必要額へ加える
+                    # =================================
+
+                    if (
+                        schedule.actual_amount
+                        is None
+                    ):
+
+                        current_unpaid_schedule_total += (
+                            schedule.planned_amount
+                        )
+
+                # =====================================
+                # Schedule実際支払額
+                # =====================================
+
+                if (
+                    schedule.actual_amount
+                    is not None
+                ):
+
+                    current_schedule_actual_total += (
+                        schedule.actual_amount
+                    )
+
+                    schedule_actual_total += (
+                        schedule.actual_amount
+                    )
+
+                    has_schedule_actual_cost = (
+                        True
+                    )
+
+                    current_has_schedule_actual = (
+                        True
+                    )
+
+            # =====================================
+            # Schedule予定金額を
+            # Day予定合計へ加える
+            # =====================================
+
+            if current_has_schedule_planned:
+
+                current_day_planned_total += (
+                    current_schedule_planned_total
+                )
+
+            # =====================================
+            # Schedule予定合計
+            # =====================================
+
+            if current_has_schedule_planned:
+
+                day.schedule_planned_total = (
+                    current_schedule_planned_total
+                )
+
+            else:
+
+                day.schedule_planned_total = (
+                    None
+                )
+
+            # =====================================
+            # Schedule実際支払額合計
+            # =====================================
+
+            if current_has_schedule_actual:
+
+                day.schedule_actual_total = (
+                    current_schedule_actual_total
+                )
+
+            else:
+
+                day.schedule_actual_total = (
+                    None
+                )
+
+            # =====================================
+            # Day最低必要額
+            #
+            # 自由費予算は含めない
+            #
+            # =
+            # 未払いDay予定金額
+            # +
+            # 未払いSchedule予定金額
+            # =====================================
+
+            current_day_minimum_remaining_amount = 0
+
+            current_day_has_fixed_planned_cost = (
+                day.planned_amount
+                is not None
+                or current_has_schedule_planned
+            )
+
+            # =====================================
+            # 未払いDay予定金額
+            # =====================================
+
+            if (
+                day.planned_amount
+                is not None
+                and day.actual_amount
+                is None
+            ):
+
+                current_day_minimum_remaining_amount += (
+                    day.planned_amount
+                )
+
+            # =====================================
+            # 未払いSchedule予定金額
+            # =====================================
+
+            current_day_minimum_remaining_amount += (
+                current_unpaid_schedule_total
+            )
+
+            # =====================================
+            # Day最低必要額
+            #
+            # 予定金額が1件でもある場合
+            # 全て支払済みなら0円
+            #
+            # 予定金額自体がない場合はNone
+            # =====================================
+
+            if current_day_has_fixed_planned_cost:
+
+                day.minimum_remaining_amount = (
+                    current_day_minimum_remaining_amount
+                )
+
+            else:
+
+                day.minimum_remaining_amount = (
+                    None
+                )
+
+            day.has_fixed_planned_cost = (
+                current_day_has_fixed_planned_cost
+            )
+
+            # =====================================
+            # 当日予算目安
+            #
+            # =
+            # Day最低必要額
+            # +
+            # 自由費予算
+            #
+            # 自由費予算は
+            # Day最低必要額には含めない
+            # =====================================
+
+            if (
+                day.minimum_remaining_amount
+                is not None
+                or day.budget
+                is not None
+            ):
+
+                day.daily_budget_guide = (
+                    (
+                        day.minimum_remaining_amount
+                        or 0
+                    )
+                    + (
+                        day.budget
+                        or 0
+                    )
+                )
+
+                day.has_daily_budget_guide = (
+                    True
+                )
+
+            else:
+
+                day.daily_budget_guide = (
+                    None
+                )
+
+                day.has_daily_budget_guide = (
+                    False
+                )
+
+            # =====================================
+            # Day予定合計
+            # =====================================
+
+            if current_day_has_planned_cost:
+
+                day.planned_cost_total = (
+                    current_day_planned_total
+                )
+
+                day.has_planned_cost = (
+                    True
+                )
+
+                day_planned_total += (
+                    current_day_planned_total
+                )
+
+                has_day_planned_cost = (
+                    True
+                )
+
+            else:
+
+                day.planned_cost_total = (
+                    None
+                )
+
+                day.has_planned_cost = (
+                    False
+                )
+
+            # =====================================
+            # このDayの実際合計
+            # =====================================
+
+            current_day_actual_total = 0
+
+            current_day_has_actual_cost = (
+                False
+            )
+
+            # =====================================
+            # 自由実費
+            # =====================================
+
             if day.has_actual_cost:
 
-                day_actual_total += (
+                current_day_actual_total += (
                     day.adopted_actual_cost
+                )
+
+                day_free_actual_total += (
+                    day.adopted_actual_cost
+                )
+
+                has_day_free_actual = (
+                    True
+                )
+
+                current_day_has_actual_cost = (
+                    True
+                )
+
+            # =====================================
+            # Day実際支払額
+            # =====================================
+
+            if (
+                day.actual_amount
+                is not None
+            ):
+
+                current_day_actual_total += (
+                    day.actual_amount
+                )
+
+                day_actual_amount_total += (
+                    day.actual_amount
+                )
+
+                has_day_actual_amount = (
+                    True
+                )
+
+                current_day_has_actual_cost = (
+                    True
+                )
+
+            # =====================================
+            # Schedule実際支払額
+            # =====================================
+
+            if current_has_schedule_actual:
+
+                current_day_actual_total += (
+                    current_schedule_actual_total
+                )
+
+                current_day_has_actual_cost = (
+                    True
+                )
+
+            # =====================================
+            # Day実際合計
+            # =====================================
+
+            if current_day_has_actual_cost:
+
+                day.actual_cost_total = (
+                    current_day_actual_total
+                )
+
+                day.has_actual_total = (
+                    True
+                )
+
+                day_actual_total += (
+                    current_day_actual_total
                 )
 
                 has_day_actual_cost = (
                     True
                 )
+
+            else:
+
+                day.actual_cost_total = (
+                    None
+                )
+
+                day.has_actual_total = (
+                    False
+                )
+
+            # =====================================
+            # Day訪問先
+            # =====================================
 
             day_locations = {}
 
@@ -975,17 +1446,10 @@ class TripDetailView(
                 day_locations
             )
 
-            day.schedules_sorted = (
-                day.schedules
-                .order_by(
-                    F(
-                        "start_time"
-                    ).asc(
-                        nulls_last=True
-                    ),
-                    "schedule_order",
-                )
-            )
+            # =====================================
+            # このDayの旅の記録を
+            # 入力・編集できるか
+            # =====================================
 
             day.can_edit_record = (
                 False
@@ -1016,6 +1480,12 @@ class TripDetailView(
                         True
                     )
 
+            # =====================================
+            # Schedule実際支払額入力フォーム
+            # =====================================
+
+            day.schedule_record_items = []
+
             if day.can_edit_record:
 
                 day.record_form = (
@@ -1027,6 +1497,43 @@ class TripDetailView(
                     )
                 )
 
+                for schedule in (
+                    schedules_sorted
+                ):
+
+                    if (
+                        schedule.planned_amount
+                        is None
+                    ):
+
+                        continue
+
+                    if (
+                        schedule.actual_amount
+                        is not None
+                    ):
+
+                        continue
+
+                    schedule_record_form = (
+                        ScheduleRecordForm(
+                            instance=schedule,
+                            prefix=(
+                                f"schedule_"
+                                f"{schedule.schedule_id}"
+                            ),
+                        )
+                    )
+
+                    day.schedule_record_items.append(
+                        {
+                            "schedule": schedule,
+                            "form": (
+                                schedule_record_form
+                            ),
+                        }
+                    )
+
         context[
             "days"
         ] = days
@@ -1037,14 +1544,14 @@ class TripDetailView(
 
         has_planned_cost = (
             has_trip_planned_cost
-            or has_day_budget
+            or has_day_planned_cost
         )
 
         if has_planned_cost:
 
             planned_total = (
                 trip_planned_total
-                + day_budget_total
+                + day_planned_total
             )
 
         else:
@@ -1052,6 +1559,10 @@ class TripDetailView(
             planned_total = (
                 None
             )
+
+        # =====================================
+        # TripExpense予定合計
+        # =====================================
 
         context[
             "trip_planned_cost_total"
@@ -1067,6 +1578,10 @@ class TripDetailView(
             has_trip_planned_cost
         )
 
+        # =====================================
+        # 自由費予算合計
+        # =====================================
+
         context[
             "day_budget_total"
         ] = (
@@ -1081,6 +1596,64 @@ class TripDetailView(
             has_day_budget
         )
 
+        # =====================================
+        # Day予定金額合計
+        # =====================================
+
+        context[
+            "day_planned_amount_total"
+        ] = (
+            day_planned_amount_total
+            if has_day_planned_amount
+            else None
+        )
+
+        context[
+            "has_day_planned_amount"
+        ] = (
+            has_day_planned_amount
+        )
+
+        # =====================================
+        # Schedule予定金額合計
+        # =====================================
+
+        context[
+            "schedule_planned_total"
+        ] = (
+            schedule_planned_total
+            if has_schedule_planned_cost
+            else None
+        )
+
+        context[
+            "has_schedule_planned_cost"
+        ] = (
+            has_schedule_planned_cost
+        )
+
+        # =====================================
+        # 全Day予定合計
+        # =====================================
+
+        context[
+            "day_planned_cost_total"
+        ] = (
+            day_planned_total
+            if has_day_planned_cost
+            else None
+        )
+
+        context[
+            "has_day_planned_cost"
+        ] = (
+            has_day_planned_cost
+        )
+
+        # =====================================
+        # Trip全体予定合計
+        # =====================================
+
         context[
             "planned_total"
         ] = planned_total
@@ -1092,7 +1665,7 @@ class TripDetailView(
         )
 
         # =====================================
-        # Trip参考実績
+        # Trip実際支払額合計
         # =====================================
 
         has_reference_actual_cost = (
@@ -1113,6 +1686,10 @@ class TripDetailView(
                 None
             )
 
+        # =====================================
+        # TripExpense実際支払額合計
+        # =====================================
+
         context[
             "trip_actual_cost_total"
         ] = (
@@ -1126,6 +1703,64 @@ class TripDetailView(
         ] = (
             has_trip_actual_cost
         )
+
+        # =====================================
+        # 自由実費合計
+        # =====================================
+
+        context[
+            "day_free_actual_total"
+        ] = (
+            day_free_actual_total
+            if has_day_free_actual
+            else None
+        )
+
+        context[
+            "has_day_free_actual"
+        ] = (
+            has_day_free_actual
+        )
+
+        # =====================================
+        # Day実際支払額合計
+        # =====================================
+
+        context[
+            "day_actual_amount_total"
+        ] = (
+            day_actual_amount_total
+            if has_day_actual_amount
+            else None
+        )
+
+        context[
+            "has_day_actual_amount"
+        ] = (
+            has_day_actual_amount
+        )
+
+        # =====================================
+        # Schedule実際支払額合計
+        # =====================================
+
+        context[
+            "schedule_actual_total"
+        ] = (
+            schedule_actual_total
+            if has_schedule_actual_cost
+            else None
+        )
+
+        context[
+            "has_schedule_actual_cost"
+        ] = (
+            has_schedule_actual_cost
+        )
+
+        # =====================================
+        # 全Day実際合計
+        # =====================================
 
         context[
             "day_actual_cost_total"
@@ -1142,6 +1777,18 @@ class TripDetailView(
         )
 
         context[
+            "day_actual_total"
+        ] = (
+            day_actual_total
+            if has_day_actual_cost
+            else None
+        )
+
+        # =====================================
+        # Trip全体の集計実費
+        # =====================================
+
+        context[
             "reference_actual_total"
         ] = (
             reference_actual_total
@@ -1154,14 +1801,29 @@ class TripDetailView(
         )
 
         # =====================================
-        # Trip最終実績
+        # Trip最終実費
         # =====================================
 
-        final_actual_total = (
-            calculate_trip_actual_total(
-                self.object
+        if (
+            self.object.total_cost
+            is not None
+        ):
+
+            final_actual_total = (
+                self.object.total_cost
             )
-        )
+
+        elif has_reference_actual_cost:
+
+            final_actual_total = (
+                reference_actual_total
+            )
+
+        else:
+
+            final_actual_total = (
+                None
+            )
 
         has_final_actual_cost = (
             final_actual_total
@@ -1188,7 +1850,7 @@ class TripDetailView(
         )
 
         # =====================================
-        # 予定と実績の差額
+        # 予定と実費の差額
         # =====================================
 
         if (
@@ -1216,6 +1878,157 @@ class TripDetailView(
             context[
                 "has_cost_difference"
             ] = False
+
+        # =====================================
+        # 今後最低必要額
+        #
+        # 自由費予算・自由実費は含めない
+        #
+        # =
+        # 未払いTrip全体費用
+        # +
+        # 各Day最低必要額
+        # =====================================
+
+        has_fixed_planned_cost = (
+            has_trip_planned_cost
+            or has_day_planned_amount
+            or has_schedule_planned_cost
+        )
+
+        # =====================================
+        # 固定費予定合計
+        # =====================================
+
+        if has_fixed_planned_cost:
+
+            fixed_planned_total = (
+                trip_planned_total
+                + day_planned_amount_total
+                + schedule_planned_total
+            )
+
+        else:
+
+            fixed_planned_total = (
+                None
+            )
+
+        # =====================================
+        # 固定費実際支払額合計
+        # =====================================
+
+        has_fixed_actual_cost = (
+            has_trip_actual_cost
+            or has_day_actual_amount
+            or has_schedule_actual_cost
+        )
+
+        if has_fixed_actual_cost:
+
+            fixed_actual_total = (
+                trip_actual_total
+                + day_actual_amount_total
+                + schedule_actual_total
+            )
+
+        else:
+
+            fixed_actual_total = 0
+
+        # =====================================
+        # Trip全体の今後最低必要額
+        # =====================================
+
+        minimum_remaining_amount = 0
+
+        # =====================================
+        # 未払いTrip全体費用
+        # =====================================
+
+        for expense in (
+            trip_expenses
+        ):
+
+            if (
+                expense.planned_amount
+                is not None
+                and expense.actual_amount
+                is None
+            ):
+
+                minimum_remaining_amount += (
+                    expense.planned_amount
+                )
+
+        # =====================================
+        # 各Day最低必要額
+        # =====================================
+
+        for day in (
+            days
+        ):
+
+            if (
+                day.minimum_remaining_amount
+                is not None
+            ):
+
+                minimum_remaining_amount += (
+                    day.minimum_remaining_amount
+                )
+
+        # =====================================
+        # 固定費予定が全くない場合
+        # =====================================
+
+        if not has_fixed_planned_cost:
+
+            minimum_remaining_amount = (
+                None
+            )
+
+        # =====================================
+        # 固定費予定合計
+        # =====================================
+
+        context[
+            "fixed_planned_total"
+        ] = (
+            fixed_planned_total
+        )
+
+        context[
+            "has_fixed_planned_cost"
+        ] = (
+            has_fixed_planned_cost
+        )
+
+        # =====================================
+        # 固定費実際支払額合計
+        # =====================================
+
+        context[
+            "fixed_actual_total"
+        ] = (
+            fixed_actual_total
+        )
+
+        context[
+            "has_fixed_actual_cost"
+        ] = (
+            has_fixed_actual_cost
+        )
+
+        # =====================================
+        # 今後最低必要額
+        # =====================================
+
+        context[
+            "minimum_remaining_amount"
+        ] = (
+            minimum_remaining_amount
+        )
 
         return context
 
@@ -1809,7 +2622,7 @@ class TripDetailView(
 
                     expense.save(
                         update_fields=[
-                            "expense_order",
+                            "expense_order"
                         ]
                     )
 
@@ -1909,7 +2722,7 @@ class TripDetailView(
 
             trip_expense.save(
                 update_fields=[
-                    "expense_order",
+                    "expense_order"
                 ]
             )
 
@@ -1919,7 +2732,7 @@ class TripDetailView(
 
             target_expense.save(
                 update_fields=[
-                    "expense_order",
+                    "expense_order"
                 ]
             )
 
@@ -1929,7 +2742,7 @@ class TripDetailView(
 
             trip_expense.save(
                 update_fields=[
-                    "expense_order",
+                    "expense_order"
                 ]
             )
 
@@ -1980,7 +2793,7 @@ class TripDetailView(
 
                     expense.save(
                         update_fields=[
-                            "expense_order",
+                            "expense_order"
                         ]
                     )
 

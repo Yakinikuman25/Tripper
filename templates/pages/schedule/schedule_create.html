@@ -126,6 +126,71 @@
 
 
     {# ======================================== #}
+    {# 予定金額 #}
+    {# ======================================== #}
+
+    <div class="mb-3">
+
+        <label
+            for="{{ form.planned_amount.id_for_label }}"
+            class="form-label"
+        >
+            予定金額
+        </label>
+
+        {{ form.planned_amount }}
+
+        {% for error in form.planned_amount.errors %}
+
+            <p class="text-danger mb-0">
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+
+        <p class="text-muted small mt-1 mb-0">
+            このスケジュールにかかる予定金額を入力してください。
+            金額が未定の場合は空欄でも構いません。
+        </p>
+
+    </div>
+
+
+    {# ======================================== #}
+    {# 実際支払額 #}
+    {# ======================================== #}
+
+    <div class="mb-3">
+
+        <label
+            for="{{ form.actual_amount.id_for_label }}"
+            class="form-label"
+        >
+            実際支払額
+        </label>
+
+        {{ form.actual_amount }}
+
+        {% for error in form.actual_amount.errors %}
+
+            <p class="text-danger mb-0">
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+
+        <p class="text-muted small mt-1 mb-0">
+            予約・事前決済などですでに支払った場合に入力してください。
+            まだ支払っていない場合は空欄で構いません。
+            予定金額が空欄の場合は、実際支払額を予定金額としても登録します。
+        </p>
+
+    </div>
+
+
+    {# ======================================== #}
     {# メモ #}
     {# ======================================== #}
 

@@ -61,9 +61,11 @@ Day編集 | Tripper
     {# ======================================== #}
 
     <div class="mb-2">
+
         <label class="form-label">
             訪問先
         </label>
+
     </div>
 
 
@@ -390,7 +392,9 @@ Day編集 | Tripper
                     class="delete-field"
                     style="display: none;"
                 >
+
                     {{ url_form.DELETE }}
+
                 </div>
 
 
@@ -463,7 +467,9 @@ Day編集 | Tripper
                 class="delete-field"
                 style="display: none;"
             >
+
                 {{ reference_url_formset.empty_form.DELETE }}
+
             </div>
 
 
@@ -494,38 +500,101 @@ Day編集 | Tripper
     <button
         type="button"
         id="add-reference-url"
-        class="btn btn-outline-primary"
+        class="btn btn-outline-primary mb-4"
     >
         ＋ 参考URL
     </button>
 
 
     {# ======================================== #}
-    {# 1日の予算 #}
+    {# 自由費予算 #}
     {# ======================================== #}
 
-    <div class="mb-4">
+    <div class="mb-3">
 
         <label
             for="{{ form.budget.id_for_label }}"
             class="form-label"
         >
-            1日の予算
+            自由費予算
         </label>
 
         {{ form.budget }}
 
         {% for error in form.budget.errors %}
 
-            <p>
+            <p class="text-danger mb-0">
                 {{ error }}
             </p>
 
         {% endfor %}
 
         <div class="form-text">
-            この日に使う予定の金額を入力できます。
-            入力する場合は1円以上です。
+            食事・コンビニ・細かな交通費など、
+            この日に自由に使う予定の金額を入力できます。
+        </div>
+
+    </div>
+
+
+    {# ======================================== #}
+    {# Day予定金額 #}
+    {# ======================================== #}
+
+    <div class="mb-3">
+
+        <label
+            for="{{ form.planned_amount.id_for_label }}"
+            class="form-label"
+        >
+            Day予定金額
+        </label>
+
+        {{ form.planned_amount }}
+
+        {% for error in form.planned_amount.errors %}
+
+            <p class="text-danger mb-0">
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+        <div class="form-text">
+            1日ツアーや1日レンタカーなど、
+            このDay全体にかかる予定金額を入力できます。
+        </div>
+
+    </div>
+
+
+    {# ======================================== #}
+    {# Day実際支払額 #}
+    {# ======================================== #}
+
+    <div class="mb-4">
+
+        <label
+            for="{{ form.actual_amount.id_for_label }}"
+            class="form-label"
+        >
+            Day実際支払額
+        </label>
+
+        {{ form.actual_amount }}
+
+        {% for error in form.actual_amount.errors %}
+
+            <p class="text-danger mb-0">
+                {{ error }}
+            </p>
+
+        {% endfor %}
+
+        <div class="form-text">
+            1日ツアーなどを予約・事前決済している場合に入力してください。
+            まだ支払っていない場合は空欄で構いません。
+            予定金額が空欄の場合は、実際支払額を予定金額としても登録します。
         </div>
 
     </div>
@@ -572,7 +641,7 @@ Day編集 | Tripper
         <button
             type="submit"
             class="btn btn-danger"
-            onclick="return confirm('このDayのタイトル・訪問先・メモ・予算・参考URLをリセットしますか？\nスケジュール・旅の記録・費用明細は削除されません。');"
+            onclick="return confirm('このDayのタイトル・訪問先・メモ・自由費予算・参考URLをリセットしますか？\nスケジュール・旅の記録・費用明細は削除されません。');"
         >
             リセット
         </button>
@@ -634,6 +703,7 @@ Day編集 | Tripper
             // --------------------------------
             // 国に対応する地域候補を更新
             // --------------------------------
+
             function updateRegionOptions(
                 countryBlock
             ) {
@@ -686,6 +756,7 @@ Day編集 | Tripper
             // --------------------------------
             // 「地域を追加」ボタン設定
             // --------------------------------
+
             function setupAddRegionButton(
                 countryBlock
             ) {
@@ -755,6 +826,7 @@ Day編集 | Tripper
             // --------------------------------
             // 国入力欄のイベント設定
             // --------------------------------
+
             function setupCountryInput(
                 countryBlock
             ) {
@@ -796,6 +868,7 @@ Day編集 | Tripper
             // --------------------------------
             // 既存の国ブロックを設定
             // --------------------------------
+
             document.querySelectorAll(
                 ".country-block"
             ).forEach(
@@ -815,6 +888,7 @@ Day編集 | Tripper
             // --------------------------------
             // 「国を追加」
             // --------------------------------
+
             addCountryButton.addEventListener(
                 "click",
                 function () {

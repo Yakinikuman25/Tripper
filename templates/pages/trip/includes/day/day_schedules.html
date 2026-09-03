@@ -1,3 +1,6 @@
+{% load humanize %}
+
+
 {# ======================================== #}
 {# スケジュール #}
 {# ======================================== #}
@@ -12,6 +15,7 @@
     {% for schedule in day.schedules_sorted %}
 
         <div class="mb-4">
+
 
             {% comment %}
             時間表示
@@ -79,6 +83,7 @@
                         </strong>
                     </p>
 
+
                     {% for reference_url in schedule.reference_urls.all %}
 
                         <p class="mb-1">
@@ -88,6 +93,7 @@
                                 {{ reference_url.title }}：
 
                             {% endif %}
+
 
                             <a
                                 href="{{ reference_url.url }}"
@@ -106,6 +112,10 @@
             {% endif %}
 
 
+            {# ======================================== #}
+            {# メモ #}
+            {# ======================================== #}
+
             {% if schedule.memo %}
 
                 <p class="mb-2">
@@ -114,6 +124,299 @@
 
             {% endif %}
 
+
+            {# ======================================== #}
+            {# Schedule金額 #}
+            {# #}
+            {# 予定金額・実際支払額の #}
+            {# 両方が未登録なら表示しない #}
+            {# ======================================== #}
+
+            {% if schedule.planned_amount != None or schedule.actual_amount != None %}
+
+                <div class="mb-3">
+
+
+                    {# ======================================== #}
+                    {# 予定金額 #}
+                    {# ======================================== #}
+
+                    {% if schedule.planned_amount != None %}
+
+                        <p class="mb-2">
+
+                            <strong>
+                                予定金額：
+                            </strong>
+
+                            {{ schedule.planned_amount|intcomma }}円
+
+                        </p>
+
+                    {% endif %}
+
+
+                    {# ======================================== #}
+                    {# 実際支払額が登録済み #}
+                    {# #}
+                    {# 登録済みの場合は表示のみ #}
+                    {# ======================================== #}
+
+                    {% if schedule.actual_amount != None %}
+
+                        <p class="mb-2">
+
+                            <strong>
+                                実際支払額：
+                            </strong>
+
+                            {{ schedule.actual_amount|intcomma }}円
+
+                        </p>
+
+
+                    {# ======================================== #}
+                    {# 予定金額あり #}
+                    {# ＋ #}
+                    {# 実際支払額なし #}
+                    {# ======================================== #}
+
+                    {% elif schedule.planned_amount != None %}
+
+
+                        {# ======================================== #}
+                        {# 作成中・出発待ち #}
+                        {# #}
+                        {# 旅の記録がまだないため #}
+                        {# Schedule欄から登録可能 #}
+                        {# ======================================== #}
+
+                        {% if trip.user == request.user and trip.status == "draft" or trip.user == request.user and trip.status == "planned" %}
+
+                            <form
+                                method="post"
+                                action="{% url 'day_record_edit' day.day_id %}"
+                                class="mt-2"
+                            >
+
+                                {% csrf_token %}
+
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="save_schedule_actual_amount"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="schedule_id"
+                                    value="{{ schedule.schedule_id }}"
+                                >
+
+
+                                <label
+                                    for="schedule-actual-amount-{{ schedule.schedule_id }}"
+                                    class="form-label"
+                                >
+                                    <strong>
+                                        実際支払額
+                                    </strong>
+                                </label>
+
+
+                                <div class="d-flex gap-2">
+
+                                    <input
+                                        type="number"
+                                        id="schedule-actual-amount-{{ schedule.schedule_id }}"
+                                        name="actual_amount"
+                                        class="form-control"
+                                        min="1"
+                                        placeholder="実際に支払った金額"
+                                        required
+                                    >
+
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        登録
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+
+                        {# ======================================== #}
+                        {# 旅中・未来のDay #}
+                        {# #}
+                        {# まだ旅の記録が出ないため #}
+                        {# Schedule欄から登録可能 #}
+                        {# ======================================== #}
+
+                        {% elif trip.user == request.user and trip.status == "traveling" and day.date > today %}
+
+                            <form
+                                method="post"
+                                action="{% url 'day_record_edit' day.day_id %}"
+                                class="mt-2"
+                            >
+
+                                {% csrf_token %}
+
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="save_schedule_actual_amount"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="schedule_id"
+                                    value="{{ schedule.schedule_id }}"
+                                >
+
+
+                                <label
+                                    for="schedule-actual-amount-{{ schedule.schedule_id }}"
+                                    class="form-label"
+                                >
+                                    <strong>
+                                        実際支払額
+                                    </strong>
+                                </label>
+
+
+                                <div class="d-flex gap-2">
+
+                                    <input
+                                        type="number"
+                                        id="schedule-actual-amount-{{ schedule.schedule_id }}"
+                                        name="actual_amount"
+                                        class="form-control"
+                                        min="1"
+                                        placeholder="実際に支払った金額"
+                                        required
+                                    >
+
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        登録
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+
+                        {# ======================================== #}
+                        {# 旅中・今日または過去のDay #}
+                        {# #}
+                        {# ここでは入力欄を表示しない #}
+                        {# #}
+                        {# 旅の記録側で #}
+                        {# 実際支払額を入力する #}
+                        {# ======================================== #}
+
+                        {% elif trip.user == request.user and trip.status == "traveling" and day.date <= today %}
+
+                            {# 入力欄は表示しない #}
+
+
+                        {# ======================================== #}
+                        {# 旅完了 #}
+                        {# #}
+                        {# Trip全体編集モード時のみ #}
+                        {# Schedule欄から登録可能 #}
+                        {# ======================================== #}
+
+                        {% elif trip.user == request.user and trip.status == "completed" and edit_mode %}
+
+                            <form
+                                method="post"
+                                action="{% url 'day_record_edit' day.day_id %}"
+                                class="mt-2"
+                            >
+
+                                {% csrf_token %}
+
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="save_schedule_actual_amount"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="schedule_id"
+                                    value="{{ schedule.schedule_id }}"
+                                >
+
+
+                                <input
+                                    type="hidden"
+                                    name="edit_mode"
+                                    value="1"
+                                >
+
+
+                                <label
+                                    for="schedule-actual-amount-{{ schedule.schedule_id }}"
+                                    class="form-label"
+                                >
+                                    <strong>
+                                        実際支払額
+                                    </strong>
+                                </label>
+
+
+                                <div class="d-flex gap-2">
+
+                                    <input
+                                        type="number"
+                                        id="schedule-actual-amount-{{ schedule.schedule_id }}"
+                                        name="actual_amount"
+                                        class="form-control"
+                                        min="1"
+                                        placeholder="実際に支払った金額"
+                                        required
+                                    >
+
+
+                                    <button
+                                        type="submit"
+                                        class="btn btn-primary"
+                                    >
+                                        登録
+                                    </button>
+
+                                </div>
+
+                            </form>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+
+            {# ======================================== #}
+            {# Schedule編集・削除 #}
+            {# ======================================== #}
 
             {% if trip.user == request.user and trip.status == "draft" or trip.user == request.user and edit_mode %}
 
@@ -125,6 +428,7 @@
                     >
                         編集
                     </a>
+
 
                     <a
                         href="{% url 'schedule_delete' schedule.schedule_id %}"
@@ -148,15 +452,21 @@
     {% endfor %}
 
 
+    {# ======================================== #}
+    {# Schedule追加 #}
+    {# ======================================== #}
+
     {% if trip.user == request.user and trip.status == "draft" or trip.user == request.user and edit_mode %}
 
         <p>
+
             <a
                 href="{% url 'schedule_create' day.day_id %}"
                 class="btn btn-outline-primary"
             >
                 ＋ 追加
             </a>
+
         </p>
 
     {% endif %}

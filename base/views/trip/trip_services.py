@@ -329,6 +329,9 @@ def sync_trip_expense_reference_urls(
 
 # =========================================
 # Dayに何か記入されているか確認する関数
+#
+# 計画情報・旅の記録・費用情報など、
+# 何か1つでも登録されていればTrue
 # =========================================
 
 def day_has_data(
@@ -341,7 +344,9 @@ def day_has_data(
         or bool(day.content)
         or bool(day.media)
         or day.budget is not None
+        or day.planned_amount is not None
         or day.actual_cost is not None
+        or day.actual_amount is not None
         or day.locations.exists()
         or day.reference_urls.exists()
         or day.schedules.exists()
@@ -431,24 +436,40 @@ def sync_trip_status(
 
 
 # =========================================
-# 旅行全体の実際費用を計算する関数
+# 旅行全体の実費を計算する関数
 #
-# 1. Trip.total_cost が手入力されている場合
+# 1. Trip.total_cost が
+#    手入力されている場合
 #    → その金額を最優先
 #
 # 2. Trip.total_cost が未入力の場合
-#    → Trip全体費用の実績合計
-#      ＋ 各Dayの採用実績
 #
-# Dayの採用実績
-# ・day.actual_cost がある場合
-#   → day.actual_cost
+#    Trip全体費用の実際支払額
 #
-# ・day.actual_cost がなく
-#   DayExpenseがある場合
-#   → DayExpenseの合計
+#    ＋
 #
-# 3. 実績が1件もない場合
+#    各Dayの
+#    ・自由実費
+#    ・Day実際支払額
+#    ・Schedule実際支払額
+#
+#    を合計する
+#
+# -----------------------------------------
+# 自由実費の採用ルール
+#
+# day.actual_cost がある
+# → 手入力された自由実費を使用
+#
+# day.actual_cost がなく
+# DayExpenseがある
+# → DayExpense合計を使用
+#
+# actual_cost と DayExpense は
+# 同時に加算しない
+# -----------------------------------------
+#
+# 3. 実費が1件もない場合
 #    → None
 # =========================================
 
@@ -457,7 +478,7 @@ def calculate_trip_actual_total(
 ):
 
     # =====================================
-    # 手入力されたTrip全体費用を最優先
+    # Trip全体の手入力金額を最優先
     # =====================================
 
     if (
@@ -471,10 +492,14 @@ def calculate_trip_actual_total(
 
     actual_total = 0
 
-    has_actual_cost = False
+    has_actual_cost = (
+        False
+    )
 
     # =====================================
-    # Trip全体費用の実績
+    # Trip全体費用
+    #
+    # TripExpense.actual_amount
     # =====================================
 
     for expense in (
@@ -490,10 +515,12 @@ def calculate_trip_actual_total(
                 expense.actual_amount
             )
 
-            has_actual_cost = True
+            has_actual_cost = (
+                True
+            )
 
     # =====================================
-    # Day実績
+    # Dayごとの実費
     # =====================================
 
     for day in (
@@ -501,7 +528,12 @@ def calculate_trip_actual_total(
     ):
 
         # =====================================
-        # Day全体の実際費用がある場合
+        # 自由実費
+        #
+        # actual_costがある場合は
+        # 手入力値を採用
+        #
+        # DayExpenseとは二重加算しない
         # =====================================
 
         if (
@@ -513,19 +545,24 @@ def calculate_trip_actual_total(
                 day.actual_cost
             )
 
-            has_actual_cost = True
+            has_actual_cost = (
+                True
+            )
 
         # =====================================
-        # Day全体の実際費用がない場合
+        # 自由実費が未入力の場合
         #
-        # → DayExpenseを合計
+        # DayExpense合計を
+        # 自由実費として採用
         # =====================================
 
         else:
 
             day_expense_total = 0
 
-            has_day_expense = False
+            has_day_expense = (
+                False
+            )
 
             for expense in (
                 day.day_expenses.all()
@@ -540,7 +577,9 @@ def calculate_trip_actual_total(
                         expense.amount
                     )
 
-                    has_day_expense = True
+                    has_day_expense = (
+                        True
+                    )
 
             if has_day_expense:
 
@@ -548,10 +587,60 @@ def calculate_trip_actual_total(
                     day_expense_total
                 )
 
-                has_actual_cost = True
+                has_actual_cost = (
+                    True
+                )
+
+        # =====================================
+        # Day実際支払額
+        #
+        # 例：
+        # ・1日ツアー
+        # ・1日レンタカー
+        # =====================================
+
+        if (
+            day.actual_amount
+            is not None
+        ):
+
+            actual_total += (
+                day.actual_amount
+            )
+
+            has_actual_cost = (
+                True
+            )
+
+        # =====================================
+        # Schedule実際支払額
+        #
+        # 例：
+        # ・ホテル
+        # ・乗馬
+        # ・バス
+        # ・アクティビティ
+        # =====================================
+
+        for schedule in (
+            day.schedules.all()
+        ):
+
+            if (
+                schedule.actual_amount
+                is not None
+            ):
+
+                actual_total += (
+                    schedule.actual_amount
+                )
+
+                has_actual_cost = (
+                    True
+                )
 
     # =====================================
-    # 実績が1件もない場合
+    # 実費が1件もない場合
     # =====================================
 
     if not has_actual_cost:

@@ -1,67 +1,503 @@
 {% load humanize %}
 
+
 {# ======================================== #}
 {# 費用サマリー #}
 {# ======================================== #}
 
-<h3>
+<h3 class="mb-3">
     旅行費用
 </h3>
 
 
 <div class="row g-3 mb-4">
 
+
+    {# ======================================== #}
+    {# 予定 #}
+    {# ======================================== #}
+
     <div class="col-12 col-md-6">
 
-        <p class="mb-1">
-            <strong>
+        <div class="border rounded p-3 h-100 d-flex flex-column">
+
+            <h5 class="mb-3">
                 予定
-            </strong>
-        </p>
+            </h5>
 
-        <p class="mb-0">
-            予定合計：
 
-            {% if has_planned_cost %}
+            {# ======================================== #}
+            {# Trip全体費用 #}
+            {# 予定・実費のどちらかがある場合だけ1段作る #}
+            {# ======================================== #}
 
-                <strong>
-                    {{ planned_total|intcomma }}円
-                </strong>
+            {% if has_trip_planned_cost or has_trip_actual_cost %}
 
-            {% else %}
+                <div class="d-flex justify-content-between mb-2">
 
-                －
+                    {% if has_trip_planned_cost %}
+
+                        <span>
+                            Trip全体費用
+                        </span>
+
+                        <span>
+                            {{ trip_planned_cost_total|intcomma }}円
+                        </span>
+
+                    {% else %}
+
+                        <span class="invisible">
+                            Trip全体費用
+                        </span>
+
+                        <span class="invisible">
+                            0円
+                        </span>
+
+                    {% endif %}
+
+                </div>
 
             {% endif %}
-        </p>
+
+
+            {# ======================================== #}
+            {# 自由費予算 / 自由実費 #}
+            {# ======================================== #}
+
+            {% if has_day_budget or has_day_free_actual %}
+
+                <div class="d-flex justify-content-between mb-2">
+
+                    {% if has_day_budget %}
+
+                        <span>
+                            自由費予算
+                        </span>
+
+                        <span>
+                            {{ day_budget_total|intcomma }}円
+                        </span>
+
+                    {% else %}
+
+                        <span class="invisible">
+                            自由費予算
+                        </span>
+
+                        <span class="invisible">
+                            0円
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+
+            {# ======================================== #}
+            {# Day予定金額 / Day実際支払額 #}
+            {# ======================================== #}
+
+            {% if has_day_planned_amount or has_day_actual_amount %}
+
+                <div class="d-flex justify-content-between mb-2">
+
+                    {% if has_day_planned_amount %}
+
+                        <span>
+                            Day予定金額
+                        </span>
+
+                        <span>
+                            {{ day_planned_amount_total|intcomma }}円
+                        </span>
+
+                    {% else %}
+
+                        <span class="invisible">
+                            Day予定金額
+                        </span>
+
+                        <span class="invisible">
+                            0円
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+
+            {# ======================================== #}
+            {# Schedule予定金額 / Schedule実際支払額 #}
+            {# ======================================== #}
+
+            {% if has_schedule_planned_cost or has_schedule_actual_cost %}
+
+                <div class="d-flex justify-content-between mb-2">
+
+                    {% if has_schedule_planned_cost %}
+
+                        <span>
+                            スケジュール予定金額
+                        </span>
+
+                        <span>
+                            {{ schedule_planned_total|intcomma }}円
+                        </span>
+
+                    {% else %}
+
+                        <span class="invisible">
+                            スケジュール予定金額
+                        </span>
+
+                        <span class="invisible">
+                            0円
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+
+            {# ======================================== #}
+            {# 予定合計 #}
+            {# ======================================== #}
+
+            <div class="mt-auto">
+
+                <hr>
+
+                <div class="d-flex justify-content-between">
+
+                    <strong>
+                        予定合計
+                    </strong>
+
+
+                    {% if has_planned_cost %}
+
+                        <strong>
+                            {{ planned_total|intcomma }}円
+                        </strong>
+
+                    {% else %}
+
+                        <span>
+                            －
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
 
     </div>
 
 
+    {# ======================================== #}
+    {# 実費 #}
+    {# ======================================== #}
+
     <div class="col-12 col-md-6">
 
-        <p class="mb-1">
-            <strong>
-                実際
-            </strong>
-        </p>
+        <div class="border rounded p-3 h-100 d-flex flex-column">
 
-        <p class="mb-0">
-            実際の合計：
+            <h5 class="mb-3">
+                実費
+            </h5>
 
-            {% if has_final_actual_cost %}
 
-                <strong>
-                    {{ final_actual_total|intcomma }}円
-                </strong>
+            {# ======================================== #}
+            {# Trip全体費用 #}
+            {# 予定・実費のどちらかがある場合だけ1段作る #}
+            {# ======================================== #}
 
-            {% else %}
+            {% if has_trip_planned_cost or has_trip_actual_cost %}
 
-                －
+                <div class="d-flex justify-content-between mb-2">
+
+                    {% if has_trip_actual_cost %}
+
+                        <span>
+                            Trip全体費用
+                        </span>
+
+                        <span>
+                            {{ trip_actual_cost_total|intcomma }}円
+                        </span>
+
+                    {% else %}
+
+                        <span class="invisible">
+                            Trip全体費用
+                        </span>
+
+                        <span class="invisible">
+                            0円
+                        </span>
+
+                    {% endif %}
+
+                </div>
 
             {% endif %}
-        </p>
+
+
+            {# ======================================== #}
+            {# 自由費予算 / 自由実費 #}
+            {# ======================================== #}
+
+            {% if has_day_budget or has_day_free_actual %}
+
+                <div class="d-flex justify-content-between mb-2">
+
+                    {% if has_day_free_actual %}
+
+                        <span>
+                            自由実費
+                        </span>
+
+                        <span>
+                            {{ day_free_actual_total|intcomma }}円
+                        </span>
+
+                    {% else %}
+
+                        <span class="invisible">
+                            自由実費
+                        </span>
+
+                        <span class="invisible">
+                            0円
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+
+            {# ======================================== #}
+            {# Day予定金額 / Day実際支払額 #}
+            {# ======================================== #}
+
+            {% if has_day_planned_amount or has_day_actual_amount %}
+
+                <div class="d-flex justify-content-between mb-2">
+
+                    {% if has_day_actual_amount %}
+
+                        <span>
+                            Day実際支払額
+                        </span>
+
+                        <span>
+                            {{ day_actual_amount_total|intcomma }}円
+                        </span>
+
+                    {% else %}
+
+                        <span class="invisible">
+                            Day実際支払額
+                        </span>
+
+                        <span class="invisible">
+                            0円
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+
+            {# ======================================== #}
+            {# Schedule予定金額 / Schedule実際支払額 #}
+            {# ======================================== #}
+
+            {% if has_schedule_planned_cost or has_schedule_actual_cost %}
+
+                <div class="d-flex justify-content-between mb-2">
+
+                    {% if has_schedule_actual_cost %}
+
+                        <span>
+                            スケジュール実際支払額
+                        </span>
+
+                        <span>
+                            {{ schedule_actual_total|intcomma }}円
+                        </span>
+
+                    {% else %}
+
+                        <span class="invisible">
+                            スケジュール実際支払額
+                        </span>
+
+                        <span class="invisible">
+                            0円
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+            {% endif %}
+
+
+            {# ======================================== #}
+            {# 実費合計 #}
+            {# ======================================== #}
+
+            <div class="mt-auto">
+
+                <hr>
+
+                <div class="d-flex justify-content-between">
+
+                    <strong>
+                        実費合計
+                    </strong>
+
+
+                    {% if has_final_actual_cost %}
+
+                        <strong>
+                            {{ final_actual_total|intcomma }}円
+                        </strong>
+
+                    {% else %}
+
+                        <span>
+                            －
+                        </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                {% if is_manual_total_cost %}
+
+                    <p class="text-muted small mt-2 mb-0">
+                        Tripに手入力した合計金額を使用しています。
+                    </p>
+
+                {% endif %}
+
+            </div>
+
+        </div>
 
     </div>
 
 </div>
+
+
+{# ======================================== #}
+{# 差額・今後最低必要額 #}
+{# ======================================== #}
+
+{% if has_cost_difference or has_fixed_planned_cost %}
+
+    <div class="border rounded p-3 mb-4">
+
+
+        <div
+            class="d-flex align-items-center flex-wrap gap-4"
+        >
+
+
+            {# ======================================== #}
+            {# 予定と実費の差額 #}
+            {# 自由費を含む #}
+            {# ======================================== #}
+
+            {% if has_cost_difference %}
+
+                <div
+                    class="d-flex align-items-center flex-wrap gap-1"
+                >
+
+                    <span>
+                        実費合計 − 予定合計の差額 =
+                    </span>
+
+
+                    <strong>
+
+                        {% if cost_difference > 0 %}
+
+                            +{{ cost_difference|intcomma }}円
+
+                        {% else %}
+
+                            {{ cost_difference|intcomma }}円
+
+                        {% endif %}
+
+                    </strong>
+
+                </div>
+
+            {% endif %}
+
+
+            {# ======================================== #}
+            {# 今後最低必要額 #}
+            {# 自由費を含めない #}
+            {# ======================================== #}
+
+            {% if has_fixed_planned_cost %}
+
+                <div
+                    class="d-flex align-items-center flex-wrap gap-1"
+                >
+
+                    <span>
+                        最低必要額 =
+                    </span>
+
+
+                    <strong>
+                        {{ minimum_remaining_amount|intcomma }}円
+                    </strong>
+
+                </div>
+
+            {% endif %}
+
+        </div>
+
+
+        {# ======================================== #}
+        {# 今後最低必要額の説明 #}
+        {# ======================================== #}
+
+        {% if has_fixed_planned_cost %}
+
+            <p class="text-muted small mt-2 mb-0">
+                最低必要額は、
+                自由費を除いたTrip全体費用・Day・スケジュールの予定金額から、
+                すでに支払った金額を引いています。
+            </p>
+
+        {% endif %}
+
+    </div>
+
+{% endif %}
