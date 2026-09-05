@@ -6,45 +6,74 @@
 
 
     {# ======================================== #}
-    {# Trip全体の編集操作 #}
+    {# Trip編集 #}
     {# ======================================== #}
 
-    {% if trip.status == "draft" %}
+    <div class="mb-4">
 
-        <div class="d-flex flex-wrap gap-2 mb-4">
+        <div
+            class="
+                d-flex
+                flex-wrap
+                align-items-center
+                justify-content-between
+                gap-2
+                mb-3
+            "
+        >
 
-            <a
-                href="{% url 'trip_edit' trip.trip_id %}"
-                class="btn btn-outline-secondary btn-sm"
-            >
-                Tripを編集
-            </a>
+            <h3 class="mb-0">
+                Trip管理
+            </h3>
 
 
-            <a
-                href="{% url 'trip_delete' trip.trip_id %}"
-                class="btn btn-danger btn-sm"
-            >
-                Tripを削除
-            </a>
+            {% if edit_mode %}
+
+                <span class="badge bg-secondary">
+                    Trip全体を編集中
+                </span>
+
+            {% endif %}
 
         </div>
 
 
-    {% else %}
 
-        <div class="mb-4">
+        {# ======================================== #}
+        {# 作成中 #}
+        {# ======================================== #}
+
+        {% if trip.status == "draft" %}
+
+            <div class="d-flex flex-wrap gap-2">
+
+                <a
+                    href="{% url 'trip_edit' trip.trip_id %}"
+                    class="btn btn-outline-secondary btn-sm"
+                >
+                    Tripを編集
+                </a>
+
+
+                <a
+                    href="{% url 'trip_delete' trip.trip_id %}"
+                    class="btn btn-danger btn-sm"
+                >
+                    Tripを削除
+                </a>
+
+            </div>
+
+
+
+        {# ======================================== #}
+        {# 作成中以外 #}
+        {# ======================================== #}
+
+        {% else %}
+
 
             {% if edit_mode %}
-
-                <div class="mb-3">
-
-                    <span class="badge bg-secondary">
-                        Trip全体を編集中
-                    </span>
-
-                </div>
-
 
                 <div class="d-flex flex-wrap gap-2">
 
@@ -85,9 +114,9 @@
 
             {% endif %}
 
-        </div>
+        {% endif %}
 
-    {% endif %}
+    </div>
 
 
 
@@ -96,149 +125,136 @@
 
 
     {# ======================================== #}
-    {# Tripステータス #}
+    {# Tripステータス・公開状態 #}
     {# ======================================== #}
 
+    <div class="mb-4">
 
-    {# ======================================== #}
-    {# 作成中 #}
-    {# ======================================== #}
-
-    {% if trip.status == "draft" %}
-
-        <div class="mb-3">
-
-            <span class="me-2">
-                現在のステータス：
-            </span>
-
-            <span class="badge bg-secondary">
-                作成中
-            </span>
-
-        </div>
+        <h3 class="mb-3">
+            Tripの状態
+        </h3>
 
 
-        <form
-            method="post"
-            action="{% url 'trip_status_update' trip.trip_id %}"
-            class="mb-3"
-        >
-
-            {% csrf_token %}
+        <div class="border rounded bg-light p-3">
 
 
-            <button
-                type="submit"
-                name="action"
-                value="complete_plan"
-                class="btn btn-primary btn-sm"
+            {# ======================================== #}
+            {# 現在のステータス #}
+            {# ======================================== #}
+
+            <div
+                class="
+                    d-flex
+                    flex-wrap
+                    align-items-center
+                    justify-content-between
+                    gap-2
+                "
             >
-                コース作成完了
-            </button>
 
-        </form>
+                <span class="text-muted">
+                    現在のステータス
+                </span>
 
 
+                <div>
 
-    {# ======================================== #}
-    {# 出発待ち #}
-    {# ======================================== #}
 
-    {% elif trip.status == "planned" %}
+                    {# ======================================== #}
+                    {# 作成中 #}
+                    {# ======================================== #}
 
-        <div class="mb-3">
+                    {% if trip.status == "draft" %}
 
-            <span class="me-2">
-                現在のステータス：
-            </span>
-
-            <span class="badge bg-primary">
-                出発待ち
-            </span>
-
-        </div>
+                        <span class="badge bg-secondary">
+                            作成中
+                        </span>
 
 
 
-    {# ======================================== #}
-    {# 旅中 #}
-    {# ======================================== #}
+                    {# ======================================== #}
+                    {# 出発待ち #}
+                    {# ======================================== #}
 
-    {% elif trip.status == "traveling" %}
+                    {% elif trip.status == "planned" %}
 
-        <div class="mb-3">
-
-            <span class="me-2">
-                現在のステータス：
-            </span>
-
-            <span class="badge bg-success">
-                旅中
-            </span>
-
-        </div>
+                        <span class="badge bg-primary">
+                            出発待ち
+                        </span>
 
 
-        {% if today >= trip.end_date %}
 
-            <div class="mb-3">
+                    {# ======================================== #}
+                    {# 旅中 #}
+                    {# ======================================== #}
 
-                <a
-                    href="{% url 'trip_complete' trip.trip_id %}"
-                    class="btn btn-primary btn-sm"
-                >
-                    旅を完了する
-                </a>
+                    {% elif trip.status == "traveling" %}
+
+                        <span class="badge bg-success">
+                            旅中
+                        </span>
+
+
+
+                    {# ======================================== #}
+                    {# 旅完了 #}
+                    {# ======================================== #}
+
+                    {% elif trip.status == "completed" %}
+
+                        <span class="badge bg-dark">
+                            旅完了
+                        </span>
+
+                    {% endif %}
+
+                </div>
 
             </div>
 
-        {% endif %}
 
 
+            {# ======================================== #}
+            {# 公開設定 #}
+            {# #}
+            {# completedだけ表示 #}
+            {# ======================================== #}
 
-    {# ======================================== #}
-    {# 旅完了 #}
-    {# ======================================== #}
+            {% if trip.status == "completed" %}
 
-    {% elif trip.status == "completed" %}
-
-        <div class="mb-3">
-
-            <span class="me-2">
-                現在のステータス：
-            </span>
-
-            <span class="badge bg-dark">
-                旅完了
-            </span>
-
-        </div>
+                <hr>
 
 
+                <div
+                    class="
+                        d-flex
+                        flex-wrap
+                        align-items-center
+                        justify-content-between
+                        gap-2
+                    "
+                >
 
-        {# ======================================== #}
-        {# 公開設定 #}
-        {# ======================================== #}
-
-        <div class="mb-3">
-
-            <span class="me-2">
-                公開設定：
-            </span>
+                    <span class="text-muted">
+                        公開設定
+                    </span>
 
 
-            {% if trip.is_public %}
+                    {% if trip.is_public %}
 
-                <span class="badge bg-info text-dark">
-                    公開
-                </span>
+                        <span class="badge bg-info text-dark">
+                            公開
+                        </span>
 
-            {% else %}
+                    {% else %}
 
-                <span class="badge bg-secondary">
-                    非公開
-                </span>
+                        <span class="badge bg-secondary">
+                            非公開
+                        </span>
+
+                    {% endif %}
+
+                </div>
 
             {% endif %}
 
@@ -247,85 +263,29 @@
 
 
         {# ======================================== #}
-        {# 編集モード中のみ表示する操作 #}
+        {# ステータス別操作 #}
         {# ======================================== #}
 
-        {% if edit_mode %}
-
-            <div class="d-flex flex-wrap gap-2 mb-3">
-
-                <a
-                    href="{% url 'trip_complete' trip.trip_id %}"
-                    class="btn btn-outline-secondary btn-sm"
-                >
-                    代表写真・感想を編集
-                </a>
-
-            </div>
-
+        <div class="mt-3">
 
 
             {# ======================================== #}
-            {# 旅中に戻す #}
+            {# 作成中 #}
             {# ======================================== #}
 
-            <form
-                method="post"
-                action="{% url 'trip_status_update' trip.trip_id %}"
-                class="mb-3"
-            >
+            {% if trip.status == "draft" %}
 
-                {% csrf_token %}
+                <div>
 
+                    <p class="text-muted small mb-2">
+                        旅程の作成が終わったら、コース作成を完了してください。
+                    </p>
 
-                <button
-                    type="submit"
-                    name="action"
-                    value="reopen_trip"
-                    class="btn btn-outline-warning btn-sm"
-                >
-                    旅中に戻す
-                </button>
-
-            </form>
-
-
-
-            {# ======================================== #}
-            {# 公開・非公開の変更 #}
-            {# ======================================== #}
-
-            {% if trip.is_public %}
-
-                <form
-                    method="post"
-                    action="{% url 'trip_public_update' trip.trip_id %}"
-                    class="mb-3"
-                >
-
-                    {% csrf_token %}
-
-
-                    <button
-                        type="submit"
-                        name="action"
-                        value="private"
-                        class="btn btn-outline-secondary btn-sm"
-                    >
-                        非公開に変更
-                    </button>
-
-                </form>
-
-
-            {% else %}
-
-                {% if trip.main_media and trip.overview %}
 
                     <form
                         method="post"
-                        action="{% url 'trip_public_update' trip.trip_id %}"
-                        class="mb-3"
+                        action="{% url 'trip_status_update' trip.trip_id %}"
+                        class="m-0"
                     >
 
                         {% csrf_token %}
@@ -334,21 +294,263 @@
                         <button
                             type="submit"
                             name="action"
-                            value="public"
+                            value="complete_plan"
                             class="btn btn-primary btn-sm"
                         >
-                            公開に変更
+                            コース作成完了
                         </button>
 
                     </form>
+
+                </div>
+
+
+
+            {# ======================================== #}
+            {# 出発待ち #}
+            {# ======================================== #}
+
+            {% elif trip.status == "planned" %}
+
+                <p class="text-muted small mb-0">
+                    出発日まで待機中です。
+                </p>
+
+
+
+            {# ======================================== #}
+            {# 旅中 #}
+            {# ======================================== #}
+
+            {% elif trip.status == "traveling" %}
+
+
+                {% if today >= trip.end_date %}
+
+                    <div>
+
+                        <p class="text-muted small mb-2">
+                            旅行期間の終了日を迎えています。
+                            旅の記録を確認して、Tripを完了できます。
+                        </p>
+
+
+                        <a
+                            href="{% url 'trip_complete' trip.trip_id %}"
+                            class="btn btn-primary btn-sm"
+                        >
+                            旅を完了する
+                        </a>
+
+                    </div>
+
+
+                {% else %}
+
+                    <p class="text-muted small mb-0">
+                        現在このTripは旅中です。
+                    </p>
+
+                {% endif %}
+
+
+
+            {# ======================================== #}
+            {# 旅完了 #}
+            {# ======================================== #}
+
+            {% elif trip.status == "completed" %}
+
+
+                {# ======================================== #}
+                {# 通常表示時 #}
+                {# ======================================== #}
+
+                {% if not edit_mode %}
+
+                    {% if trip.is_public %}
+
+                        <p class="text-muted small mb-0">
+                            このTripは現在公開されています。
+                        </p>
+
+                    {% else %}
+
+                        {% if trip.main_media and trip.overview %}
+
+                            <p class="text-muted small mb-0">
+                                公開設定の変更は「Trip全体を編集」から行えます。
+                            </p>
+
+                        {% else %}
+
+                            <p class="text-muted small mb-0">
+                                公開するには代表写真と旅の感想の登録が必要です。
+                            </p>
+
+                        {% endif %}
+
+                    {% endif %}
+
+
+
+                {# ======================================== #}
+                {# 編集モード中 #}
+                {# ======================================== #}
+
+                {% else %}
+
+
+                    {# ======================================== #}
+                    {# 完了情報編集 #}
+                    {# ======================================== #}
+
+                    <div class="mb-4">
+
+                        <h5 class="mb-2">
+                            旅完了後の情報
+                        </h5>
+
+
+                        <a
+                            href="{% url 'trip_complete' trip.trip_id %}"
+                            class="btn btn-outline-secondary btn-sm"
+                        >
+                            代表写真・感想を編集
+                        </a>
+
+                    </div>
+
+
+
+                    {# ======================================== #}
+                    {# 公開設定 #}
+                    {# ======================================== #}
+
+                    <div class="mb-4">
+
+                        <h5 class="mb-2">
+                            公開設定
+                        </h5>
+
+
+                        {% if trip.is_public %}
+
+                            <p class="text-muted small mb-2">
+                                現在このTripは公開されています。
+                            </p>
+
+
+                            <form
+                                method="post"
+                                action="{% url 'trip_public_update' trip.trip_id %}"
+                                class="m-0"
+                            >
+
+                                {% csrf_token %}
+
+
+                                <button
+                                    type="submit"
+                                    name="action"
+                                    value="private"
+                                    class="btn btn-outline-secondary btn-sm"
+                                >
+                                    非公開に変更
+                                </button>
+
+                            </form>
+
+
+                        {% else %}
+
+                            {% if trip.main_media and trip.overview %}
+
+                                <p class="text-muted small mb-2">
+                                    代表写真と旅の感想が登録されているため、
+                                    このTripを公開できます。
+                                </p>
+
+
+                                <form
+                                    method="post"
+                                    action="{% url 'trip_public_update' trip.trip_id %}"
+                                    class="m-0"
+                                >
+
+                                    {% csrf_token %}
+
+
+                                    <button
+                                        type="submit"
+                                        name="action"
+                                        value="public"
+                                        class="btn btn-primary btn-sm"
+                                    >
+                                        公開に変更
+                                    </button>
+
+                                </form>
+
+
+                            {% else %}
+
+                                <p class="text-muted small mb-0">
+                                    公開するには代表写真と旅の感想を登録してください。
+                                </p>
+
+                            {% endif %}
+
+                        {% endif %}
+
+                    </div>
+
+
+
+                    {# ======================================== #}
+                    {# ステータスを戻す #}
+                    {# ======================================== #}
+
+                    <div>
+
+                        <h5 class="mb-2">
+                            ステータス変更
+                        </h5>
+
+
+                        <p class="text-muted small mb-2">
+                            必要な場合は、Tripを旅中の状態に戻せます。
+                        </p>
+
+
+                        <form
+                            method="post"
+                            action="{% url 'trip_status_update' trip.trip_id %}"
+                            class="m-0"
+                        >
+
+                            {% csrf_token %}
+
+
+                            <button
+                                type="submit"
+                                name="action"
+                                value="reopen_trip"
+                                class="btn btn-outline-warning btn-sm"
+                            >
+                                旅中に戻す
+                            </button>
+
+                        </form>
+
+                    </div>
 
                 {% endif %}
 
             {% endif %}
 
-        {% endif %}
+        </div>
 
-    {% endif %}
-
+    </div>
 
 {% endif %}

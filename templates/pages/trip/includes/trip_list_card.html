@@ -1,4 +1,5 @@
 {% load humanize %}
+{% load countries %}
 
 
 {# ======================================== #}
@@ -71,7 +72,6 @@
             {# 投稿者 #}
             {# #}
             {# みんなのTrip / 保存Tripのみ表示 #}
-            {# タイトルとは別段にする #}
             {# ======================================== #}
 
             {% if card_type == "public" or card_type == "saved" %}
@@ -102,8 +102,6 @@
 
             {# ======================================== #}
             {# 旅行日数 #}
-            {# #}
-            {# My Trip / みんなのTrip / 保存Trip共通 #}
             {# ======================================== #}
 
             {% if trip.trip_days %}
@@ -118,6 +116,15 @@
 
             {# ======================================== #}
             {# 訪問先 #}
+            {# #}
+            {# DB #}
+            {# JP / KG / KZ など #}
+            {# #}
+            {# 表示 #}
+            {# 国旗画像 + 国名 + 地域 #}
+            {# #}
+            {# 地域が長い場合は #}
+            {# カード内で自動改行する #}
             {# ======================================== #}
 
             <div class="mb-3">
@@ -131,22 +138,77 @@
 
                     {% for country, regions in trip.locations_by_country.items %}
 
-                        <span class="badge bg-secondary mb-1 me-1">
+                        {% get_country country as country_object %}
 
-                            {{ country }}
+
+                        <span
+                            class="
+                                badge
+                                bg-white
+                                text-dark
+                                border
+                                rounded
+                                d-inline-flex
+                                flex-wrap
+                                align-items-center
+                                mb-1
+                                me-1
+                                px-2
+                                py-1
+                                text-wrap
+                            "
+                            style="
+                                max-width: 100%;
+                                min-width: 0;
+                                white-space: normal;
+                                line-height: 1.5;
+                                overflow-wrap: anywhere;
+                            "
+                        >
+
+                            {% if country_object %}
+
+                                <img
+                                    src="{{ country_object.flag }}"
+                                    alt="{{ country_object.name }}の国旗"
+                                    width="20"
+                                    class="me-1 flex-shrink-0"
+                                    style="height: auto;"
+                                >
+
+                                <span>
+                                    {{ country_object.name }}
+                                </span>
+
+                            {% else %}
+
+                                <span>
+                                    {{ country }}
+                                </span>
+
+                            {% endif %}
+
 
                             {% if regions %}
-                                /
+
+                                <span class="ms-1">
+                                    /
+                                </span>
+
                             {% endif %}
 
 
                             {% for region in regions %}
 
-                                {{ region }}
-
-                                {% if not forloop.last %}
-                                    ・
-                                {% endif %}
+                                <span
+                                    class="ms-1 text-break"
+                                    style="
+                                        white-space: normal;
+                                        overflow-wrap: anywhere;
+                                    "
+                                >
+                                    {{ region }}{% if not forloop.last %}・{% endif %}
+                                </span>
 
                             {% endfor %}
 
@@ -155,8 +217,10 @@
                     {% endfor %}
 
 
+
                 {# ======================================== #}
                 {# locations_by_country がない場合 #}
+                {# #}
                 {# Locationモデルを直接使用 #}
                 {# ======================================== #}
 
@@ -164,13 +228,64 @@
 
                     {% for location in trip.locations.all %}
 
-                        <span class="badge bg-secondary mb-1 me-1">
+                        <span
+                            class="
+                                badge
+                                bg-white
+                                text-dark
+                                border
+                                rounded
+                                d-inline-flex
+                                flex-wrap
+                                align-items-center
+                                mb-1
+                                me-1
+                                px-2
+                                py-1
+                                text-wrap
+                            "
+                            style="
+                                max-width: 100%;
+                                min-width: 0;
+                                white-space: normal;
+                                line-height: 1.5;
+                                overflow-wrap: anywhere;
+                            "
+                        >
 
-                            {{ location.country }}
+                            {% if location.country %}
+
+                                <img
+                                    src="{{ location.country.flag }}"
+                                    alt="{{ location.country.name }}の国旗"
+                                    width="20"
+                                    class="me-1 flex-shrink-0"
+                                    style="height: auto;"
+                                >
+
+                                <span>
+                                    {{ location.country.name }}
+                                </span>
+
+                            {% endif %}
+
 
                             {% if location.region %}
-                                /
-                                {{ location.region }}
+
+                                <span class="ms-1">
+                                    /
+                                </span>
+
+                                <span
+                                    class="ms-1 text-break"
+                                    style="
+                                        white-space: normal;
+                                        overflow-wrap: anywhere;
+                                    "
+                                >
+                                    {{ location.region }}
+                                </span>
+
                             {% endif %}
 
                         </span>
@@ -229,8 +344,6 @@
 
             {# ======================================== #}
             {# ハッシュタグ #}
-            {# #}
-            {# 黒文字で統一 #}
             {# ======================================== #}
 
             {% with trip_hashtags=trip.trip_hashtags.all %}

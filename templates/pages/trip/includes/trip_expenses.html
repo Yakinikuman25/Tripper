@@ -10,282 +10,118 @@
 
 {% if trip_expenses or trip.user == request.user %}
 
-    <h3 class="mb-3">
-        全体費用
-    </h3>
+    <div class="mb-4">
+
+        <h3 class="mb-1">
+            全体費用
+        </h3>
 
 
-    <div
-        id="trip-expenses"
-        data-trip-expense-name-id="{{ trip_expense_form.name.id_for_label }}"
-    >
+        {% if trip.user == request.user %}
+
+            <p class="text-muted small mb-3">
+                航空券・ホテル・ツアー・保険など、
+                Trip全体にかかる費用を登録できます。
+            </p>
+
+        {% endif %}
 
 
-        {# ======================================== #}
-        {# 全体費用の新規追加 #}
-        {# ======================================== #}
-
-        {% if trip.user == request.user and can_add_trip_expense %}
-
-            <div class="mb-4">
-
-                <button
-                    type="button"
-                    id="show-trip-expense-form"
-                    class="btn btn-primary btn-sm{% if trip_expense_form.errors or trip_expense_reference_url_formset.errors %} trip-expense-add-button-hidden{% endif %}"
-                >
-                    ＋ 全体費用を追加
-                </button>
+        <div
+            id="trip-expenses"
+            data-trip-expense-name-id="{{ trip_expense_form.name.id_for_label }}"
+        >
 
 
-                <div
-                    id="trip-expense-add-form"
-                    class="mt-3{% if not trip_expense_form.errors and not trip_expense_reference_url_formset.errors %} trip-expense-add-form{% endif %}"
-                >
+            {# ======================================== #}
+            {# 全体費用の新規追加 #}
+            {# ======================================== #}
 
-                    <form
-                        method="post"
-                        action="#trip-expenses"
+            {% if trip.user == request.user and can_add_trip_expense %}
+
+                <div class="mb-4">
+
+                    <button
+                        type="button"
+                        id="show-trip-expense-form"
+                        class="btn btn-primary btn-sm{% if trip_expense_form.errors or trip_expense_reference_url_formset.errors %} trip-expense-add-button-hidden{% endif %}"
+                    >
+                        ＋ 全体費用を追加
+                    </button>
+
+
+                    <div
+                        id="trip-expense-add-form"
+                        class="mt-3{% if not trip_expense_form.errors and not trip_expense_reference_url_formset.errors %} trip-expense-add-form{% endif %}"
                     >
 
-                        {% csrf_token %}
+                        <div class="border rounded bg-light p-3">
+
+                            <h5 class="mb-3">
+                                全体費用を追加
+                            </h5>
 
 
-                        <input
-                            type="hidden"
-                            name="action"
-                            value="add_trip_expense"
-                        >
+                            <form
+                                method="post"
+                                action="#trip-expenses"
+                            >
+
+                                {% csrf_token %}
+
+
+                                <input
+                                    type="hidden"
+                                    name="action"
+                                    value="add_trip_expense"
+                                >
 
 
 
-                        {# ======================================== #}
-                        {# フォーム全体エラー #}
-                        {# ======================================== #}
+                                {# ======================================== #}
+                                {# フォーム全体エラー #}
+                                {# ======================================== #}
 
-                        {% if trip_expense_form.non_field_errors %}
+                                {% if trip_expense_form.non_field_errors %}
 
-                            <div class="alert alert-danger">
+                                    <div class="alert alert-danger">
 
-                                {% for error in trip_expense_form.non_field_errors %}
+                                        {% for error in trip_expense_form.non_field_errors %}
 
-                                    <div>
-                                        {{ error }}
+                                            <div>
+                                                {{ error }}
+                                            </div>
+
+                                        {% endfor %}
+
                                     </div>
 
-                                {% endfor %}
+                                {% endif %}
 
-                            </div>
 
-                        {% endif %}
 
+                                {# ======================================== #}
+                                {# 費用名 #}
+                                {# ======================================== #}
 
+                                <div class="mb-3">
 
-                        {# ======================================== #}
-                        {# 費用名 #}
-                        {# ======================================== #}
+                                    <label
+                                        for="{{ trip_expense_form.name.id_for_label }}"
+                                        class="form-label"
+                                    >
+                                        費用名
+                                    </label>
 
-                        <div class="mb-3">
 
-                            <label
-                                for="{{ trip_expense_form.name.id_for_label }}"
-                                class="form-label"
-                            >
-                                費用名
-                            </label>
+                                    {{ trip_expense_form.name }}
 
 
-                            {{ trip_expense_form.name }}
+                                    {% if trip_expense_form.name.errors %}
 
+                                        <div class="text-danger small mt-1">
 
-                            {% if trip_expense_form.name.errors %}
-
-                                <div class="text-danger small mt-1">
-
-                                    {% for error in trip_expense_form.name.errors %}
-
-                                        <div>
-                                            {{ error }}
-                                        </div>
-
-                                    {% endfor %}
-
-                                </div>
-
-                            {% endif %}
-
-                        </div>
-
-
-
-                        {# ======================================== #}
-                        {# 予定金額 #}
-                        {# ======================================== #}
-
-                        <div class="mb-3">
-
-                            <label
-                                for="{{ trip_expense_form.planned_amount.id_for_label }}"
-                                class="form-label"
-                            >
-                                予定金額
-                            </label>
-
-
-                            {{ trip_expense_form.planned_amount }}
-
-
-                            {% if trip_expense_form.planned_amount.errors %}
-
-                                <div class="text-danger small mt-1">
-
-                                    {% for error in trip_expense_form.planned_amount.errors %}
-
-                                        <div>
-                                            {{ error }}
-                                        </div>
-
-                                    {% endfor %}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            <div class="form-text">
-                                航空券・ホテル・ツアーなど、
-                                Trip全体にかかる予定金額を入力できます。
-                            </div>
-
-                        </div>
-
-
-
-                        {# ======================================== #}
-                        {# 実際支払額 #}
-                        {# ======================================== #}
-
-                        <div class="mb-3">
-
-                            <label
-                                for="{{ trip_expense_form.actual_amount.id_for_label }}"
-                                class="form-label"
-                            >
-                                実際支払額
-                            </label>
-
-
-                            {{ trip_expense_form.actual_amount }}
-
-
-                            {% if trip_expense_form.actual_amount.errors %}
-
-                                <div class="text-danger small mt-1">
-
-                                    {% for error in trip_expense_form.actual_amount.errors %}
-
-                                        <div>
-                                            {{ error }}
-                                        </div>
-
-                                    {% endfor %}
-
-                                </div>
-
-                            {% endif %}
-
-
-                            <div class="form-text">
-                                すでに支払っている場合に入力してください。
-                                予定金額が空欄の場合は、実際支払額を予定金額としても登録します。
-                            </div>
-
-                        </div>
-
-
-
-                        {# ======================================== #}
-                        {# メモ #}
-                        {# ======================================== #}
-
-                        <div class="mb-3">
-
-                            <label
-                                for="{{ trip_expense_form.memo.id_for_label }}"
-                                class="form-label"
-                            >
-                                メモ
-                            </label>
-
-
-                            {{ trip_expense_form.memo }}
-
-
-                            {% if trip_expense_form.memo.errors %}
-
-                                <div class="text-danger small mt-1">
-
-                                    {% for error in trip_expense_form.memo.errors %}
-
-                                        <div>
-                                            {{ error }}
-                                        </div>
-
-                                    {% endfor %}
-
-                                </div>
-
-                            {% endif %}
-
-                        </div>
-
-
-
-                        {# ======================================== #}
-                        {# 参考URL FormSet #}
-                        {# ======================================== #}
-
-                        {{ trip_expense_reference_url_formset.management_form }}
-
-
-                        {% if trip_expense_reference_url_formset.non_form_errors %}
-
-                            <div class="alert alert-danger">
-
-                                {% for error in trip_expense_reference_url_formset.non_form_errors %}
-
-                                    <div>
-                                        {{ error }}
-                                    </div>
-
-                                {% endfor %}
-
-                            </div>
-
-                        {% endif %}
-
-
-                        <div
-                            id="expense-reference-url-forms-new"
-                            data-expense-reference-url-formset
-                        >
-
-                            {% for url_form in trip_expense_reference_url_formset %}
-
-                                <div class="expense-reference-url-form mb-3">
-
-                                    {% for hidden in url_form.hidden_fields %}
-
-                                        {{ hidden }}
-
-                                    {% endfor %}
-
-
-                                    {% if url_form.non_field_errors %}
-
-                                        <div class="text-danger small mb-2">
-
-                                            {% for error in url_form.non_field_errors %}
+                                            {% for error in trip_expense_form.name.errors %}
 
                                                 <div>
                                                     {{ error }}
@@ -298,716 +134,9 @@
                                     {% endif %}
 
 
-
-                                    {# ======================================== #}
-                                    {# 参考URL名 #}
-                                    {# ======================================== #}
-
-                                    <div class="mb-2">
-
-                                        <label
-                                            for="{{ url_form.title.id_for_label }}"
-                                            class="form-label"
-                                        >
-                                            参考URL名
-                                        </label>
-
-
-                                        {{ url_form.title }}
-
-
-                                        {% if url_form.title.errors %}
-
-                                            <div class="text-danger small mt-1">
-
-                                                {% for error in url_form.title.errors %}
-
-                                                    <div>
-                                                        {{ error }}
-                                                    </div>
-
-                                                {% endfor %}
-
-                                            </div>
-
-                                        {% endif %}
-
+                                    <div class="form-text">
+                                        例：航空券、ホテル、海外旅行保険、現地ツアー
                                     </div>
-
-
-
-                                    {# ======================================== #}
-                                    {# URL #}
-                                    {# ======================================== #}
-
-                                    <div class="mb-2">
-
-                                        <label
-                                            for="{{ url_form.url.id_for_label }}"
-                                            class="form-label"
-                                        >
-                                            URL
-                                        </label>
-
-
-                                        {{ url_form.url }}
-
-
-                                        {% if url_form.url.errors %}
-
-                                            <div class="text-danger small mt-1">
-
-                                                {% for error in url_form.url.errors %}
-
-                                                    <div>
-                                                        {{ error }}
-                                                    </div>
-
-                                                {% endfor %}
-
-                                            </div>
-
-                                        {% endif %}
-
-                                    </div>
-
-
-
-                                    {# ======================================== #}
-                                    {# DELETEフィールド #}
-                                    {# ======================================== #}
-
-                                    <div class="trip-expense-delete-field d-none">
-                                        {{ url_form.DELETE }}
-                                    </div>
-
-
-
-                                    {# ======================================== #}
-                                    {# 登録・削除 #}
-                                    {# ======================================== #}
-
-                                    <div class="d-flex flex-wrap gap-2">
-
-                                        <button
-                                            type="button"
-                                            class="btn {% if url_form.instance.pk %}btn-outline-secondary{% else %}btn-primary{% endif %} btn-sm register-expense-reference-url"
-                                        >
-                                            {% if url_form.instance.pk %}
-                                                登録済み
-                                            {% else %}
-                                                登録
-                                            {% endif %}
-                                        </button>
-
-
-                                        <button
-                                            type="button"
-                                            class="btn btn-outline-danger btn-sm remove-expense-reference-url"
-                                        >
-                                            削除
-                                        </button>
-
-                                    </div>
-
-                                </div>
-
-                            {% endfor %}
-
-                        </div>
-
-
-
-                        {# ======================================== #}
-                        {# JavaScript追加用 参考URL空フォーム #}
-                        {# ======================================== #}
-
-                        <template id="expense-reference-url-empty-new">
-
-                            <div class="expense-reference-url-form mb-3">
-
-                                {% for hidden in trip_expense_reference_url_formset.empty_form.hidden_fields %}
-
-                                    {{ hidden }}
-
-                                {% endfor %}
-
-
-                                <div class="mb-2">
-
-                                    <label class="form-label">
-                                        参考URL名
-                                    </label>
-
-
-                                    {{ trip_expense_reference_url_formset.empty_form.title }}
-
-                                </div>
-
-
-                                <div class="mb-2">
-
-                                    <label class="form-label">
-                                        URL
-                                    </label>
-
-
-                                    {{ trip_expense_reference_url_formset.empty_form.url }}
-
-                                </div>
-
-
-                                <div class="trip-expense-delete-field d-none">
-                                    {{ trip_expense_reference_url_formset.empty_form.DELETE }}
-                                </div>
-
-
-                                <div class="d-flex flex-wrap gap-2">
-
-                                    <button
-                                        type="button"
-                                        class="btn btn-primary btn-sm register-expense-reference-url"
-                                    >
-                                        登録
-                                    </button>
-
-
-                                    <button
-                                        type="button"
-                                        class="btn btn-outline-danger btn-sm remove-expense-reference-url"
-                                    >
-                                        削除
-                                    </button>
-
-                                </div>
-
-                            </div>
-
-                        </template>
-
-
-
-                        {# ======================================== #}
-                        {# 参考URL追加 #}
-                        {# ======================================== #}
-
-                        <button
-                            type="button"
-                            class="btn btn-primary btn-sm add-expense-reference-url mb-3"
-                            data-container-id="expense-reference-url-forms-new"
-                            data-template-id="expense-reference-url-empty-new"
-                            data-total-forms-id="id_expense_reference_urls_new-TOTAL_FORMS"
-                        >
-                            ＋ 参考URL
-                        </button>
-
-
-
-                        {# ======================================== #}
-                        {# 保存・キャンセル #}
-                        {# ======================================== #}
-
-                        <div class="d-flex flex-wrap gap-2">
-
-                            <button
-                                type="submit"
-                                class="btn btn-primary btn-sm"
-                            >
-                                保存
-                            </button>
-
-
-                            <button
-                                type="button"
-                                id="hide-trip-expense-form"
-                                class="btn btn-outline-secondary btn-sm"
-                            >
-                                キャンセル
-                            </button>
-
-                        </div>
-
-                    </form>
-
-                </div>
-
-            </div>
-
-        {% endif %}
-
-
-
-        {# ======================================== #}
-        {# 登録済みの全体費用 #}
-        {# ======================================== #}
-
-        {% if trip_expenses %}
-
-            {% for expense in trip_expenses %}
-
-                <div
-                    class="mb-4"
-                    id="trip-expense-{{ expense.trip_expense_id }}"
-                >
-
-
-                    {# ======================================== #}
-                    {# 費用名・並び替え #}
-                    {# ======================================== #}
-
-                    <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-
-                        <p class="mb-0">
-
-                            <strong>
-
-                                {% if expense.name %}
-
-                                    {{ expense.name }}
-
-                                {% else %}
-
-                                    全体費用
-
-                                {% endif %}
-
-                            </strong>
-
-                        </p>
-
-
-                        {% if trip.user == request.user and expense.can_move %}
-
-                            <div class="d-flex gap-2">
-
-                                {% if not forloop.first %}
-
-                                    <form
-                                        method="post"
-                                        class="m-0"
-                                    >
-
-                                        {% csrf_token %}
-
-
-                                        <input
-                                            type="hidden"
-                                            name="action"
-                                            value="move_trip_expense"
-                                        >
-
-                                        <input
-                                            type="hidden"
-                                            name="expense_id"
-                                            value="{{ expense.trip_expense_id }}"
-                                        >
-
-                                        <input
-                                            type="hidden"
-                                            name="direction"
-                                            value="up"
-                                        >
-
-
-                                        <button
-                                            type="submit"
-                                            class="btn btn-outline-secondary btn-sm"
-                                            title="1つ上へ移動"
-                                        >
-                                            ↑
-                                        </button>
-
-                                    </form>
-
-                                {% endif %}
-
-
-                                {% if not forloop.last %}
-
-                                    <form
-                                        method="post"
-                                        class="m-0"
-                                    >
-
-                                        {% csrf_token %}
-
-
-                                        <input
-                                            type="hidden"
-                                            name="action"
-                                            value="move_trip_expense"
-                                        >
-
-                                        <input
-                                            type="hidden"
-                                            name="expense_id"
-                                            value="{{ expense.trip_expense_id }}"
-                                        >
-
-                                        <input
-                                            type="hidden"
-                                            name="direction"
-                                            value="down"
-                                        >
-
-
-                                        <button
-                                            type="submit"
-                                            class="btn btn-outline-secondary btn-sm"
-                                            title="1つ下へ移動"
-                                        >
-                                            ↓
-                                        </button>
-
-                                    </form>
-
-                                {% endif %}
-
-                            </div>
-
-                        {% endif %}
-
-                    </div>
-
-
-
-                    {# ======================================== #}
-                    {# 通常表示 #}
-                    {# ======================================== #}
-
-                    <div id="expense-display-{{ expense.trip_expense_id }}">
-
-
-                        {# ======================================== #}
-                        {# 予定金額 #}
-                        {# #}
-                        {# 未入力の場合は表示しない #}
-                        {# ======================================== #}
-
-                        {% if expense.planned_amount != None %}
-
-                            <p class="mb-2">
-
-                                <strong>
-                                    予定金額：
-                                </strong>
-
-                                {{ expense.planned_amount|intcomma }}円
-
-                            </p>
-
-                        {% endif %}
-
-
-
-                        {# ======================================== #}
-                        {# メモ #}
-                        {# ======================================== #}
-
-                        {% if expense.memo %}
-
-                            <p class="mb-2">
-
-                                <strong>
-                                    メモ：
-                                </strong>
-
-                                {{ expense.memo|linebreaksbr }}
-
-                            </p>
-
-                        {% endif %}
-
-
-
-                        {# ======================================== #}
-                        {# 参考URL #}
-                        {# ======================================== #}
-
-                        {% with expense_reference_urls=expense.reference_urls.all %}
-
-                            {% if expense_reference_urls %}
-
-                                <div class="mb-3">
-
-                                    {% for reference_url in expense_reference_urls %}
-
-                                        <p class="mb-1 text-break">
-
-                                            {% if reference_url.title %}
-
-                                                {{ reference_url.title }}：
-
-                                            {% endif %}
-
-
-                                            <a
-                                                href="{{ reference_url.url }}"
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                            >
-                                                {{ reference_url.url }}
-                                            </a>
-
-                                        </p>
-
-                                    {% endfor %}
-
-                                </div>
-
-                            {% endif %}
-
-                        {% endwith %}
-
-
-
-                        {# ======================================== #}
-                        {# 実際支払額が登録済み #}
-                        {# ======================================== #}
-
-                        {% if expense.actual_amount != None %}
-
-                            <p class="mb-3">
-
-                                <strong>
-                                    実際支払額：
-                                </strong>
-
-                                {{ expense.actual_amount|intcomma }}円
-
-                            </p>
-
-
-                            {% if trip.user == request.user and expense.can_edit %}
-
-                                <div class="d-flex flex-wrap gap-2 align-items-center">
-
-                                    <button
-                                        type="button"
-                                        class="btn btn-outline-secondary btn-sm show-trip-expense-edit"
-                                        data-expense-id="{{ expense.trip_expense_id }}"
-                                    >
-                                        編集
-                                    </button>
-
-
-                                    <form
-                                        method="post"
-                                        class="m-0"
-                                    >
-
-                                        {% csrf_token %}
-
-
-                                        <input
-                                            type="hidden"
-                                            name="action"
-                                            value="delete_trip_expense"
-                                        >
-
-                                        <input
-                                            type="hidden"
-                                            name="expense_id"
-                                            value="{{ expense.trip_expense_id }}"
-                                        >
-
-
-                                        <button
-                                            type="submit"
-                                            class="btn btn-outline-danger btn-sm confirm-trip-expense-delete"
-                                            data-confirm-message="この全体費用を削除しますか？"
-                                        >
-                                            削除
-                                        </button>
-
-                                    </form>
-
-                                </div>
-
-                            {% endif %}
-
-
-
-                        {# ======================================== #}
-                        {# 実際支払額が未入力 #}
-                        {# #}
-                        {# 編集可能ならここから登録できる #}
-                        {# ======================================== #}
-
-                        {% elif trip.user == request.user and expense.can_edit %}
-
-                            <div class="mb-3">
-
-                                <form
-                                    method="post"
-                                    class="m-0"
-                                >
-
-                                    {% csrf_token %}
-
-
-                                    <input
-                                        type="hidden"
-                                        name="action"
-                                        value="update_trip_expense"
-                                    >
-
-                                    <input
-                                        type="hidden"
-                                        name="expense_id"
-                                        value="{{ expense.trip_expense_id }}"
-                                    >
-
-                                    <input
-                                        type="hidden"
-                                        name="name"
-                                        value="{{ expense.name }}"
-                                    >
-
-                                    <input
-                                        type="hidden"
-                                        name="planned_amount"
-                                        value="{{ expense.planned_amount|default_if_none:'' }}"
-                                    >
-
-                                    <input
-                                        type="hidden"
-                                        name="memo"
-                                        value="{{ expense.memo }}"
-                                    >
-
-
-                                    <div class="mb-2">
-
-                                        <label class="form-label">
-                                            実際支払額
-                                        </label>
-
-
-                                        <input
-                                            type="number"
-                                            name="actual_amount"
-                                            class="form-control"
-                                            min="1"
-                                            placeholder="実際に支払った金額"
-                                        >
-
-                                    </div>
-
-
-                                    <div class="d-flex flex-wrap gap-2">
-
-                                        <button
-                                            type="submit"
-                                            class="btn btn-primary btn-sm"
-                                        >
-                                            登録
-                                        </button>
-
-
-                                        <button
-                                            type="button"
-                                            class="btn btn-outline-secondary btn-sm show-trip-expense-edit"
-                                            data-expense-id="{{ expense.trip_expense_id }}"
-                                        >
-                                            編集
-                                        </button>
-
-
-                                        <button
-                                            type="submit"
-                                            form="delete-trip-expense-{{ expense.trip_expense_id }}"
-                                            class="btn btn-outline-danger btn-sm confirm-trip-expense-delete"
-                                            data-confirm-message="この全体費用を削除しますか？"
-                                        >
-                                            削除
-                                        </button>
-
-                                    </div>
-
-                                </form>
-
-
-                                <form
-                                    method="post"
-                                    id="delete-trip-expense-{{ expense.trip_expense_id }}"
-                                    class="d-none"
-                                >
-
-                                    {% csrf_token %}
-
-
-                                    <input
-                                        type="hidden"
-                                        name="action"
-                                        value="delete_trip_expense"
-                                    >
-
-                                    <input
-                                        type="hidden"
-                                        name="expense_id"
-                                        value="{{ expense.trip_expense_id }}"
-                                    >
-
-                                </form>
-
-                            </div>
-
-                        {% endif %}
-
-                    </div>
-
-
-
-                    {# ======================================== #}
-                    {# 全体費用編集フォーム #}
-                    {# ======================================== #}
-
-                    {% if trip.user == request.user and expense.can_edit %}
-
-                        <div
-                            id="expense-edit-{{ expense.trip_expense_id }}"
-                            class="trip-expense-edit"
-                        >
-
-                            <form method="post">
-
-                                {% csrf_token %}
-
-
-                                <input
-                                    type="hidden"
-                                    name="action"
-                                    value="update_trip_expense"
-                                >
-
-                                <input
-                                    type="hidden"
-                                    name="expense_id"
-                                    value="{{ expense.trip_expense_id }}"
-                                >
-
-
-
-                                {# ======================================== #}
-                                {# 費用名 #}
-                                {# ======================================== #}
-
-                                <div class="mb-2">
-
-                                    <label class="form-label">
-                                        費用名
-                                    </label>
-
-
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value="{{ expense.name }}"
-                                        class="form-control"
-                                        placeholder="例：航空券、ホテル、ツアー"
-                                        required
-                                    >
 
                                 </div>
 
@@ -1017,20 +146,39 @@
                                 {# 予定金額 #}
                                 {# ======================================== #}
 
-                                <div class="mb-2">
+                                <div class="mb-3">
 
-                                    <label class="form-label">
+                                    <label
+                                        for="{{ trip_expense_form.planned_amount.id_for_label }}"
+                                        class="form-label"
+                                    >
                                         予定金額
                                     </label>
 
 
-                                    <input
-                                        type="number"
-                                        name="planned_amount"
-                                        value="{{ expense.planned_amount|default_if_none:'' }}"
-                                        class="form-control"
-                                        min="1"
-                                    >
+                                    {{ trip_expense_form.planned_amount }}
+
+
+                                    {% if trip_expense_form.planned_amount.errors %}
+
+                                        <div class="text-danger small mt-1">
+
+                                            {% for error in trip_expense_form.planned_amount.errors %}
+
+                                                <div>
+                                                    {{ error }}
+                                                </div>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                    {% endif %}
+
+
+                                    <div class="form-text">
+                                        この費用に使う予定の金額を入力してください。
+                                    </div>
 
                                 </div>
 
@@ -1040,25 +188,39 @@
                                 {# 実際支払額 #}
                                 {# ======================================== #}
 
-                                <div class="mb-2">
+                                <div class="mb-3">
 
-                                    <label class="form-label">
+                                    <label
+                                        for="{{ trip_expense_form.actual_amount.id_for_label }}"
+                                        class="form-label"
+                                    >
                                         実際支払額
                                     </label>
 
 
-                                    <input
-                                        type="number"
-                                        name="actual_amount"
-                                        value="{{ expense.actual_amount|default_if_none:'' }}"
-                                        class="form-control"
-                                        min="1"
-                                    >
+                                    {{ trip_expense_form.actual_amount }}
+
+
+                                    {% if trip_expense_form.actual_amount.errors %}
+
+                                        <div class="text-danger small mt-1">
+
+                                            {% for error in trip_expense_form.actual_amount.errors %}
+
+                                                <div>
+                                                    {{ error }}
+                                                </div>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                    {% endif %}
 
 
                                     <div class="form-text">
-                                        予定金額が空欄の場合は、
-                                        実際支払額を予定金額としても登録します。
+                                        すでに支払っている場合に入力してください。
+                                        予定金額が空欄の場合は、実際支払額を予定金額としても登録します。
                                     </div>
 
                                 </div>
@@ -1069,38 +231,58 @@
                                 {# メモ #}
                                 {# ======================================== #}
 
-                                <div class="mb-3">
+                                <div class="mb-4">
 
-                                    <label class="form-label">
+                                    <label
+                                        for="{{ trip_expense_form.memo.id_for_label }}"
+                                        class="form-label"
+                                    >
                                         メモ
                                     </label>
 
 
-                                    <textarea
-                                        name="memo"
-                                        class="form-control"
-                                        rows="3"
-                                        placeholder="例：予約内容や補足を入力してください"
-                                    >{{ expense.memo }}</textarea>
+                                    {{ trip_expense_form.memo }}
+
+
+                                    {% if trip_expense_form.memo.errors %}
+
+                                        <div class="text-danger small mt-1">
+
+                                            {% for error in trip_expense_form.memo.errors %}
+
+                                                <div>
+                                                    {{ error }}
+                                                </div>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                    {% endif %}
 
                                 </div>
 
 
 
                                 {# ======================================== #}
-                                {# 参考URL #}
+                                {# 参考URL FormSet #}
                                 {# ======================================== #}
 
-                                {% if expense.reference_url_formset %}
+                                <div class="border-top pt-3 mb-4">
 
-                                    {{ expense.reference_url_formset.management_form }}
+                                    <h6 class="mb-3">
+                                        参考URL
+                                    </h6>
 
 
-                                    {% if expense.reference_url_formset.non_form_errors %}
+                                    {{ trip_expense_reference_url_formset.management_form }}
+
+
+                                    {% if trip_expense_reference_url_formset.non_form_errors %}
 
                                         <div class="alert alert-danger">
 
-                                            {% for error in expense.reference_url_formset.non_form_errors %}
+                                            {% for error in trip_expense_reference_url_formset.non_form_errors %}
 
                                                 <div>
                                                     {{ error }}
@@ -1114,18 +296,16 @@
 
 
                                     <div
-                                        id="expense-reference-url-forms-{{ expense.trip_expense_id }}"
+                                        id="expense-reference-url-forms-new"
                                         data-expense-reference-url-formset
                                     >
 
-                                        {% for url_form in expense.reference_url_formset %}
+                                        {% for url_form in trip_expense_reference_url_formset %}
 
-                                            <div class="expense-reference-url-form mb-3">
+                                            <div class="expense-reference-url-form bg-white border rounded p-3 mb-3">
 
                                                 {% for hidden in url_form.hidden_fields %}
-
                                                     {{ hidden }}
-
                                                 {% endfor %}
 
 
@@ -1253,16 +433,12 @@
                                     {# JavaScript追加用 参考URL空フォーム #}
                                     {# ======================================== #}
 
-                                    <template
-                                        id="expense-reference-url-empty-{{ expense.trip_expense_id }}"
-                                    >
+                                    <template id="expense-reference-url-empty-new">
 
-                                        <div class="expense-reference-url-form mb-3">
+                                        <div class="expense-reference-url-form bg-white border rounded p-3 mb-3">
 
-                                            {% for hidden in expense.reference_url_formset.empty_form.hidden_fields %}
-
+                                            {% for hidden in trip_expense_reference_url_formset.empty_form.hidden_fields %}
                                                 {{ hidden }}
-
                                             {% endfor %}
 
 
@@ -1273,7 +449,7 @@
                                                 </label>
 
 
-                                                {{ expense.reference_url_formset.empty_form.title }}
+                                                {{ trip_expense_reference_url_formset.empty_form.title }}
 
                                             </div>
 
@@ -1285,13 +461,13 @@
                                                 </label>
 
 
-                                                {{ expense.reference_url_formset.empty_form.url }}
+                                                {{ trip_expense_reference_url_formset.empty_form.url }}
 
                                             </div>
 
 
                                             <div class="trip-expense-delete-field d-none">
-                                                {{ expense.reference_url_formset.empty_form.DELETE }}
+                                                {{ trip_expense_reference_url_formset.empty_form.DELETE }}
                                             </div>
 
 
@@ -1319,17 +495,18 @@
                                     </template>
 
 
+
                                     <button
                                         type="button"
-                                        class="btn btn-primary btn-sm add-expense-reference-url mb-3"
-                                        data-container-id="expense-reference-url-forms-{{ expense.trip_expense_id }}"
-                                        data-template-id="expense-reference-url-empty-{{ expense.trip_expense_id }}"
-                                        data-total-forms-id="id_expense_reference_urls_{{ expense.trip_expense_id }}-TOTAL_FORMS"
+                                        class="btn btn-primary btn-sm add-expense-reference-url"
+                                        data-container-id="expense-reference-url-forms-new"
+                                        data-template-id="expense-reference-url-empty-new"
+                                        data-total-forms-id="id_expense_reference_urls_new-TOTAL_FORMS"
                                     >
                                         ＋ 参考URL
                                     </button>
 
-                                {% endif %}
+                                </div>
 
 
 
@@ -1349,8 +526,8 @@
 
                                     <button
                                         type="button"
-                                        class="btn btn-outline-secondary btn-sm hide-trip-expense-edit"
-                                        data-expense-id="{{ expense.trip_expense_id }}"
+                                        id="hide-trip-expense-form"
+                                        class="btn btn-outline-secondary btn-sm"
                                     >
                                         キャンセル
                                     </button>
@@ -1359,73 +536,946 @@
 
                             </form>
 
+                        </div>
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+
+
+            {# ======================================== #}
+            {# 登録済みの全体費用 #}
+            {# ======================================== #}
+
+            {% if trip_expenses %}
+
+                <div class="d-flex flex-column gap-3">
+
+                    {% for expense in trip_expenses %}
+
+                        <div
+                            class="border rounded p-3"
+                            id="trip-expense-{{ expense.trip_expense_id }}"
+                        >
 
 
                             {# ======================================== #}
-                            {# 全体費用削除 #}
+                            {# 費用名・並び替え #}
                             {# ======================================== #}
 
-                            <form
-                                method="post"
-                                class="mt-2"
-                            >
+                            <div class="d-flex align-items-start justify-content-between gap-3 mb-3">
 
-                                {% csrf_token %}
+                                <h5 class="mb-0 text-break">
+
+                                    {% if expense.name %}
+                                        {{ expense.name }}
+                                    {% else %}
+                                        全体費用
+                                    {% endif %}
+
+                                </h5>
 
 
-                                <input
-                                    type="hidden"
-                                    name="action"
-                                    value="delete_trip_expense"
+                                {% if trip.user == request.user and expense.can_move %}
+
+                                    <div class="d-flex gap-1 flex-shrink-0">
+
+                                        {% if not forloop.first %}
+
+                                            <form
+                                                method="post"
+                                                class="m-0"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                <input
+                                                    type="hidden"
+                                                    name="action"
+                                                    value="move_trip_expense"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="expense_id"
+                                                    value="{{ expense.trip_expense_id }}"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="direction"
+                                                    value="up"
+                                                >
+
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-outline-secondary btn-sm"
+                                                    title="1つ上へ移動"
+                                                    aria-label="1つ上へ移動"
+                                                >
+                                                    ↑
+                                                </button>
+
+                                            </form>
+
+                                        {% endif %}
+
+
+                                        {% if not forloop.last %}
+
+                                            <form
+                                                method="post"
+                                                class="m-0"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                <input
+                                                    type="hidden"
+                                                    name="action"
+                                                    value="move_trip_expense"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="expense_id"
+                                                    value="{{ expense.trip_expense_id }}"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="direction"
+                                                    value="down"
+                                                >
+
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-outline-secondary btn-sm"
+                                                    title="1つ下へ移動"
+                                                    aria-label="1つ下へ移動"
+                                                >
+                                                    ↓
+                                                </button>
+
+                                            </form>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+
+
+                            {# ======================================== #}
+                            {# 通常表示 #}
+                            {# ======================================== #}
+
+                            <div id="expense-display-{{ expense.trip_expense_id }}">
+
+
+                                {# ======================================== #}
+                                {# 金額サマリー #}
+                                {# ======================================== #}
+
+                                {% if expense.planned_amount != None or expense.actual_amount != None %}
+
+                                    <div class="row g-2 mb-3">
+
+
+                                        {% if expense.planned_amount != None %}
+
+                                            <div class="col-12 col-sm-6">
+
+                                                <div class="bg-light border rounded p-2 h-100">
+
+                                                    <p class="text-muted small mb-1">
+                                                        予定金額
+                                                    </p>
+
+
+                                                    <strong>
+                                                        {{ expense.planned_amount|intcomma }}円
+                                                    </strong>
+
+                                                </div>
+
+                                            </div>
+
+                                        {% endif %}
+
+
+                                        {% if expense.actual_amount != None %}
+
+                                            <div class="col-12 col-sm-6">
+
+                                                <div class="bg-light border rounded p-2 h-100">
+
+                                                    <p class="text-muted small mb-1">
+                                                        実際支払額
+                                                    </p>
+
+
+                                                    <strong>
+                                                        {{ expense.actual_amount|intcomma }}円
+                                                    </strong>
+
+                                                </div>
+
+                                            </div>
+
+                                        {% endif %}
+
+                                    </div>
+
+                                {% endif %}
+
+
+
+                                {# ======================================== #}
+                                {# メモ #}
+                                {# ======================================== #}
+
+                                {% if expense.memo %}
+
+                                    <div class="mb-3">
+
+                                        <p class="fw-semibold mb-1">
+                                            メモ
+                                        </p>
+
+
+                                        <div class="text-break">
+                                            {{ expense.memo|linebreaksbr }}
+                                        </div>
+
+                                    </div>
+
+                                {% endif %}
+
+
+
+                                {# ======================================== #}
+                                {# 参考URL #}
+                                {# ======================================== #}
+
+                                {% with expense_reference_urls=expense.reference_urls.all %}
+
+                                    {% if expense_reference_urls %}
+
+                                        <div class="mb-3">
+
+                                            <p class="fw-semibold mb-1">
+                                                参考URL
+                                            </p>
+
+
+                                            {% for reference_url in expense_reference_urls %}
+
+                                                <p class="mb-1 text-break">
+
+                                                    {% if reference_url.title %}
+                                                        {{ reference_url.title }}：
+                                                    {% endif %}
+
+
+                                                    <a
+                                                        href="{{ reference_url.url }}"
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                    >
+                                                        {{ reference_url.url }}
+                                                    </a>
+
+                                                </p>
+
+                                            {% endfor %}
+
+                                        </div>
+
+                                    {% endif %}
+
+                                {% endwith %}
+
+
+
+                                {# ======================================== #}
+                                {# 実際支払額が登録済み #}
+                                {# ======================================== #}
+
+                                {% if expense.actual_amount != None %}
+
+                                    {% if trip.user == request.user and expense.can_edit %}
+
+                                        <div class="d-flex flex-wrap gap-2 align-items-center">
+
+                                            <button
+                                                type="button"
+                                                class="btn btn-outline-secondary btn-sm show-trip-expense-edit"
+                                                data-expense-id="{{ expense.trip_expense_id }}"
+                                            >
+                                                編集
+                                            </button>
+
+
+                                            <form
+                                                method="post"
+                                                class="m-0"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                <input
+                                                    type="hidden"
+                                                    name="action"
+                                                    value="delete_trip_expense"
+                                                >
+
+                                                <input
+                                                    type="hidden"
+                                                    name="expense_id"
+                                                    value="{{ expense.trip_expense_id }}"
+                                                >
+
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-outline-danger btn-sm confirm-trip-expense-delete"
+                                                    data-confirm-message="この全体費用を削除しますか？"
+                                                >
+                                                    削除
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    {% endif %}
+
+
+
+                                {# ======================================== #}
+                                {# 実際支払額が未入力 #}
+                                {# #}
+                                {# 編集可能ならここから登録できる #}
+                                {# ======================================== #}
+
+                                {% elif trip.user == request.user and expense.can_edit %}
+
+                                    <div class="border-top pt-3 mt-3">
+
+                                        <p class="fw-semibold mb-2">
+                                            実際支払額を登録
+                                        </p>
+
+
+                                        <form
+                                            method="post"
+                                            class="m-0"
+                                        >
+
+                                            {% csrf_token %}
+
+
+                                            <input
+                                                type="hidden"
+                                                name="action"
+                                                value="update_trip_expense"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="expense_id"
+                                                value="{{ expense.trip_expense_id }}"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="name"
+                                                value="{{ expense.name }}"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="planned_amount"
+                                                value="{{ expense.planned_amount|default_if_none:'' }}"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="memo"
+                                                value="{{ expense.memo }}"
+                                            >
+
+
+                                            <div class="mb-2">
+
+                                                <label class="form-label">
+                                                    実際支払額
+                                                </label>
+
+
+                                                <input
+                                                    type="number"
+                                                    name="actual_amount"
+                                                    class="form-control"
+                                                    min="1"
+                                                    placeholder="実際に支払った金額"
+                                                >
+
+                                            </div>
+
+
+                                            <div class="d-flex flex-wrap gap-2">
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-primary btn-sm"
+                                                >
+                                                    登録
+                                                </button>
+
+
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-outline-secondary btn-sm show-trip-expense-edit"
+                                                    data-expense-id="{{ expense.trip_expense_id }}"
+                                                >
+                                                    編集
+                                                </button>
+
+
+                                                <button
+                                                    type="submit"
+                                                    form="delete-trip-expense-{{ expense.trip_expense_id }}"
+                                                    class="btn btn-outline-danger btn-sm confirm-trip-expense-delete"
+                                                    data-confirm-message="この全体費用を削除しますか？"
+                                                >
+                                                    削除
+                                                </button>
+
+                                            </div>
+
+                                        </form>
+
+
+                                        <form
+                                            method="post"
+                                            id="delete-trip-expense-{{ expense.trip_expense_id }}"
+                                            class="d-none"
+                                        >
+
+                                            {% csrf_token %}
+
+
+                                            <input
+                                                type="hidden"
+                                                name="action"
+                                                value="delete_trip_expense"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="expense_id"
+                                                value="{{ expense.trip_expense_id }}"
+                                            >
+
+                                        </form>
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+
+
+                            {# ======================================== #}
+                            {# 全体費用編集フォーム #}
+                            {# ======================================== #}
+
+                            {% if trip.user == request.user and expense.can_edit %}
+
+                                <div
+                                    id="expense-edit-{{ expense.trip_expense_id }}"
+                                    class="trip-expense-edit"
                                 >
 
-                                <input
-                                    type="hidden"
-                                    name="expense_id"
-                                    value="{{ expense.trip_expense_id }}"
-                                >
+                                    <div class="border-top pt-3 mt-3">
+
+                                        <h6 class="mb-3">
+                                            全体費用を編集
+                                        </h6>
 
 
-                                <button
-                                    type="submit"
-                                    class="btn btn-outline-danger btn-sm confirm-trip-expense-delete"
-                                    data-confirm-message="この全体費用を削除しますか？"
-                                >
-                                    削除
-                                </button>
+                                        <form method="post">
 
-                            </form>
+                                            {% csrf_token %}
+
+
+                                            <input
+                                                type="hidden"
+                                                name="action"
+                                                value="update_trip_expense"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="expense_id"
+                                                value="{{ expense.trip_expense_id }}"
+                                            >
+
+
+
+                                            {# ======================================== #}
+                                            {# 費用名 #}
+                                            {# ======================================== #}
+
+                                            <div class="mb-3">
+
+                                                <label class="form-label">
+                                                    費用名
+                                                </label>
+
+
+                                                <input
+                                                    type="text"
+                                                    name="name"
+                                                    value="{{ expense.name }}"
+                                                    class="form-control"
+                                                    placeholder="例：航空券、ホテル、ツアー"
+                                                    required
+                                                >
+
+                                            </div>
+
+
+
+                                            {# ======================================== #}
+                                            {# 予定金額 #}
+                                            {# ======================================== #}
+
+                                            <div class="mb-3">
+
+                                                <label class="form-label">
+                                                    予定金額
+                                                </label>
+
+
+                                                <input
+                                                    type="number"
+                                                    name="planned_amount"
+                                                    value="{{ expense.planned_amount|default_if_none:'' }}"
+                                                    class="form-control"
+                                                    min="1"
+                                                >
+
+                                            </div>
+
+
+
+                                            {# ======================================== #}
+                                            {# 実際支払額 #}
+                                            {# ======================================== #}
+
+                                            <div class="mb-3">
+
+                                                <label class="form-label">
+                                                    実際支払額
+                                                </label>
+
+
+                                                <input
+                                                    type="number"
+                                                    name="actual_amount"
+                                                    value="{{ expense.actual_amount|default_if_none:'' }}"
+                                                    class="form-control"
+                                                    min="1"
+                                                >
+
+
+                                                <div class="form-text">
+                                                    予定金額が空欄の場合は、
+                                                    実際支払額を予定金額としても登録します。
+                                                </div>
+
+                                            </div>
+
+
+
+                                            {# ======================================== #}
+                                            {# メモ #}
+                                            {# ======================================== #}
+
+                                            <div class="mb-4">
+
+                                                <label class="form-label">
+                                                    メモ
+                                                </label>
+
+
+                                                <textarea
+                                                    name="memo"
+                                                    class="form-control"
+                                                    rows="3"
+                                                    placeholder="例：予約内容や補足を入力してください"
+                                                >{{ expense.memo }}</textarea>
+
+                                            </div>
+
+
+
+                                            {# ======================================== #}
+                                            {# 参考URL #}
+                                            {# ======================================== #}
+
+                                            {% if expense.reference_url_formset %}
+
+                                                <div class="border-top pt-3 mb-4">
+
+                                                    <h6 class="mb-3">
+                                                        参考URL
+                                                    </h6>
+
+
+                                                    {{ expense.reference_url_formset.management_form }}
+
+
+                                                    {% if expense.reference_url_formset.non_form_errors %}
+
+                                                        <div class="alert alert-danger">
+
+                                                            {% for error in expense.reference_url_formset.non_form_errors %}
+
+                                                                <div>
+                                                                    {{ error }}
+                                                                </div>
+
+                                                            {% endfor %}
+
+                                                        </div>
+
+                                                    {% endif %}
+
+
+                                                    <div
+                                                        id="expense-reference-url-forms-{{ expense.trip_expense_id }}"
+                                                        data-expense-reference-url-formset
+                                                    >
+
+                                                        {% for url_form in expense.reference_url_formset %}
+
+                                                            <div class="expense-reference-url-form bg-light border rounded p-3 mb-3">
+
+                                                                {% for hidden in url_form.hidden_fields %}
+                                                                    {{ hidden }}
+                                                                {% endfor %}
+
+
+                                                                {% if url_form.non_field_errors %}
+
+                                                                    <div class="text-danger small mb-2">
+
+                                                                        {% for error in url_form.non_field_errors %}
+
+                                                                            <div>
+                                                                                {{ error }}
+                                                                            </div>
+
+                                                                        {% endfor %}
+
+                                                                    </div>
+
+                                                                {% endif %}
+
+
+
+                                                                <div class="mb-2">
+
+                                                                    <label
+                                                                        for="{{ url_form.title.id_for_label }}"
+                                                                        class="form-label"
+                                                                    >
+                                                                        参考URL名
+                                                                    </label>
+
+
+                                                                    {{ url_form.title }}
+
+
+                                                                    {% if url_form.title.errors %}
+
+                                                                        <div class="text-danger small mt-1">
+
+                                                                            {% for error in url_form.title.errors %}
+
+                                                                                <div>
+                                                                                    {{ error }}
+                                                                                </div>
+
+                                                                            {% endfor %}
+
+                                                                        </div>
+
+                                                                    {% endif %}
+
+                                                                </div>
+
+
+
+                                                                <div class="mb-2">
+
+                                                                    <label
+                                                                        for="{{ url_form.url.id_for_label }}"
+                                                                        class="form-label"
+                                                                    >
+                                                                        URL
+                                                                    </label>
+
+
+                                                                    {{ url_form.url }}
+
+
+                                                                    {% if url_form.url.errors %}
+
+                                                                        <div class="text-danger small mt-1">
+
+                                                                            {% for error in url_form.url.errors %}
+
+                                                                                <div>
+                                                                                    {{ error }}
+                                                                                </div>
+
+                                                                            {% endfor %}
+
+                                                                        </div>
+
+                                                                    {% endif %}
+
+                                                                </div>
+
+
+
+                                                                <div class="trip-expense-delete-field d-none">
+                                                                    {{ url_form.DELETE }}
+                                                                </div>
+
+
+                                                                <div class="d-flex flex-wrap gap-2">
+
+                                                                    <button
+                                                                        type="button"
+                                                                        class="btn {% if url_form.instance.pk %}btn-outline-secondary{% else %}btn-primary{% endif %} btn-sm register-expense-reference-url"
+                                                                    >
+                                                                        {% if url_form.instance.pk %}
+                                                                            登録済み
+                                                                        {% else %}
+                                                                            登録
+                                                                        {% endif %}
+                                                                    </button>
+
+
+                                                                    <button
+                                                                        type="button"
+                                                                        class="btn btn-outline-danger btn-sm remove-expense-reference-url"
+                                                                    >
+                                                                        削除
+                                                                    </button>
+
+                                                                </div>
+
+                                                            </div>
+
+                                                        {% endfor %}
+
+                                                    </div>
+
+
+
+                                                    {# ======================================== #}
+                                                    {# JavaScript追加用 参考URL空フォーム #}
+                                                    {# ======================================== #}
+
+                                                    <template
+                                                        id="expense-reference-url-empty-{{ expense.trip_expense_id }}"
+                                                    >
+
+                                                        <div class="expense-reference-url-form bg-light border rounded p-3 mb-3">
+
+                                                            {% for hidden in expense.reference_url_formset.empty_form.hidden_fields %}
+                                                                {{ hidden }}
+                                                            {% endfor %}
+
+
+                                                            <div class="mb-2">
+
+                                                                <label class="form-label">
+                                                                    参考URL名
+                                                                </label>
+
+
+                                                                {{ expense.reference_url_formset.empty_form.title }}
+
+                                                            </div>
+
+
+                                                            <div class="mb-2">
+
+                                                                <label class="form-label">
+                                                                    URL
+                                                                </label>
+
+
+                                                                {{ expense.reference_url_formset.empty_form.url }}
+
+                                                            </div>
+
+
+                                                            <div class="trip-expense-delete-field d-none">
+                                                                {{ expense.reference_url_formset.empty_form.DELETE }}
+                                                            </div>
+
+
+                                                            <div class="d-flex flex-wrap gap-2">
+
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-primary btn-sm register-expense-reference-url"
+                                                                >
+                                                                    登録
+                                                                </button>
+
+
+                                                                <button
+                                                                    type="button"
+                                                                    class="btn btn-outline-danger btn-sm remove-expense-reference-url"
+                                                                >
+                                                                    削除
+                                                                </button>
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    </template>
+
+
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-primary btn-sm add-expense-reference-url"
+                                                        data-container-id="expense-reference-url-forms-{{ expense.trip_expense_id }}"
+                                                        data-template-id="expense-reference-url-empty-{{ expense.trip_expense_id }}"
+                                                        data-total-forms-id="id_expense_reference_urls_{{ expense.trip_expense_id }}-TOTAL_FORMS"
+                                                    >
+                                                        ＋ 参考URL
+                                                    </button>
+
+                                                </div>
+
+                                            {% endif %}
+
+
+
+                                            {# ======================================== #}
+                                            {# 保存・キャンセル #}
+                                            {# ======================================== #}
+
+                                            <div class="d-flex flex-wrap gap-2">
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-primary btn-sm"
+                                                >
+                                                    保存
+                                                </button>
+
+
+                                                <button
+                                                    type="button"
+                                                    class="btn btn-outline-secondary btn-sm hide-trip-expense-edit"
+                                                    data-expense-id="{{ expense.trip_expense_id }}"
+                                                >
+                                                    キャンセル
+                                                </button>
+
+                                            </div>
+
+                                        </form>
+
+
+
+                                        {# ======================================== #}
+                                        {# 全体費用削除 #}
+                                        {# ======================================== #}
+
+                                        <form
+                                            method="post"
+                                            class="mt-3"
+                                        >
+
+                                            {% csrf_token %}
+
+
+                                            <input
+                                                type="hidden"
+                                                name="action"
+                                                value="delete_trip_expense"
+                                            >
+
+                                            <input
+                                                type="hidden"
+                                                name="expense_id"
+                                                value="{{ expense.trip_expense_id }}"
+                                            >
+
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-outline-danger btn-sm confirm-trip-expense-delete"
+                                                data-confirm-message="この全体費用を削除しますか？"
+                                            >
+                                                削除
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </div>
+
+                            {% endif %}
 
                         </div>
 
-                    {% endif %}
-
+                    {% endfor %}
 
                 </div>
 
 
-                {% if not forloop.last %}
 
-                    <hr>
+            {% else %}
+
+                {% if trip.user == request.user %}
+
+                    <p class="text-muted mb-0">
+                        全体費用はまだ登録されていません。
+                    </p>
 
                 {% endif %}
 
-            {% endfor %}
-
-
-
-        {% else %}
-
-            {% if trip.user == request.user %}
-
-                <p class="text-muted mb-0">
-                    全体費用はまだ登録されていません。
-                </p>
-
             {% endif %}
 
-        {% endif %}
-
+        </div>
 
     </div>
 

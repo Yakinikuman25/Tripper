@@ -1,3 +1,6 @@
+{% load countries %}
+
+
 {# ======================================== #}
 {# Tripタイトル #}
 {# ======================================== #}
@@ -79,6 +82,8 @@
 
 {# ======================================== #}
 {# 旅行期間 #}
+{# #}
+{# 日付 + 旅行日数を表示 #}
 {# ======================================== #}
 
 <p
@@ -93,6 +98,15 @@
     {{ trip.start_date|date:"Y年n月j日" }}
     ～
     {{ trip.end_date|date:"Y年n月j日" }}
+
+
+    {% if days %}
+
+        <span class="text-muted ms-1">
+            （{{ days|length }}日間）
+        </span>
+
+    {% endif %}
 
 </p>
 
@@ -110,6 +124,7 @@
             src="{{ trip.main_media.url }}"
             alt="{{ trip.title }}"
             class="img-fluid w-100 rounded trip-main-image"
+            loading="lazy"
         >
 
     </div>
@@ -143,6 +158,14 @@
 
 {# ======================================== #}
 {# 訪問先 #}
+{# #}
+{# DB上ではISO国コードを保存 #}
+{# #}
+{# JP → 日本 #}
+{# KG → キルギス #}
+{# #}
+{# 国旗はEmojiではなく #}
+{# django-countriesの画像を使用 #}
 {# ======================================== #}
 
 <div class="mb-4">
@@ -154,10 +177,31 @@
 
     {% for country, regions in locations_by_country.items %}
 
+        {% get_country country as country_object %}
+
+
         <p class="mb-2">
 
             <strong>
-                {{ country }}
+
+                {% if country_object %}
+
+                    <img
+                        src="{{ country_object.flag }}"
+                        alt="{{ country_object.name }}の国旗"
+                        width="24"
+                        class="me-1 align-middle"
+                        style="height: auto;"
+                    >
+
+                    {{ country_object.name }}
+
+                {% else %}
+
+                    {{ country }}
+
+                {% endif %}
+
             </strong>
 
 
@@ -198,6 +242,11 @@
 
 {# ======================================== #}
 {# Trip全体の訪問ルート #}
+{# #}
+{# 場所 + 日付 + → を1単位として表示 #}
+{# #}
+{# PCでは最大幅を使用 #}
+{# スマホでは地点単位で折り返す #}
 {# ======================================== #}
 
 {% if trip_route %}
@@ -211,12 +260,12 @@
 
         <div
             id="trip-route-line"
-            class="d-flex flex-wrap align-items-center trip-route-line"
+            class="trip-route-line"
         >
 
             {% for route in trip_route %}
 
-                <span class="d-inline-flex align-items-center trip-route-item">
+                <span class="trip-route-item">
 
                     <strong>
 
@@ -226,21 +275,29 @@
 
                         {% else %}
 
-                            {{ route.location.country }}
+                            <img
+                                src="{{ route.location.country.flag }}"
+                                alt="{{ route.location.country.name }}の国旗"
+                                width="24"
+                                class="me-1 align-middle"
+                                style="height: auto;"
+                            >
+
+                            {{ route.location.country.name }}
 
                         {% endif %}
 
                     </strong>
 
 
-                    <span>
+                    <span class="ms-1">
                         （{{ route.date|date:"n/j" }}）
                     </span>
 
 
                     {% if not forloop.last %}
 
-                        <span class="mx-1">
+                        <span class="trip-route-arrow">
                             →
                         </span>
 

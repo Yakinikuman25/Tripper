@@ -19,6 +19,129 @@
         href="{% static 'css/trip/trip_detail.css' %}"
     >
 
+
+    {# ======================================== #}
+    {# 旅行ルート専用調整 #}
+    {# #}
+    {# PCでは横に長くなりすぎない #}
+    {# スマホでは画面幅いっぱい #}
+    {# #}
+    {# 場所 + 日付 + → を1単位として #}
+    {# 地点単位で折り返す #}
+    {# ======================================== #}
+
+    <style>
+
+        /* ======================================== */
+        /* 旅行ルート全体 */
+        /* ======================================== */
+
+        #trip-route-line {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            align-items: center !important;
+
+            width: 100% !important;
+            max-width: 900px !important;
+            min-width: 0 !important;
+
+            column-gap: 0;
+            row-gap: 8px;
+
+            line-height: 1.8 !important;
+
+            white-space: normal !important;
+
+            overflow: visible !important;
+            overflow-wrap: normal !important;
+            word-break: normal !important;
+        }
+
+
+        /* ======================================== */
+        /* 旅行ルートの1地点 */
+        /* #}
+        /* 例 */
+        /* 東京（9/17）→ */
+        /* */
+        /* 1地点の途中では改行しない */
+        /* ======================================== */
+
+        #trip-route-line .trip-route-item {
+            display: inline-flex !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            flex: 0 0 auto !important;
+
+            width: auto !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+
+            margin: 0 10px 0 0 !important;
+            padding: 0 !important;
+
+            white-space: nowrap !important;
+
+            overflow-wrap: normal !important;
+            word-break: keep-all !important;
+        }
+
+
+        /* ======================================== */
+        /* 場所名 */
+        /* ======================================== */
+
+        #trip-route-line .trip-route-item strong {
+            display: inline !important;
+            flex-shrink: 0;
+        }
+
+
+        /* ======================================== */
+        /* 日付・矢印 */
+        /* ======================================== */
+
+        #trip-route-line .trip-route-item span {
+            flex-shrink: 0;
+        }
+
+
+        /* ======================================== */
+        /* 国旗 */
+        /* ======================================== */
+
+        #trip-route-line .trip-route-item img {
+            display: inline-block !important;
+            flex-shrink: 0;
+
+            vertical-align: middle;
+        }
+
+
+        /* ======================================== */
+        /* スマホ */
+        /* ======================================== */
+
+        @media (max-width: 575.98px) {
+
+            #trip-route-line {
+                width: 100% !important;
+                max-width: 100% !important;
+
+                row-gap: 6px;
+
+                line-height: 1.7 !important;
+            }
+
+
+            #trip-route-line .trip-route-item {
+                margin-right: 8px !important;
+            }
+
+        }
+
+    </style>
+
 {% endblock %}
 
 

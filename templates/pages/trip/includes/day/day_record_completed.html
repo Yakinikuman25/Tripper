@@ -41,6 +41,7 @@
                     src="{{ day.media.url }}"
                     alt="{% if day.title %}{{ day.title }}{% else %}Day {{ day.day_order }}{% endif %}"
                     class="img-fluid rounded day-record-image"
+                    loading="lazy"
                 >
 
             </div>
@@ -741,6 +742,7 @@
                         src="{{ day.media.url }}"
                         alt="{% if day.title %}{{ day.title }}{% else %}Day {{ day.day_order }}{% endif %}"
                         class="img-fluid rounded day-record-image"
+                        loading="lazy"
                     >
 
                 </div>
@@ -865,13 +867,19 @@
 
 
             {# ======================================== #}
-            {# 所有者だけ未登録案内を表示 #}
+            {# 旅の記録がない場合 #}
             {# ======================================== #}
 
             {% if trip.user == request.user %}
 
-                <p>
+                <p class="text-muted mb-3">
                     旅の記録はまだ登録されていません。
+                </p>
+
+            {% else %}
+
+                <p class="text-muted mb-3">
+                    旅の記録はありません。
                 </p>
 
             {% endif %}

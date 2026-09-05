@@ -9,6 +9,52 @@ Day編集 | Tripper
 {% block main %}
 
 
+<style>
+
+    /* ======================================== */
+    /* 国検索 */
+    /* ======================================== */
+
+    .country-search-wrapper {
+        position: relative;
+    }
+
+    .country-suggestions {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        z-index: 1050;
+        max-height: 260px;
+        overflow-y: auto;
+        background-color: #ffffff;
+    }
+
+    .country-suggestion {
+        cursor: pointer;
+        text-align: left;
+    }
+
+    .country-suggestion:hover,
+    .country-suggestion:focus {
+        background-color: #f8f9fa;
+    }
+
+    .country-selected-flag {
+        min-width: 52px;
+        justify-content: center;
+    }
+
+    .country-flag-image {
+        width: 24px;
+        height: auto;
+        display: block;
+    }
+
+</style>
+
+
+
 <h1 class="mb-3">
     Day {{ day.day_order }}
 </h1>
@@ -18,6 +64,7 @@ Day編集 | Tripper
     日付：
     {{ day.date }}
 </p>
+
 
 
 {# ======================================== #}
@@ -44,6 +91,7 @@ Day編集 | Tripper
 >
 
     {% csrf_token %}
+
 
 
     {# ======================================== #}
@@ -113,21 +161,34 @@ Day編集 | Tripper
     {% endif %}
 
 
-    <datalist id="country-options">
 
-        {% for country, regions in trip_location_groups.items %}
+    {# ======================================== #}
+    {# 実在する国一覧 #}
+    {# #}
+    {# country_options #}
+    {# ・code : KG #}
+    {# ・name : キルギス #}
+    {# ・flag : 国旗画像URL #}
+    {# ======================================== #}
 
-            <option value="{{ country }}">
-
-        {% endfor %}
-
-    </datalist>
+    {{ country_options|json_script:"country-options-data" }}
 
 
-    {{ trip_location_groups|json_script:"trip-location-data" }}
+
+    {# ======================================== #}
+    {# Trip内で登録済みの地域候補 #}
+    {# ======================================== #}
+
+    {{ trip_location_regions_by_code|json_script:"trip-location-data" }}
+
 
 
     <div id="country-container">
+
+
+        {# ======================================== #}
+        {# 現在のDayに訪問先がある場合 #}
+        {# ======================================== #}
 
         {% if location_groups %}
 
@@ -138,23 +199,77 @@ Day編集 | Tripper
                     data-index="{{ forloop.counter0 }}"
                 >
 
+
                     <div class="mb-2">
 
                         <label class="form-label">
                             国
                         </label>
 
-                        <input
-                            type="text"
-                            name="countries"
-                            value="{{ country }}"
-                            placeholder="国名を入力してください"
-                            list="country-options"
-                            class="form-control country-input"
-                            autocomplete="off"
-                        >
+
+                        <div class="country-search-wrapper">
+
+                            <div class="input-group">
+
+                                <span
+                                    class="
+                                        input-group-text
+                                        country-selected-flag
+                                        d-none
+                                    "
+                                    aria-hidden="true"
+                                >
+                                </span>
+
+
+                                <input
+                                    type="text"
+                                    value="{{ country }}"
+                                    placeholder="国名を入力してください"
+                                    class="form-control country-input"
+                                    autocomplete="off"
+                                    aria-label="国名"
+                                >
+
+                            </div>
+
+
+                            <input
+                                type="hidden"
+                                name="countries"
+                                value="{{ country }}"
+                                class="country-code-input"
+                            >
+
+
+                            <div
+                                class="
+                                    country-suggestions
+                                    list-group
+                                    shadow-sm
+                                    d-none
+                                "
+                                role="listbox"
+                            >
+                            </div>
+
+
+                            <div
+                                class="
+                                    country-validation-error
+                                    text-danger
+                                    small
+                                    mt-1
+                                    d-none
+                                "
+                            >
+                                候補から実在する国を選択してください。
+                            </div>
+
+                        </div>
 
                     </div>
+
 
 
                     <div class="region-container">
@@ -204,6 +319,7 @@ Day編集 | Tripper
             {% endfor %}
 
 
+
         {% else %}
 
 
@@ -218,17 +334,81 @@ Day編集 | Tripper
                         国
                     </label>
 
-                    <input
-                        type="text"
-                        name="countries"
-                        value="{% if previous_day_last_location %}{{ previous_day_last_location.country }}{% endif %}"
-                        placeholder="国名を入力してください"
-                        list="country-options"
-                        class="form-control country-input"
-                        autocomplete="off"
-                    >
+
+                    <div class="country-search-wrapper">
+
+                        <div class="input-group">
+
+                            <span
+                                class="
+                                    input-group-text
+                                    country-selected-flag
+                                    {% if not previous_day_last_location_data %}d-none{% endif %}
+                                "
+                                aria-hidden="true"
+                            >
+
+                                {% if previous_day_last_location_data %}
+
+                                    <img
+                                        src="{{ previous_day_last_location_data.country_flag }}"
+                                        alt=""
+                                        class="country-flag-image"
+                                    >
+
+                                {% endif %}
+
+                            </span>
+
+
+                            <input
+                                type="text"
+                                value="{% if previous_day_last_location_data %}{{ previous_day_last_location_data.country_name }}{% endif %}"
+                                placeholder="国名を入力してください"
+                                class="form-control country-input"
+                                autocomplete="off"
+                                aria-label="国名"
+                            >
+
+                        </div>
+
+
+                        <input
+                            type="hidden"
+                            name="countries"
+                            value="{% if previous_day_last_location_data %}{{ previous_day_last_location_data.country_code }}{% endif %}"
+                            class="country-code-input"
+                        >
+
+
+                        <div
+                            class="
+                                country-suggestions
+                                list-group
+                                shadow-sm
+                                d-none
+                            "
+                            role="listbox"
+                        >
+                        </div>
+
+
+                        <div
+                            class="
+                                country-validation-error
+                                text-danger
+                                small
+                                mt-1
+                                d-none
+                            "
+                        >
+                            候補から実在する国を選択してください。
+                        </div>
+
+                    </div>
 
                 </div>
+
 
 
                 <div class="region-container">
@@ -250,7 +430,7 @@ Day編集 | Tripper
                         <input
                             type="text"
                             name="regions_0"
-                            value="{% if previous_day_last_location %}{{ previous_day_last_location.region }}{% endif %}"
+                            value="{% if previous_day_last_location_data %}{{ previous_day_last_location_data.region }}{% endif %}"
                             placeholder="地域名を入力してください"
                             list="region-options-0"
                             class="form-control region-input"
@@ -262,7 +442,8 @@ Day編集 | Tripper
                 </div>
 
 
-                {% if previous_day_last_location %}
+
+                {% if previous_day_last_location_data %}
 
                     <p class="text-muted small mt-2 mb-2">
                         前日の最後の訪問先を初期表示しています。
@@ -284,6 +465,7 @@ Day編集 | Tripper
         {% endif %}
 
     </div>
+
 
 
     <button
@@ -362,6 +544,7 @@ Day編集 | Tripper
     {% endif %}
 
 
+
     <div id="reference-url-forms">
 
         {% for url_form in reference_url_formset %}
@@ -369,9 +552,7 @@ Day編集 | Tripper
             <div class="reference-url-form mb-3">
 
                 {% for hidden in url_form.hidden_fields %}
-
                     {{ hidden }}
-
                 {% endfor %}
 
 
@@ -401,7 +582,6 @@ Day編集 | Tripper
                         参考URL名
                     </label>
 
-
                     {{ url_form.title }}
 
 
@@ -410,11 +590,7 @@ Day編集 | Tripper
                         <div class="text-danger small mt-1">
 
                             {% for error in url_form.title.errors %}
-
-                                <div>
-                                    {{ error }}
-                                </div>
-
+                                <div>{{ error }}</div>
                             {% endfor %}
 
                         </div>
@@ -433,7 +609,6 @@ Day編集 | Tripper
                         URL
                     </label>
 
-
                     {{ url_form.url }}
 
 
@@ -442,11 +617,7 @@ Day編集 | Tripper
                         <div class="text-danger small mt-1">
 
                             {% for error in url_form.url.errors %}
-
-                                <div>
-                                    {{ error }}
-                                </div>
-
+                                <div>{{ error }}</div>
                             {% endfor %}
 
                         </div>
@@ -495,18 +666,12 @@ Day編集 | Tripper
 
 
 
-    {# ======================================== #}
-    {# 新規参考URL用フォーム #}
-    {# ======================================== #}
-
     <template id="empty-reference-url-form">
 
         <div class="reference-url-form mb-3">
 
             {% for hidden in reference_url_formset.empty_form.hidden_fields %}
-
                 {{ hidden }}
-
             {% endfor %}
 
 
@@ -587,7 +752,6 @@ Day編集 | Tripper
             自由費予算
         </label>
 
-
         {{ form.budget }}
 
 
@@ -596,11 +760,7 @@ Day編集 | Tripper
             <div class="text-danger small mt-1">
 
                 {% for error in form.budget.errors %}
-
-                    <div>
-                        {{ error }}
-                    </div>
-
+                    <div>{{ error }}</div>
                 {% endfor %}
 
             </div>
@@ -630,7 +790,6 @@ Day編集 | Tripper
             Day予定金額
         </label>
 
-
         {{ form.planned_amount }}
 
 
@@ -639,11 +798,7 @@ Day編集 | Tripper
             <div class="text-danger small mt-1">
 
                 {% for error in form.planned_amount.errors %}
-
-                    <div>
-                        {{ error }}
-                    </div>
-
+                    <div>{{ error }}</div>
                 {% endfor %}
 
             </div>
@@ -673,7 +828,6 @@ Day編集 | Tripper
             Day実際支払額
         </label>
 
-
         {{ form.actual_amount }}
 
 
@@ -682,11 +836,7 @@ Day編集 | Tripper
             <div class="text-danger small mt-1">
 
                 {% for error in form.actual_amount.errors %}
-
-                    <div>
-                        {{ error }}
-                    </div>
-
+                    <div>{{ error }}</div>
                 {% endfor %}
 
             </div>
@@ -782,6 +932,12 @@ Day編集 | Tripper
         "DOMContentLoaded",
         function () {
 
+
+            const dayEditForm =
+                document.getElementById(
+                    "day-edit-form"
+                );
+
             const countryContainer =
                 document.getElementById(
                     "country-container"
@@ -792,25 +948,268 @@ Day編集 | Tripper
                     "add-country"
                 );
 
-            const tripLocationData =
-                JSON.parse(
-                    document.getElementById(
-                        "trip-location-data"
-                    ).textContent
+            const countryOptionsElement =
+                document.getElementById(
+                    "country-options-data"
+                );
+
+            const tripLocationDataElement =
+                document.getElementById(
+                    "trip-location-data"
                 );
 
 
+            const countryOptions =
+                countryOptionsElement
+                    ? JSON.parse(
+                        countryOptionsElement.textContent
+                    )
+                    : [];
+
+
+            const tripLocationData =
+                tripLocationDataElement
+                    ? JSON.parse(
+                        tripLocationDataElement.textContent
+                    )
+                    : {};
+
+
+
             // ========================================
-            // 国に対応する地域候補を更新
+            // 検索文字
+            // ========================================
+
+            function normalizeSearchText(
+                value
+            ) {
+
+                return (
+                    value
+                    || ""
+                )
+                .trim()
+                .toLocaleLowerCase();
+
+            }
+
+
+
+            // ========================================
+            // 国を検索
+            // ========================================
+
+            function findCountry(
+                value
+            ) {
+
+                const searchValue =
+                    (
+                        value
+                        || ""
+                    ).trim();
+
+
+                if (!searchValue) {
+
+                    return null;
+
+                }
+
+
+                const upperValue =
+                    searchValue.toUpperCase();
+
+
+                return (
+                    countryOptions.find(
+                        function (country) {
+
+                            return (
+                                country.code === upperValue
+                                || country.name === searchValue
+                            );
+
+                        }
+                    )
+                    || null
+                );
+
+            }
+
+
+
+            // ========================================
+            // 選択中の国旗画像
+            // ========================================
+
+            function setCountryFlag(
+                countryBlock,
+                country
+            ) {
+
+                const flagElement =
+                    countryBlock.querySelector(
+                        ".country-selected-flag"
+                    );
+
+
+                if (!flagElement) {
+
+                    return;
+
+                }
+
+
+                flagElement.replaceChildren();
+
+
+                if (
+                    country
+                    && country.flag
+                ) {
+
+                    const image =
+                        document.createElement(
+                            "img"
+                        );
+
+
+                    image.src =
+                        country.flag;
+
+                    image.alt =
+                        country.name + "の国旗";
+
+                    image.className =
+                        "country-flag-image";
+
+
+                    flagElement.appendChild(
+                        image
+                    );
+
+
+                    flagElement.classList.remove(
+                        "d-none"
+                    );
+
+                } else {
+
+                    flagElement.classList.add(
+                        "d-none"
+                    );
+
+                }
+
+            }
+
+
+
+            function hideCountrySuggestions(
+                countryBlock
+            ) {
+
+                const suggestions =
+                    countryBlock.querySelector(
+                        ".country-suggestions"
+                    );
+
+
+                if (suggestions) {
+
+                    suggestions.classList.add(
+                        "d-none"
+                    );
+
+                }
+
+            }
+
+
+
+            function hideOtherCountrySuggestions(
+                currentCountryBlock
+            ) {
+
+                document.querySelectorAll(
+                    ".country-block"
+                ).forEach(
+                    function (countryBlock) {
+
+                        if (
+                            countryBlock
+                            !== currentCountryBlock
+                        ) {
+
+                            hideCountrySuggestions(
+                                countryBlock
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+
+            function showCountryError(
+                countryBlock
+            ) {
+
+                const errorElement =
+                    countryBlock.querySelector(
+                        ".country-validation-error"
+                    );
+
+
+                if (errorElement) {
+
+                    errorElement.classList.remove(
+                        "d-none"
+                    );
+
+                }
+
+            }
+
+
+
+            function hideCountryError(
+                countryBlock
+            ) {
+
+                const errorElement =
+                    countryBlock.querySelector(
+                        ".country-validation-error"
+                    );
+
+
+                if (errorElement) {
+
+                    errorElement.classList.add(
+                        "d-none"
+                    );
+
+                }
+
+            }
+
+
+
+            // ========================================
+            // 地域候補
             // ========================================
 
             function updateRegionOptions(
                 countryBlock
             ) {
 
-                const countryInput =
+                const countryCodeInput =
                     countryBlock.querySelector(
-                        ".country-input"
+                        ".country-code-input"
                     );
 
                 const regionOptions =
@@ -818,21 +1217,37 @@ Day編集 | Tripper
                         ".region-options"
                     );
 
-                const country =
-                    countryInput.value.trim();
+
+                if (
+                    !countryCodeInput
+                    || !regionOptions
+                ) {
+
+                    return;
+
+                }
 
 
-                regionOptions.innerHTML = "";
+                const countryCode =
+                    countryCodeInput
+                    .value
+                    .trim()
+                    .toUpperCase();
+
+
+                regionOptions.innerHTML =
+                    "";
 
 
                 if (
-                    tripLocationData[
-                        country
+                    countryCode
+                    && tripLocationData[
+                        countryCode
                     ]
                 ) {
 
                     tripLocationData[
-                        country
+                        countryCode
                     ].forEach(
                         function (region) {
 
@@ -841,21 +1256,499 @@ Day編集 | Tripper
                                     "option"
                                 );
 
+
                             option.value =
                                 region;
+
 
                             regionOptions.appendChild(
                                 option
                             );
+
                         }
                     );
+
                 }
+
             }
 
 
 
             // ========================================
-            // 「地域を追加」ボタン設定
+            // 国を選択
+            // ========================================
+
+            function selectCountry(
+                countryBlock,
+                country
+            ) {
+
+                const countryInput =
+                    countryBlock.querySelector(
+                        ".country-input"
+                    );
+
+                const countryCodeInput =
+                    countryBlock.querySelector(
+                        ".country-code-input"
+                    );
+
+
+                if (
+                    !countryInput
+                    || !countryCodeInput
+                ) {
+
+                    return;
+
+                }
+
+
+                countryInput.value =
+                    country.name;
+
+                countryCodeInput.value =
+                    country.code;
+
+
+                setCountryFlag(
+                    countryBlock,
+                    country
+                );
+
+
+                hideCountryError(
+                    countryBlock
+                );
+
+
+                hideCountrySuggestions(
+                    countryBlock
+                );
+
+
+                updateRegionOptions(
+                    countryBlock
+                );
+
+            }
+
+
+
+            // ========================================
+            // 国候補表示
+            // ========================================
+
+            function renderCountrySuggestions(
+                countryBlock,
+                searchValue
+            ) {
+
+                const suggestions =
+                    countryBlock.querySelector(
+                        ".country-suggestions"
+                    );
+
+
+                if (!suggestions) {
+
+                    return;
+
+                }
+
+
+                hideOtherCountrySuggestions(
+                    countryBlock
+                );
+
+
+                suggestions.innerHTML =
+                    "";
+
+
+                const normalizedSearch =
+                    normalizeSearchText(
+                        searchValue
+                    );
+
+
+                const matchedCountries =
+                    countryOptions.filter(
+                        function (country) {
+
+                            if (!normalizedSearch) {
+
+                                return true;
+
+                            }
+
+
+                            const countryName =
+                                normalizeSearchText(
+                                    country.name
+                                );
+
+                            const countryCode =
+                                normalizeSearchText(
+                                    country.code
+                                );
+
+
+                            return (
+                                countryName.includes(
+                                    normalizedSearch
+                                )
+                                || countryCode.includes(
+                                    normalizedSearch
+                                )
+                            );
+
+                        }
+                    );
+
+
+
+                if (
+                    matchedCountries.length
+                    === 0
+                ) {
+
+                    const emptyMessage =
+                        document.createElement(
+                            "div"
+                        );
+
+
+                    emptyMessage.className =
+                        "list-group-item text-muted small";
+
+                    emptyMessage.textContent =
+                        "該当する国がありません。";
+
+
+                    suggestions.appendChild(
+                        emptyMessage
+                    );
+
+
+                    suggestions.classList.remove(
+                        "d-none"
+                    );
+
+
+                    return;
+
+                }
+
+
+
+                matchedCountries.forEach(
+                    function (country) {
+
+                        const button =
+                            document.createElement(
+                                "button"
+                            );
+
+
+                        button.type =
+                            "button";
+
+                        button.className =
+                            (
+                                "list-group-item "
+                                + "list-group-item-action "
+                                + "country-suggestion"
+                            );
+
+                        button.setAttribute(
+                            "role",
+                            "option"
+                        );
+
+
+                        const wrapper =
+                            document.createElement(
+                                "span"
+                            );
+
+
+                        wrapper.className =
+                            "d-flex align-items-center gap-2";
+
+
+                        // ========================================
+                        // 国旗画像
+                        // ========================================
+
+                        const flagImage =
+                            document.createElement(
+                                "img"
+                            );
+
+
+                        flagImage.src =
+                            country.flag;
+
+                        flagImage.alt =
+                            country.name + "の国旗";
+
+                        flagImage.className =
+                            "country-flag-image";
+
+
+                        const name =
+                            document.createElement(
+                                "span"
+                            );
+
+
+                        name.textContent =
+                            country.name;
+
+
+                        wrapper.appendChild(
+                            flagImage
+                        );
+
+                        wrapper.appendChild(
+                            name
+                        );
+
+                        button.appendChild(
+                            wrapper
+                        );
+
+
+                        button.addEventListener(
+                            "click",
+                            function () {
+
+                                selectCountry(
+                                    countryBlock,
+                                    country
+                                );
+
+                            }
+                        );
+
+
+                        suggestions.appendChild(
+                            button
+                        );
+
+                    }
+                );
+
+
+                suggestions.classList.remove(
+                    "d-none"
+                );
+
+            }
+
+
+
+            // ========================================
+            // 国入力欄設定
+            // ========================================
+
+            function setupCountryInput(
+                countryBlock
+            ) {
+
+                const countryInput =
+                    countryBlock.querySelector(
+                        ".country-input"
+                    );
+
+                const countryCodeInput =
+                    countryBlock.querySelector(
+                        ".country-code-input"
+                    );
+
+
+                if (
+                    !countryInput
+                    || !countryCodeInput
+                ) {
+
+                    return;
+
+                }
+
+
+                const initialValue =
+                    (
+                        countryCodeInput.value
+                        || countryInput.value
+                        || ""
+                    ).trim();
+
+
+                const initialCountry =
+                    findCountry(
+                        initialValue
+                    );
+
+
+                if (initialCountry) {
+
+                    countryInput.value =
+                        initialCountry.name;
+
+                    countryCodeInput.value =
+                        initialCountry.code;
+
+
+                    setCountryFlag(
+                        countryBlock,
+                        initialCountry
+                    );
+
+                } else {
+
+                    countryCodeInput.value =
+                        "";
+
+
+                    setCountryFlag(
+                        countryBlock,
+                        null
+                    );
+
+                }
+
+
+                updateRegionOptions(
+                    countryBlock
+                );
+
+
+
+                countryInput.addEventListener(
+                    "input",
+                    function () {
+
+                        countryCodeInput.value =
+                            "";
+
+
+                        setCountryFlag(
+                            countryBlock,
+                            null
+                        );
+
+
+                        hideCountryError(
+                            countryBlock
+                        );
+
+
+                        updateRegionOptions(
+                            countryBlock
+                        );
+
+
+                        renderCountrySuggestions(
+                            countryBlock,
+                            countryInput.value
+                        );
+
+                    }
+                );
+
+
+
+                countryInput.addEventListener(
+                    "focus",
+                    function () {
+
+                        const searchValue =
+                            countryCodeInput.value
+                                ? ""
+                                : countryInput.value;
+
+
+                        renderCountrySuggestions(
+                            countryBlock,
+                            searchValue
+                        );
+
+                    }
+                );
+
+
+
+                countryInput.addEventListener(
+                    "keydown",
+                    function (event) {
+
+                        if (
+                            event.key
+                            === "Escape"
+                        ) {
+
+                            hideCountrySuggestions(
+                                countryBlock
+                            );
+
+                            return;
+
+                        }
+
+
+                        if (
+                            event.key
+                            !== "Enter"
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const suggestions =
+                            countryBlock.querySelector(
+                                ".country-suggestions"
+                            );
+
+
+                        if (
+                            !suggestions
+                            || suggestions.classList.contains(
+                                "d-none"
+                            )
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        const firstSuggestion =
+                            suggestions.querySelector(
+                                ".country-suggestion"
+                            );
+
+
+                        if (firstSuggestion) {
+
+                            event.preventDefault();
+
+                            firstSuggestion.click();
+
+                        }
+
+                    }
+                );
+
+            }
+
+
+
+            // ========================================
+            // 地域追加
             // ========================================
 
             function setupAddRegionButton(
@@ -873,6 +1766,16 @@ Day編集 | Tripper
                     );
 
 
+                if (
+                    !button
+                    || !regionContainer
+                ) {
+
+                    return;
+
+                }
+
+
                 button.addEventListener(
                     "click",
                     function () {
@@ -880,18 +1783,22 @@ Day編集 | Tripper
                         const index =
                             countryBlock.dataset.index;
 
+
                         const div =
                             document.createElement(
                                 "div"
                             );
 
+
                         div.className =
                             "mb-2";
+
 
                         const input =
                             document.createElement(
                                 "input"
                             );
+
 
                         input.type =
                             "text";
@@ -915,64 +1822,25 @@ Day編集 | Tripper
                             "off"
                         );
 
+
                         div.appendChild(
                             input
                         );
 
+
                         regionContainer.appendChild(
                             div
                         );
+
                     }
                 );
+
             }
 
 
 
             // ========================================
-            // 国入力欄のイベント設定
-            // ========================================
-
-            function setupCountryInput(
-                countryBlock
-            ) {
-
-                const countryInput =
-                    countryBlock.querySelector(
-                        ".country-input"
-                    );
-
-
-                countryInput.addEventListener(
-                    "input",
-                    function () {
-
-                        updateRegionOptions(
-                            countryBlock
-                        );
-                    }
-                );
-
-
-                countryInput.addEventListener(
-                    "change",
-                    function () {
-
-                        updateRegionOptions(
-                            countryBlock
-                        );
-                    }
-                );
-
-
-                updateRegionOptions(
-                    countryBlock
-                );
-            }
-
-
-
-            // ========================================
-            // 既存の国ブロックを設定
+            // 既存国ブロック
             // ========================================
 
             document.querySelectorAll(
@@ -987,108 +1855,334 @@ Day編集 | Tripper
                     setupCountryInput(
                         countryBlock
                     );
+
                 }
             );
 
 
 
             // ========================================
-            // 国を追加
+            // 国追加
             // ========================================
 
-            addCountryButton.addEventListener(
-                "click",
-                function () {
+            if (
+                addCountryButton
+                && countryContainer
+            ) {
 
-                    const index =
-                        document.querySelectorAll(
-                            ".country-block"
-                        ).length;
+                addCountryButton.addEventListener(
+                    "click",
+                    function () {
 
-                    const countryBlock =
-                        document.createElement(
-                            "div"
-                        );
-
-                    countryBlock.className =
-                        "country-block mb-3";
-
-                    countryBlock.dataset.index =
-                        index;
+                        const index =
+                            document.querySelectorAll(
+                                ".country-block"
+                            ).length;
 
 
-                    countryBlock.innerHTML = `
-                        <div class="mb-2">
-
-                            <label class="form-label">
-                                国
-                            </label>
-
-                            <input
-                                type="text"
-                                name="countries"
-                                placeholder="国名を入力してください"
-                                list="country-options"
-                                class="form-control country-input"
-                                autocomplete="off"
-                            >
-
-                        </div>
+                        const countryBlock =
+                            document.createElement(
+                                "div"
+                            );
 
 
-                        <div class="region-container">
+                        countryBlock.className =
+                            "country-block mb-3";
 
-                            <label class="form-label">
-                                地域
-                            </label>
-
-
-                            <datalist
-                                id="region-options-${index}"
-                                class="region-options"
-                            >
-                            </datalist>
+                        countryBlock.dataset.index =
+                            index;
 
 
+                        countryBlock.innerHTML = `
                             <div class="mb-2">
 
-                                <input
-                                    type="text"
-                                    name="regions_${index}"
-                                    placeholder="地域名を入力してください"
-                                    list="region-options-${index}"
-                                    class="form-control region-input"
-                                    autocomplete="off"
-                                >
+                                <label class="form-label">
+                                    国
+                                </label>
+
+
+                                <div class="country-search-wrapper">
+
+                                    <div class="input-group">
+
+                                        <span
+                                            class="
+                                                input-group-text
+                                                country-selected-flag
+                                                d-none
+                                            "
+                                            aria-hidden="true"
+                                        >
+                                        </span>
+
+
+                                        <input
+                                            type="text"
+                                            placeholder="国名を入力してください"
+                                            class="form-control country-input"
+                                            autocomplete="off"
+                                            aria-label="国名"
+                                        >
+
+                                    </div>
+
+
+                                    <input
+                                        type="hidden"
+                                        name="countries"
+                                        value=""
+                                        class="country-code-input"
+                                    >
+
+
+                                    <div
+                                        class="
+                                            country-suggestions
+                                            list-group
+                                            shadow-sm
+                                            d-none
+                                        "
+                                        role="listbox"
+                                    >
+                                    </div>
+
+
+                                    <div
+                                        class="
+                                            country-validation-error
+                                            text-danger
+                                            small
+                                            mt-1
+                                            d-none
+                                        "
+                                    >
+                                        候補から実在する国を選択してください。
+                                    </div>
+
+                                </div>
 
                             </div>
 
-                        </div>
+
+                            <div class="region-container">
+
+                                <label class="form-label">
+                                    地域
+                                </label>
 
 
-                        <button
-                            type="button"
-                            class="btn btn-primary btn-sm add-region mt-2"
-                        >
-                            ＋ 地域
-                        </button>
-                    `;
+                                <datalist
+                                    id="region-options-${index}"
+                                    class="region-options"
+                                >
+                                </datalist>
 
 
-                    countryContainer.appendChild(
-                        countryBlock
+                                <div class="mb-2">
+
+                                    <input
+                                        type="text"
+                                        name="regions_${index}"
+                                        placeholder="地域名を入力してください"
+                                        list="region-options-${index}"
+                                        class="form-control region-input"
+                                        autocomplete="off"
+                                    >
+
+                                </div>
+
+                            </div>
+
+
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-sm add-region mt-2"
+                            >
+                                ＋ 地域
+                            </button>
+                        `;
+
+
+                        countryContainer.appendChild(
+                            countryBlock
+                        );
+
+
+                        setupAddRegionButton(
+                            countryBlock
+                        );
+
+
+                        setupCountryInput(
+                            countryBlock
+                        );
+
+                    }
+                );
+
+            }
+
+
+
+            // ========================================
+            // 外側クリック
+            // ========================================
+
+            document.addEventListener(
+                "click",
+                function (event) {
+
+                    if (
+                        event.target.closest(
+                            ".country-search-wrapper"
+                        )
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    document.querySelectorAll(
+                        ".country-block"
+                    ).forEach(
+                        function (countryBlock) {
+
+                            hideCountrySuggestions(
+                                countryBlock
+                            );
+
+                        }
                     );
 
-
-                    setupAddRegionButton(
-                        countryBlock
-                    );
-
-                    setupCountryInput(
-                        countryBlock
-                    );
                 }
             );
+
+
+
+            // ========================================
+            // 保存前国チェック
+            // ========================================
+
+            if (dayEditForm) {
+
+                dayEditForm.addEventListener(
+                    "submit",
+                    function (event) {
+
+                        let isValid =
+                            true;
+
+
+                        document.querySelectorAll(
+                            ".country-block"
+                        ).forEach(
+                            function (countryBlock) {
+
+                                const countryInput =
+                                    countryBlock.querySelector(
+                                        ".country-input"
+                                    );
+
+                                const countryCodeInput =
+                                    countryBlock.querySelector(
+                                        ".country-code-input"
+                                    );
+
+                                const regionInputs =
+                                    countryBlock.querySelectorAll(
+                                        ".region-input"
+                                    );
+
+
+                                if (
+                                    !countryInput
+                                    || !countryCodeInput
+                                ) {
+
+                                    return;
+
+                                }
+
+
+                                const countryName =
+                                    countryInput
+                                    .value
+                                    .trim();
+
+                                const countryCode =
+                                    countryCodeInput
+                                    .value
+                                    .trim();
+
+
+                                let hasRegion =
+                                    false;
+
+
+                                regionInputs.forEach(
+                                    function (regionInput) {
+
+                                        if (
+                                            regionInput
+                                            .value
+                                            .trim()
+                                        ) {
+
+                                            hasRegion =
+                                                true;
+
+                                        }
+
+                                    }
+                                );
+
+
+                                if (
+                                    (
+                                        countryName
+                                        || hasRegion
+                                    )
+                                    && !countryCode
+                                ) {
+
+                                    showCountryError(
+                                        countryBlock
+                                    );
+
+
+                                    if (isValid) {
+
+                                        countryInput.focus();
+
+                                    }
+
+
+                                    isValid =
+                                        false;
+
+                                } else {
+
+                                    hideCountryError(
+                                        countryBlock
+                                    );
+
+                                }
+
+                            }
+                        );
+
+
+                        if (!isValid) {
+
+                            event.preventDefault();
+
+                        }
+
+                    }
+                );
+
+            }
 
 
 
@@ -1117,6 +2211,7 @@ Day編集 | Tripper
                 );
 
 
+
             if (
                 referenceUrlContainer
                 && addReferenceUrlButton
@@ -1124,9 +2219,6 @@ Day編集 | Tripper
                 && totalReferenceUrlFormsInput
             ) {
 
-                // ========================================
-                // 参考URLを追加
-                // ========================================
 
                 addReferenceUrlButton.addEventListener(
                     "click",
@@ -1137,6 +2229,7 @@ Day編集 | Tripper
                                 totalReferenceUrlFormsInput.value
                             );
 
+
                         const newFormHtml =
                             emptyReferenceUrlTemplate
                             .innerHTML
@@ -1145,20 +2238,20 @@ Day編集 | Tripper
                                 formIndex
                             );
 
+
                         referenceUrlContainer.insertAdjacentHTML(
                             "beforeend",
                             newFormHtml
                         );
 
+
                         totalReferenceUrlFormsInput.value =
                             formIndex + 1;
+
                     }
                 );
 
 
-                // ========================================
-                // 登録・削除
-                // ========================================
 
                 referenceUrlContainer.addEventListener(
                     "click",
@@ -1169,8 +2262,11 @@ Day編集 | Tripper
                                 ".reference-url-form"
                             );
 
+
                         if (!referenceUrlForm) {
+
                             return;
+
                         }
 
 
@@ -1185,6 +2281,7 @@ Day編集 | Tripper
                                     'input[name$="-url"]'
                                 );
 
+
                             if (
                                 !urlInput
                                 || !urlInput.value.trim()
@@ -1195,6 +2292,7 @@ Day編集 | Tripper
                                 );
 
                                 return;
+
                             }
 
 
@@ -1209,7 +2307,9 @@ Day編集 | Tripper
                                 "btn-outline-secondary"
                             );
 
+
                             return;
+
                         }
 
 
@@ -1224,24 +2324,24 @@ Day編集 | Tripper
                                     'input[name$="-DELETE"]'
                                 );
 
+
                             if (deleteInput) {
 
                                 deleteInput.checked =
                                     true;
+
                             }
 
 
                             referenceUrlForm.style.display =
                                 "none";
+
                         }
+
                     }
                 );
 
 
-                // ========================================
-                // 登録後に内容を編集した場合
-                // 「登録済み」から「登録」に戻す
-                // ========================================
 
                 referenceUrlContainer.addEventListener(
                     "input",
@@ -1254,6 +2354,7 @@ Day編集 | Tripper
                         ) {
 
                             return;
+
                         }
 
 
@@ -1262,8 +2363,11 @@ Day編集 | Tripper
                                 ".reference-url-form"
                             );
 
+
                         if (!referenceUrlForm) {
+
                             return;
+
                         }
 
 
@@ -1275,7 +2379,9 @@ Day編集 | Tripper
 
                         if (
                             registerButton
-                            && registerButton.textContent.trim()
+                            && registerButton
+                                .textContent
+                                .trim()
                                 === "登録済み"
                         ) {
 
@@ -1289,10 +2395,14 @@ Day編集 | Tripper
                             registerButton.classList.add(
                                 "btn-primary"
                             );
+
                         }
+
                     }
                 );
+
             }
+
         }
     );
 

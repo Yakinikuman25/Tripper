@@ -4,74 +4,111 @@
 
 {% if can_save_trip or can_reuse_trip %}
 
-    <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
+    <div class="mb-4">
 
 
         {# ======================================== #}
-        {# 保存・保存解除 #}
+        {# 操作ボタン #}
+        {# ======================================== #}
+
+        <div class="d-flex flex-wrap align-items-center gap-2">
+
+
+            {# ======================================== #}
+            {# 保存・保存解除 #}
+            {# #}
+            {# 自分のTripには表示しない #}
+            {# ======================================== #}
+
+            {% if can_save_trip %}
+
+                <form
+                    method="post"
+                    action="{% url 'trip_save_toggle' trip.trip_id %}"
+                    class="m-0"
+                >
+
+                    {% csrf_token %}
+
+
+                    {% if is_saved %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-secondary btn-sm"
+                            aria-pressed="true"
+                            title="クリックすると保存を解除します"
+                        >
+                            保存済み
+                        </button>
+
+
+                    {% else %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-outline-primary btn-sm"
+                            aria-pressed="false"
+                            title="このTripを保存します"
+                        >
+                            保存
+                        </button>
+
+                    {% endif %}
+
+                </form>
+
+            {% endif %}
+
+
+
+            {# ======================================== #}
+            {# Trip再利用 #}
+            {# #}
+            {# 自分のTrip：旅完了なら表示 #}
+            {# 他ユーザー：公開・保存済みなら表示 #}
+            {# ======================================== #}
+
+            {% if can_reuse_trip %}
+
+                <a
+                    href="{% url 'trip_reuse' trip.trip_id %}"
+                    class="btn btn-primary btn-sm"
+                >
+                    このTripを参考に旅を作る
+                </a>
+
+            {% endif %}
+
+        </div>
+
+
+
+        {# ======================================== #}
+        {# 操作説明 #}
         {# #}
-        {# 自分のTripには表示しない #}
+        {# 他ユーザーのTripを見る場合のみ表示 #}
         {# ======================================== #}
 
         {% if can_save_trip %}
 
-            <form
-                method="post"
-                action="{% url 'trip_save_toggle' trip.trip_id %}"
-                class="m-0"
-            >
+            <p class="text-muted small mt-2 mb-0">
 
-                {% csrf_token %}
+                {% if can_reuse_trip %}
 
-
-                {% if is_saved %}
-
-                    <button
-                        type="submit"
-                        class="btn btn-outline-secondary btn-sm"
-                        aria-pressed="true"
-                        title="クリックすると保存を解除します"
-                    >
-                        保存済み
-                    </button>
-
+                    保存するとあとから見返せます。
+                    「このTripを参考に旅を作る」では、
+                    この旅行後の記録を参考に自分の新しいTripを作成できます。
 
                 {% else %}
 
-                    <button
-                        type="submit"
-                        class="btn btn-outline-primary btn-sm"
-                        aria-pressed="false"
-                    >
-                        保存
-                    </button>
+                    保存するとあとから見返せます。
 
                 {% endif %}
 
-            </form>
+            </p>
 
         {% endif %}
-
-
-
-        {# ======================================== #}
-        {# Trip再利用 #}
-        {# #}
-        {# 自分のTrip：旅完了なら表示 #}
-        {# 他ユーザー：公開・保存済みなら表示 #}
-        {# ======================================== #}
-
-        {% if can_reuse_trip %}
-
-            <a
-                href="{% url 'trip_reuse' trip.trip_id %}"
-                class="btn btn-primary btn-sm"
-            >
-                このTripを参考に旅を作る
-            </a>
-
-        {% endif %}
-
 
     </div>
 

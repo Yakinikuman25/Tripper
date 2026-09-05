@@ -1,4 +1,5 @@
 from django.db import models
+from django_countries.fields import CountryField
 
 from .trip_models import Trip
 
@@ -30,15 +31,38 @@ class Location(models.Model):
         verbose_name="Trip",
     )
 
-    country = models.CharField(
-        max_length=50,
+    # =====================================
+    # 国
+    #
+    # 実在する国のみ登録可能
+    # DBにはISO国コードを保存
+    #
+    # 例：
+    # 日本         → JP
+    # キルギス     → KG
+    # カザフスタン → KZ
+    # =====================================
+
+    country = CountryField(
         verbose_name="国",
     )
+
+    # =====================================
+    # 地域・都市
+    #
+    # 今まで通り自由入力
+    #
+    # 例：
+    # 東京
+    # カラコル
+    # アルマトイ
+    # =====================================
 
     region = models.CharField(
         max_length=50,
         verbose_name="地域",
     )
+
 
     class Meta:
 
@@ -64,9 +88,10 @@ class Location(models.Model):
             )
         ]
 
+
     def __str__(self):
 
         return (
-            f"{self.country} / "
+            f"{self.get_country_display()} / "
             f"{self.region}"
         )
