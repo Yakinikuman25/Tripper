@@ -2,6 +2,30 @@
 
 
 {# ======================================== #}
+{# 費用サマリー折りたたみ表示 #}
+{# ======================================== #}
+
+<style>
+    .trip-cost-summary-toggle .trip-cost-summary-icon-open {
+        display: none;
+    }
+
+    .trip-cost-summary-toggle .trip-cost-summary-icon-closed {
+        display: inline;
+    }
+
+    .trip-cost-summary-toggle:not(.collapsed) .trip-cost-summary-icon-open {
+        display: inline;
+    }
+
+    .trip-cost-summary-toggle:not(.collapsed) .trip-cost-summary-icon-closed {
+        display: none;
+    }
+</style>
+
+
+
+{# ======================================== #}
 {# 費用サマリー #}
 {# #}
 {# 費用が1つもない場合は #}
@@ -64,6 +88,9 @@
 
                 {# ======================================== #}
                 {# 実費合計 #}
+                {# #}
+                {# Tripに手入力合計がある場合は #}
+                {# その金額を最終実費として使用 #}
                 {# ======================================== #}
 
                 {% if has_final_actual_cost %}
@@ -81,6 +108,15 @@
                         <p class="fs-5 fw-semibold mb-0">
                             {{ final_actual_total|intcomma }}円
                         </p>
+
+
+                        {% if is_manual_total_cost %}
+
+                            <p class="text-muted small mt-1 mb-0">
+                                手入力した合計金額
+                            </p>
+
+                        {% endif %}
 
                     </div>
 
@@ -170,13 +206,33 @@
 
                 <button
                     type="button"
-                    class="btn btn-outline-secondary btn-sm"
+                    class="
+                        btn
+                        btn-outline-secondary
+                        btn-sm
+                        collapsed
+                        trip-cost-summary-toggle
+                    "
                     data-bs-toggle="collapse"
                     data-bs-target="#trip-cost-summary-detail"
                     aria-expanded="false"
                     aria-controls="trip-cost-summary-detail"
                 >
                     費用の内訳を見る
+
+                    <span
+                        class="trip-cost-summary-icon-closed ms-1"
+                        aria-hidden="true"
+                    >
+                        ▼
+                    </span>
+
+                    <span
+                        class="trip-cost-summary-icon-open ms-1"
+                        aria-hidden="true"
+                    >
+                        ▲
+                    </span>
                 </button>
 
             </div>
@@ -247,29 +303,6 @@
 
 
                                 {# ======================================== #}
-                                {# 自由費予算 #}
-                                {# ======================================== #}
-
-                                {% if has_day_budget %}
-
-                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-
-                                        <span class="text-muted">
-                                            自由費予算
-                                        </span>
-
-
-                                        <span class="text-end flex-shrink-0">
-                                            {{ day_budget_total|intcomma }}円
-                                        </span>
-
-                                    </div>
-
-                                {% endif %}
-
-
-
-                                {# ======================================== #}
                                 {# Day予定金額 #}
                                 {# ======================================== #}
 
@@ -307,6 +340,29 @@
 
                                         <span class="text-end flex-shrink-0">
                                             {{ schedule_planned_total|intcomma }}円
+                                        </span>
+
+                                    </div>
+
+                                {% endif %}
+
+
+
+                                {# ======================================== #}
+                                {# 自由費予算 #}
+                                {# ======================================== #}
+
+                                {% if has_day_budget %}
+
+                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+
+                                        <span class="text-muted">
+                                            自由費予算
+                                        </span>
+
+
+                                        <span class="text-end flex-shrink-0">
+                                            {{ day_budget_total|intcomma }}円
                                         </span>
 
                                     </div>
@@ -387,29 +443,6 @@
 
 
                                 {# ======================================== #}
-                                {# 自由実費 #}
-                                {# ======================================== #}
-
-                                {% if has_day_free_actual %}
-
-                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-
-                                        <span class="text-muted">
-                                            自由実費
-                                        </span>
-
-
-                                        <span class="text-end flex-shrink-0">
-                                            {{ day_free_actual_total|intcomma }}円
-                                        </span>
-
-                                    </div>
-
-                                {% endif %}
-
-
-
-                                {# ======================================== #}
                                 {# Day実際支払額 #}
                                 {# ======================================== #}
 
@@ -454,33 +487,116 @@
                                 {% endif %}
 
 
-                                <hr>
+
+                                {# ======================================== #}
+                                {# 自由実費 #}
+                                {# ======================================== #}
+
+                                {% if has_day_free_actual %}
+
+                                    <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+
+                                        <span class="text-muted">
+                                            自由実費
+                                        </span>
 
 
-                                <div class="d-flex justify-content-between align-items-start gap-3">
+                                        <span class="text-end flex-shrink-0">
+                                            {{ day_free_actual_total|intcomma }}円
+                                        </span>
 
-                                    <strong>
-                                        実費合計
-                                    </strong>
+                                    </div>
 
-
-                                    <strong class="text-end flex-shrink-0">
-                                        {{ final_actual_total|intcomma }}円
-                                    </strong>
-
-                                </div>
+                                {% endif %}
 
 
 
                                 {# ======================================== #}
-                                {# 手入力合計金額を使用している場合 #}
+                                {# 自動集計した実費 #}
+                                {# #}
+                                {# Trip全体費用 #}
+                                {# + Day #}
+                                {# + Schedule #}
+                                {# + 自由実費 #}
+                                {# ======================================== #}
+
+                                {% if has_reference_actual_cost %}
+
+                                    <hr>
+
+
+                                    <div class="d-flex justify-content-between align-items-start gap-3">
+
+                                        <strong>
+                                            集計実費
+                                        </strong>
+
+
+                                        <strong class="text-end flex-shrink-0">
+                                            {{ reference_actual_total|intcomma }}円
+                                        </strong>
+
+                                    </div>
+
+                                {% endif %}
+
+
+
+                                {# ======================================== #}
+                                {# 最終的に採用する実費合計 #}
                                 {# ======================================== #}
 
                                 {% if is_manual_total_cost %}
 
-                                    <p class="text-muted small mt-2 mb-0">
-                                        Tripに手入力した合計金額を使用しています。
-                                    </p>
+                                    <div
+                                        class="
+                                            border
+                                            rounded
+                                            bg-light
+                                            p-3
+                                            mt-3
+                                        "
+                                    >
+
+                                        <div class="d-flex justify-content-between align-items-start gap-3">
+
+                                            <strong>
+                                                実費合計
+                                            </strong>
+
+
+                                            <strong class="text-end flex-shrink-0">
+                                                {{ final_actual_total|intcomma }}円
+                                            </strong>
+
+                                        </div>
+
+
+                                        <p class="text-muted small mt-2 mb-0">
+                                            Tripに手入力した合計金額を実費合計として使用しています。
+                                        </p>
+
+                                    </div>
+
+
+                                {% else %}
+
+                                    {% if has_reference_actual_cost %}
+
+                                        <div class="d-flex justify-content-between align-items-start gap-3 mt-2">
+
+                                            <strong>
+                                                実費合計
+                                            </strong>
+
+
+                                            <strong class="text-end flex-shrink-0">
+                                                {{ final_actual_total|intcomma }}円
+                                            </strong>
+
+                                        </div>
+
+                                    {% endif %}
 
                                 {% endif %}
 
@@ -491,6 +607,26 @@
                     {% endif %}
 
                 </div>
+
+
+
+                {# ======================================== #}
+                {# 手入力合計と自動集計の説明 #}
+                {# ======================================== #}
+
+                {% if is_manual_total_cost and has_reference_actual_cost %}
+
+                    <div class="alert alert-light border mt-3 mb-0">
+
+                        <p class="small mb-0">
+                            「集計実費」は登録されたTrip全体費用・Day実際支払額・
+                            スケジュール実際支払額・自由実費から計算した金額です。
+                            「実費合計」はTripに手入力した合計金額を使用しています。
+                        </p>
+
+                    </div>
+
+                {% endif %}
 
 
 

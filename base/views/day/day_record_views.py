@@ -31,12 +31,11 @@ from base.forms import (
 # ・Day費用明細
 # ・Schedule実際支払額
 #
-# Schedule実際支払額は、
+# 通常の旅の記録フォームでは、
+# 最後の「保存」1回でまとめて保存する。
 #
-# ・予定金額が登録されている
-# ・実際支払額が未入力
-#
-# のScheduleだけを入力対象とする
+# 個別保存・削除actionは、
+# 既存画面との互換性のため残す。
 # =========================================
 
 class DayRecordUpdateView(
@@ -67,14 +66,13 @@ class DayRecordUpdateView(
             "draft",
             "planned",
         ):
-
             return False
 
         # =====================================
         # 旅中
         #
         # 今日・過去のDay
-        # → 通常画面から入力可能
+        # → 入力・編集可能
         #
         # 未来のDay
         # → 入力不可
@@ -111,18 +109,6 @@ class DayRecordUpdateView(
     # =====================================
     # Day実際支払額を
     # 個別登録できるか
-    #
-    # 作成中
-    # → 登録可能
-    #
-    # 出発待ち
-    # → 事前支払いがあるため登録可能
-    #
-    # 旅中
-    # → 登録可能
-    #
-    # 旅完了
-    # → Trip全体編集モードのみ登録可能
     # =====================================
 
     def can_save_day_actual_amount(
@@ -137,7 +123,6 @@ class DayRecordUpdateView(
             "planned",
             "traveling",
         ):
-
             return True
 
         if trip.status == "completed":
@@ -154,18 +139,6 @@ class DayRecordUpdateView(
     # =====================================
     # Schedule実際支払額を
     # 個別登録できるか
-    #
-    # 作成中
-    # → 登録可能
-    #
-    # 出発待ち
-    # → 事前支払いがあるため登録可能
-    #
-    # 旅中
-    # → 登録可能
-    #
-    # 旅完了
-    # → Trip全体編集モードのみ登録可能
     # =====================================
 
     def can_save_schedule_actual_amount(
@@ -180,7 +153,6 @@ class DayRecordUpdateView(
             "planned",
             "traveling",
         ):
-
             return True
 
         if trip.status == "completed":
@@ -197,20 +169,8 @@ class DayRecordUpdateView(
     # =====================================
     # 旅の記録の各項目を削除できるか
     #
-    # 作成中・出発待ち
-    # → 削除不可
-    #
-    # 旅中
-    # → 今日・過去のDayのみ削除可能
-    #
-    # 旅完了
-    # → Trip全体編集モードのみ削除可能
-    #
-    # 対象
-    # ・写真
-    # ・感想
-    # ・自由実費
-    # ・費用明細1件
+    # 個別削除actionは既存画面との
+    # 互換性のため残す
     # =====================================
 
     def can_delete_record_item(
@@ -226,7 +186,6 @@ class DayRecordUpdateView(
             "draft",
             "planned",
         ):
-
             return False
 
         if trip.status == "traveling":
@@ -248,20 +207,11 @@ class DayRecordUpdateView(
         return False
 
     # =====================================
-    # 削除済み・未登録の旅の記録項目を
+    # 未登録の旅の記録項目を
     # 個別に登録できるか
     #
-    # 作成中・出発待ち
-    # → 登録不可
-    #
-    # 旅中
-    # → 今日・過去のDayのみ登録可能
-    #
-    # 旅完了
-    # → Trip全体編集モードのみ個別登録可能
-    #
-    # 登録済みの項目はこの個別処理では
-    # 上書きしない
+    # 個別登録actionは既存画面との
+    # 互換性のため残す
     # =====================================
 
     def can_save_record_item(
@@ -277,7 +227,6 @@ class DayRecordUpdateView(
             "draft",
             "planned",
         ):
-
             return False
 
         if trip.status == "traveling":
@@ -332,8 +281,7 @@ class DayRecordUpdateView(
         )
 
     # =====================================
-    # Schedule実際支払額フォームの
-    # prefix
+    # Schedule実際支払額フォームの prefix
     # =====================================
 
     def get_schedule_record_form_prefix(
@@ -348,12 +296,8 @@ class DayRecordUpdateView(
     # =====================================
     # 実際支払額の入力対象となるSchedule
     #
-    # 条件
-    # ・予定金額が登録されている
-    # ・実際支払額が未入力
-    #
-    # 予定金額が登録されていないScheduleは
-    # 金額入力の対象にしない
+    # ・予定金額あり
+    # ・実際支払額なし
     # =====================================
 
     def get_unpaid_schedules(
@@ -375,11 +319,6 @@ class DayRecordUpdateView(
 
     # =====================================
     # Schedule実際支払額フォーム一覧
-    #
-    # ・予定金額あり
-    # ・実際支払額なし
-    #
-    # のScheduleだけを対象にする
     # =====================================
 
     def get_schedule_record_items(
@@ -396,17 +335,15 @@ class DayRecordUpdateView(
             )
         ):
 
-            form = (
-                ScheduleRecordForm(
-                    data,
-                    instance=schedule,
-                    prefix=(
-                        self
-                        .get_schedule_record_form_prefix(
-                            schedule
-                        )
-                    ),
-                )
+            form = ScheduleRecordForm(
+                data,
+                instance=schedule,
+                prefix=(
+                    self
+                    .get_schedule_record_form_prefix(
+                        schedule
+                    )
+                ),
             )
 
             items.append(
@@ -420,6 +357,12 @@ class DayRecordUpdateView(
 
     # =====================================
     # Trip詳細へ戻るURL
+    #
+    # 旅中の旅の記録編集
+    # → 保存後は通常表示へ戻る
+    #
+    # 旅完了後のTrip全体編集
+    # → ?edit=1 を維持する
     # =====================================
 
     def get_return_url(
@@ -437,12 +380,16 @@ class DayRecordUpdateView(
         )
 
         # =====================================
-        # Trip全体編集モードから
-        # 操作した場合
+        # completed のTrip全体編集だけ
+        # edit=1 を維持
+        #
+        # traveling の record_edit は
+        # 保存後に維持しない
         # =====================================
 
         if (
-            request.POST.get(
+            trip.status == "completed"
+            and request.POST.get(
                 "edit_mode"
             )
             == "1"
@@ -451,7 +398,7 @@ class DayRecordUpdateView(
             url += "?edit=1"
 
         # =====================================
-        # 操作したDay位置まで移動する
+        # 操作したDay位置まで移動
         # =====================================
 
         url += (
@@ -487,11 +434,6 @@ class DayRecordUpdateView(
 
         # =====================================
         # Day実際支払額を個別登録
-        #
-        # ・予定金額あり
-        # ・実際支払額なし
-        #
-        # の場合のみ登録する
         # =====================================
 
         if (
@@ -525,11 +467,6 @@ class DayRecordUpdateView(
 
         # =====================================
         # Schedule実際支払額を個別登録
-        #
-        # ・予定金額あり
-        # ・実際支払額なし
-        #
-        # の場合のみ登録する
         # =====================================
 
         if (
@@ -564,8 +501,7 @@ class DayRecordUpdateView(
         # =====================================
         # 旅の記録の各項目を個別削除
         #
-        # 旅完了後は
-        # edit_mode=1 のときだけ削除可能
+        # 既存画面との互換性のため残す
         # =====================================
 
         delete_actions = (
@@ -638,13 +574,9 @@ class DayRecordUpdateView(
                 )
 
         # =====================================
-        # 未登録になっている旅の記録項目を
-        # 個別に再登録
+        # 未登録項目の個別登録
         #
-        # completedでは
-        # edit_mode=1 のときだけ可能
-        #
-        # 登録済みの項目は上書きしない
+        # 既存画面との互換性のため残す
         # =====================================
 
         save_item_actions = (
@@ -717,11 +649,7 @@ class DayRecordUpdateView(
                 )
 
         # =====================================
-        # 旅の記録を入力・編集できるか確認
-        #
-        # completedでは
-        # edit_mode=1 がない限り
-        # 保存・費用明細編集を行わない
+        # 旅の記録をまとめて編集できるか
         # =====================================
 
         if not self.can_edit_record(
@@ -736,13 +664,16 @@ class DayRecordUpdateView(
             )
 
         # =====================================
-        # 旅の記録を保存
+        # 旅の記録をまとめて保存
         #
-        # ・Day本体
+        # ・写真
+        # ・感想
+        # ・自由実費
+        # ・Day実際支払額
         # ・Day費用明細
         # ・Schedule実際支払額
         #
-        # をまとめて保存する
+        # 最後の保存1回で反映する
         # =====================================
 
         return self.update_record(
@@ -753,13 +684,6 @@ class DayRecordUpdateView(
 
     # =====================================
     # Day実際支払額を個別登録
-    #
-    # 条件
-    # ・Day予定金額あり
-    # ・Day実際支払額なし
-    #
-    # planned_amountは変更せず
-    # actual_amountだけ保存する
     # =====================================
 
     def save_day_actual_amount(
@@ -768,11 +692,6 @@ class DayRecordUpdateView(
         day,
         trip,
     ):
-
-        # =====================================
-        # 予定金額がないDayは
-        # この個別登録の対象外
-        # =====================================
 
         if (
             day.planned_amount
@@ -786,11 +705,6 @@ class DayRecordUpdateView(
                     request,
                 )
             )
-
-        # =====================================
-        # すでに実際支払額がある場合は
-        # 上書きしない
-        # =====================================
 
         if (
             day.actual_amount
@@ -810,11 +724,6 @@ class DayRecordUpdateView(
                 "actual_amount"
             )
         )
-
-        # =====================================
-        # DayRecordFormと同じ
-        # actual_amountフィールドで検証
-        # =====================================
 
         actual_amount_field = (
             DayRecordForm()
@@ -852,13 +761,6 @@ class DayRecordUpdateView(
                 )
             )
 
-        # =====================================
-        # 実際支払額だけ保存
-        #
-        # planned_amountは
-        # 既存の予定金額をそのまま残す
-        # =====================================
-
         day.actual_amount = (
             cleaned_actual_amount
         )
@@ -879,14 +781,6 @@ class DayRecordUpdateView(
 
     # =====================================
     # Schedule実際支払額を個別登録
-    #
-    # 条件
-    # ・このDayに属するSchedule
-    # ・予定金額あり
-    # ・実際支払額なし
-    #
-    # planned_amountは変更せず
-    # actual_amountだけ保存する
     # =====================================
 
     def save_schedule_actual_amount(
@@ -896,13 +790,6 @@ class DayRecordUpdateView(
         trip,
     ):
 
-        # =====================================
-        # POSTされたScheduleを取得
-        #
-        # 必ず現在のDayに属するScheduleだけ
-        # 対象にする
-        # =====================================
-
         schedule = get_object_or_404(
             day.schedules,
             schedule_id=(
@@ -911,11 +798,6 @@ class DayRecordUpdateView(
                 )
             ),
         )
-
-        # =====================================
-        # 予定金額がないScheduleは
-        # 個別登録の対象外
-        # =====================================
 
         if (
             schedule.planned_amount
@@ -929,11 +811,6 @@ class DayRecordUpdateView(
                     request,
                 )
             )
-
-        # =====================================
-        # すでに実際支払額がある場合は
-        # 上書きしない
-        # =====================================
 
         if (
             schedule.actual_amount
@@ -953,11 +830,6 @@ class DayRecordUpdateView(
                 "actual_amount"
             )
         )
-
-        # =====================================
-        # ScheduleRecordFormと同じ
-        # actual_amountフィールドで検証
-        # =====================================
 
         actual_amount_field = (
             ScheduleRecordForm()
@@ -995,13 +867,6 @@ class DayRecordUpdateView(
                 )
             )
 
-        # =====================================
-        # 実際支払額だけ保存
-        #
-        # planned_amountは
-        # 旅行前の予定金額として残す
-        # =====================================
-
         schedule.actual_amount = (
             cleaned_actual_amount
         )
@@ -1021,7 +886,9 @@ class DayRecordUpdateView(
         )
 
     # =====================================
-    # 写真を削除
+    # 写真を個別削除
+    #
+    # 既存画面との互換性用
     # =====================================
 
     def delete_media(
@@ -1054,7 +921,9 @@ class DayRecordUpdateView(
         )
 
     # =====================================
-    # 感想を削除
+    # 感想を個別削除
+    #
+    # 既存画面との互換性用
     # =====================================
 
     def delete_content(
@@ -1083,11 +952,9 @@ class DayRecordUpdateView(
         )
 
     # =====================================
-    # 自由実費を削除
+    # 自由実費を個別削除
     #
-    # Day費用明細が残っている場合は、
-    # その合計を自由実費として
-    # 後ほど集計時に利用できる
+    # 既存画面との互換性用
     # =====================================
 
     def delete_actual_cost(
@@ -1119,10 +986,9 @@ class DayRecordUpdateView(
         )
 
     # =====================================
-    # Day費用明細を1件削除
+    # Day費用明細を1件個別削除
     #
-    # 削除後はexpense_orderを
-    # 1, 2, 3... に振り直す
+    # 既存画面との互換性用
     # =====================================
 
     def delete_expense(
@@ -1185,8 +1051,7 @@ class DayRecordUpdateView(
     # =====================================
     # 写真を個別登録
     #
-    # 写真が未登録の場合だけ保存する
-    # 登録済みの場合は上書きしない
+    # 既存画面との互換性用
     # =====================================
 
     def save_media(
@@ -1274,8 +1139,7 @@ class DayRecordUpdateView(
     # =====================================
     # 感想を個別登録
     #
-    # 感想が未登録の場合だけ保存する
-    # 登録済みの場合は上書きしない
+    # 既存画面との互換性用
     # =====================================
 
     def save_content(
@@ -1364,13 +1228,7 @@ class DayRecordUpdateView(
     # =====================================
     # 自由実費を個別登録
     #
-    # actual_costが未登録の場合だけ保存する
-    #
-    # Day費用明細が登録されていても
-    # actual_costを手入力できる
-    #
-    # actual_costが入力されている場合は
-    # 自由実費としてこちらを優先する
+    # 既存画面との互換性用
     # =====================================
 
     def save_actual_cost(
@@ -1461,9 +1319,6 @@ class DayRecordUpdateView(
     # ・新規明細の追加
     #
     # をまとめて処理する
-    #
-    # expense_order は保存時に
-    # 1, 2, 3... と振り直す
     # =====================================
 
     def save_expense_formset(
@@ -1488,7 +1343,7 @@ class DayRecordUpdateView(
                 deleted_form.instance.delete()
 
         # =====================================
-        # 画面に残っている順番で保存
+        # 残っている費用を順番に保存
         # =====================================
 
         expense_order = 1
@@ -1553,15 +1408,11 @@ class DayRecordUpdateView(
     # =====================================
     # Schedule実際支払額をまとめて保存
     #
-    # この処理へ来るScheduleは
-    #
+    # 対象は
     # ・予定金額あり
     # ・実際支払額なし
     #
-    # のものだけ
-    #
-    # 実際支払額が入力された場合のみ
-    # 保存する
+    # 実際支払額が入力されたものだけ保存
     # =====================================
 
     def save_schedule_record_items(
@@ -1599,8 +1450,7 @@ class DayRecordUpdateView(
     # =====================================
     # 費用明細だけを個別保存
     #
-    # 写真・感想・自由実費には
-    # 一切触れない
+    # 既存画面との互換性用
     # =====================================
 
     def save_expenses(
@@ -1637,7 +1487,7 @@ class DayRecordUpdateView(
         )
 
     # =====================================
-    # 旅の記録を保存
+    # 旅の記録をまとめて保存
     #
     # ・写真
     # ・感想
@@ -1646,7 +1496,8 @@ class DayRecordUpdateView(
     # ・Day費用明細
     # ・Schedule実際支払額
     #
-    # をまとめて保存する
+    # 編集画面で変更した内容を
+    # 最後の保存1回で反映する
     # =====================================
 
     def update_record(
@@ -1658,6 +1509,12 @@ class DayRecordUpdateView(
 
         # =====================================
         # Day旅の記録
+        #
+        # ClearableFileInput の
+        # 「クリア」もここで処理される
+        #
+        # 感想を空欄にした場合も
+        # ModelFormの値として保存される
         # =====================================
 
         record_form = DayRecordForm(
@@ -1671,6 +1528,9 @@ class DayRecordUpdateView(
 
         # =====================================
         # Day費用明細
+        #
+        # DELETEが指定された費用明細も
+        # 最後の保存時にまとめて処理
         # =====================================
 
         expense_formset = (
@@ -1715,7 +1575,7 @@ class DayRecordUpdateView(
 
         # =====================================
         # すべて有効な場合だけ
-        # まとめて保存する
+        # まとめて保存
         # =====================================
 
         if (
@@ -1727,18 +1587,23 @@ class DayRecordUpdateView(
             with transaction.atomic():
 
                 # =====================================
-                # Day
+                # Day本体
                 #
                 # ・写真
                 # ・感想
                 # ・自由実費
                 # ・Day実際支払額
+                #
+                # 写真のクリアや
+                # 感想の空欄化もここで反映
                 # =====================================
 
                 record_form.save()
 
                 # =====================================
                 # Day費用明細
+                #
+                # 追加・変更・削除をまとめて反映
                 # =====================================
 
                 self.save_expense_formset(
@@ -1754,6 +1619,16 @@ class DayRecordUpdateView(
                     schedule_record_items
                 )
 
+            # =====================================
+            # 保存成功
+            #
+            # traveling
+            # → 通常の旅の記録表示へ戻る
+            #
+            # completed + edit_mode
+            # → Trip全体編集を維持
+            # =====================================
+
             return redirect(
                 self.get_return_url(
                     trip,
@@ -1761,6 +1636,13 @@ class DayRecordUpdateView(
                     request,
                 )
             )
+
+        # =====================================
+        # Validationエラー
+        #
+        # 現在の既存仕様に合わせて
+        # Trip詳細へ戻す
+        # =====================================
 
         return redirect(
             self.get_return_url(
