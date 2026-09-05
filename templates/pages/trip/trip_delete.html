@@ -1,39 +1,125 @@
 {% extends "base.html" %}
 
+
 {% block title %}
 Trip削除 | Tripper
 {% endblock %}
 
+
 {% block main %}
 
-<h1>
-    Trip削除
-</h1>
+
+<div class="row justify-content-center">
+
+    <div class="col-md-8 col-lg-6">
 
 
-<p>
-    「{{ trip.title }}」を削除しますか？
-</p>
+        <div class="card shadow-sm">
+
+            <div class="card-body p-4">
 
 
-<p>
-    このTripに登録されているDayやスケジュールなども削除されます。
-</p>
+                {# ======================================== #}
+                {# タイトル #}
+                {# ======================================== #}
+
+                <h1 class="h3 mb-4">
+                    Trip削除
+                </h1>
 
 
-<form method="post">
 
-    {% csrf_token %}
+                {# ======================================== #}
+                {# 削除確認 #}
+                {# ======================================== #}
 
-    <button type="submit">
-        削除する
-    </button>
+                <div
+                    class="alert alert-danger"
+                    role="alert"
+                >
 
-</form>
+                    <p class="mb-2">
+                        <strong>
+                            「{{ trip.title }}」を削除しますか？
+                        </strong>
+                    </p>
 
 
-<a href="{% url 'trip_detail' trip.trip_id %}">
-    キャンセル
-</a>
+                    <p class="mb-0">
+                        この操作は取り消せません。
+                    </p>
+
+                </div>
+
+
+
+                {# ======================================== #}
+                {# 削除対象の説明 #}
+                {# ======================================== #}
+
+                <p class="mb-4">
+                    このTripに登録されているDayやスケジュールなども削除されます。
+                </p>
+
+
+
+                {# ======================================== #}
+                {# 削除・キャンセル #}
+                {# ======================================== #}
+
+                <div class="d-flex flex-wrap gap-2">
+
+                    <form
+                        method="post"
+                        class="m-0"
+                    >
+
+                        {% csrf_token %}
+
+
+                        <button
+                            type="submit"
+                            class="btn btn-danger"
+                        >
+                            Tripを削除する
+                        </button>
+
+                    </form>
+
+
+
+                    {% if trip.status == "draft" %}
+
+                        <a
+                            href="{% url 'trip_detail' trip.trip_id %}"
+                            class="btn btn-outline-secondary"
+                        >
+                            キャンセル
+                        </a>
+
+
+                    {% else %}
+
+                        <a
+                            href="{% url 'trip_detail' trip.trip_id %}?edit=1"
+                            class="btn btn-outline-secondary"
+                        >
+                            キャンセル
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+    </div>
+
+</div>
+
 
 {% endblock %}

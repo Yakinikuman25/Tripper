@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
+
 {% block title %}
 新規登録 | Tripper
 {% endblock %}
+
 
 {% block main %}
 
@@ -19,11 +21,16 @@
                 </h2>
 
 
-                <!-- エラーメッセージ -->
+                {# ======================================== #}
+                {# エラーメッセージ #}
+                {# ======================================== #}
+
                 {% if form.errors %}
+
                     <div class="alert alert-danger">
-                        入力内容に誤りがあります。内容をご確認ください。
+                        入力内容を確認してください。
                     </div>
+
                 {% endif %}
 
 
@@ -32,75 +39,195 @@
                     {% csrf_token %}
 
 
-                    <!-- ユーザー名 -->
+                    {# ======================================== #}
+                    {# ユーザー名 #}
+                    {# ======================================== #}
+
                     <div class="mb-3">
 
-                        <label for="id_username" class="form-label">
+                        <label
+                            for="id_username"
+                            class="form-label"
+                        >
                             ユーザー名
                         </label>
+
 
                         <input
                             type="text"
                             name="username"
                             id="id_username"
                             class="form-control"
-                            placeholder="ユーザー名を入力">
+                            value="{{ form.username.value|default_if_none:'' }}"
+                            placeholder="ユーザー名を入力"
+                            autocomplete="username"
+                            autofocus
+                            required
+                        >
+
+
+                        {% if form.username.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {% for error in form.username.errors %}
+
+                                    <div>
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
 
                     </div>
 
 
-                    <!-- メールアドレス -->
+                    {# ======================================== #}
+                    {# メールアドレス #}
+                    {# ======================================== #}
+
                     <div class="mb-3">
 
-                        <label for="id_email" class="form-label">
+                        <label
+                            for="id_email"
+                            class="form-label"
+                        >
                             メールアドレス
                         </label>
+
 
                         <input
                             type="email"
                             name="email"
                             id="id_email"
                             class="form-control"
-                            placeholder="メールアドレスを入力">
+                            value="{{ form.email.value|default_if_none:'' }}"
+                            placeholder="メールアドレスを入力"
+                            autocomplete="email"
+                            required
+                        >
+
+
+                        {% if form.email.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {% for error in form.email.errors %}
+
+                                    <div>
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
 
                     </div>
 
 
-                    <!-- パスワード -->
+                    {# ======================================== #}
+                    {# パスワード #}
+                    {# ======================================== #}
+
                     <div class="mb-4">
 
-                        <label for="id_password" class="form-label">
+                        <label
+                            for="id_password"
+                            class="form-label"
+                        >
                             パスワード
                         </label>
+
 
                         <input
                             type="password"
                             name="password"
                             id="id_password"
                             class="form-control"
-                            placeholder="パスワードを入力">
+                            placeholder="パスワードを入力"
+                            autocomplete="new-password"
+                            required
+                        >
+
+
+                        {% if form.password.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {% for error in form.password.errors %}
+
+                                    <div>
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+
+                        {% if form.password.help_text %}
+
+                            <div class="form-text">
+                                {{ form.password.help_text|safe }}
+                            </div>
+
+                        {% endif %}
 
                     </div>
 
+
+                    {# ======================================== #}
+                    {# フォーム全体エラー #}
+                    {# ======================================== #}
+
+                    {% if form.non_field_errors %}
+
+                        <div class="alert alert-danger">
+
+                            {% for error in form.non_field_errors %}
+
+                                <div>
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+
+                    {# ======================================== #}
+                    {# アカウント作成 #}
+                    {# ======================================== #}
 
                     <div class="d-grid">
 
                         <button
                             type="submit"
-                            class="btn btn-primary">
-
+                            class="btn btn-primary"
+                        >
                             アカウントを作成
-
                         </button>
 
                     </div>
-
 
                 </form>
 
 
                 <hr class="my-4">
 
+
+                {# ======================================== #}
+                {# ログイン #}
+                {# ======================================== #}
 
                 <div class="text-center">
 
@@ -109,16 +236,14 @@
                     </p>
 
 
-                    <a href="{% url 'login' %}"
-                       class="btn btn-outline-secondary">
-
+                    <a
+                        href="{% url 'login' %}"
+                        class="btn btn-outline-secondary"
+                    >
                         ログインはこちら
-
                     </a>
 
-
                 </div>
-
 
             </div>
 

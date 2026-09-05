@@ -11,6 +11,10 @@ from base.models import (
     TripSave,
 )
 
+from base.views.trip.trip_services import (
+    prepare_trip_card_data,
+)
+
 
 # =========================================
 # Trip保存・保存解除
@@ -34,6 +38,7 @@ class TripSaveToggleView(
             is_public=True,
         )
 
+
         # =====================================
         # 自分自身のTripは保存不可
         # =====================================
@@ -48,6 +53,7 @@ class TripSaveToggleView(
                 pk=trip.pk,
             )
 
+
         trip_save = (
             TripSave.objects
             .filter(
@@ -57,6 +63,7 @@ class TripSaveToggleView(
             .first()
         )
 
+
         # =====================================
         # 保存済み
         # → 保存解除
@@ -65,6 +72,7 @@ class TripSaveToggleView(
         if trip_save:
 
             trip_save.delete()
+
 
         # =====================================
         # 未保存
@@ -78,10 +86,12 @@ class TripSaveToggleView(
                 trip=trip,
             )
 
+
         return redirect(
             "trip_detail",
             pk=trip.pk,
         )
+
 
 
 # =========================================
@@ -103,6 +113,7 @@ class SavedTripListView(
 
     paginate_by = 30
 
+
     # =====================================
     # ログインユーザーが保存した
     # 公開Tripのみ取得
@@ -123,13 +134,54 @@ class SavedTripListView(
             )
             .select_related(
                 "user",
+                "user__profile",
                 "category",
             )
             .prefetch_related(
                 "locations",
                 "trip_hashtags__hashtag",
+                "trip_expenses",
+                "days__day_expenses",
+                "days__schedules",
             )
             .order_by(
                 "-saves__created_at"
             )
         )
+
+
+    # =====================================
+    # 共通Tripカード用データを設定
+    # =====================================
+
+    def get_context_data(
+        self,
+        **kwargs
+    ):
+
+        context = (
+            super()
+            .get_context_data(
+                **kwargs
+            )
+        )
+
+
+        # =====================================
+        # 現在のページに表示するTripだけ
+        # カード用情報を設定
+        #
+        # ・旅行日数
+        # ・国ごとにまとめた訪問先
+        # ・実費合計
+        # =====================================
+
+        for trip in context["trips"]:
+
+            prepare_trip_card_data(
+                trip,
+                include_actual_total=True,
+            )
+
+
+        return context

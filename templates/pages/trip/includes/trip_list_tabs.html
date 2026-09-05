@@ -6,6 +6,7 @@
 
     <ul class="nav nav-tabs">
 
+
         {# ======================================== #}
         {# My Trip #}
         {# ======================================== #}
@@ -14,12 +15,7 @@
 
             <a
                 href="{% url 'trip_list' %}"
-                class="
-                    nav-link
-                    {% if request.resolver_match.url_name == 'trip_list' %}
-                        active
-                    {% endif %}
-                "
+                class="nav-link{% if request.resolver_match.url_name == 'trip_list' %} active{% endif %}"
                 {% if request.resolver_match.url_name == 'trip_list' %}
                     aria-current="page"
                 {% endif %}
@@ -30,6 +26,7 @@
         </li>
 
 
+
         {# ======================================== #}
         {# 保存Trip #}
         {# ======================================== #}
@@ -38,12 +35,7 @@
 
             <a
                 href="{% url 'saved_trip_list' %}"
-                class="
-                    nav-link
-                    {% if request.resolver_match.url_name == 'saved_trip_list' %}
-                        active
-                    {% endif %}
-                "
+                class="nav-link{% if request.resolver_match.url_name == 'saved_trip_list' %} active{% endif %}"
                 {% if request.resolver_match.url_name == 'saved_trip_list' %}
                     aria-current="page"
                 {% endif %}
@@ -52,6 +44,7 @@
             </a>
 
         </li>
+
 
     </ul>
 

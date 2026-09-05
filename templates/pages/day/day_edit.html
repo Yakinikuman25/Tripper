@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 
+
 {% block title %}
 Day編集 | Tripper
 {% endblock %}
+
 
 {% block main %}
 
@@ -12,10 +14,24 @@ Day編集 | Tripper
 </h1>
 
 
-<p>
+<p class="mb-4">
     日付：
     {{ day.date }}
 </p>
+
+
+{# ======================================== #}
+{# 入力エラー #}
+{# ======================================== #}
+
+{% if form.errors or reference_url_formset.total_error_count %}
+
+    <div class="alert alert-danger">
+        入力内容を確認してください。
+    </div>
+
+{% endif %}
+
 
 
 {# ======================================== #}
@@ -30,9 +46,9 @@ Day編集 | Tripper
     {% csrf_token %}
 
 
-    {# ------------------------- #}
+    {# ======================================== #}
     {# Dayタイトル #}
-    {# ------------------------- #}
+    {# ======================================== #}
 
     <div class="mb-3">
 
@@ -43,17 +59,28 @@ Day編集 | Tripper
             Dayタイトル
         </label>
 
+
         {{ form.title }}
 
-        {% for error in form.title.errors %}
 
-            <p class="text-danger">
-                {{ error }}
-            </p>
+        {% if form.title.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.title.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
 
     </div>
+
 
 
     {# ======================================== #}
@@ -71,13 +98,17 @@ Day編集 | Tripper
 
     {% if form.non_field_errors %}
 
-        {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
 
-            <p>
-                {{ error }}
-            </p>
+            {% for error in form.non_field_errors %}
 
-        {% endfor %}
+                <div>
+                    {{ error }}
+                </div>
+
+            {% endfor %}
+
+        </div>
 
     {% endif %}
 
@@ -103,13 +134,13 @@ Day編集 | Tripper
             {% for country, regions in location_groups.items %}
 
                 <div
-                    class="country-block"
+                    class="country-block mb-3"
                     data-index="{{ forloop.counter0 }}"
                 >
 
-                    <div>
+                    <div class="mb-2">
 
-                        <label>
+                        <label class="form-label">
                             国
                         </label>
 
@@ -128,7 +159,7 @@ Day編集 | Tripper
 
                     <div class="region-container">
 
-                        <label>
+                        <label class="form-label">
                             地域
                         </label>
 
@@ -142,7 +173,7 @@ Day編集 | Tripper
 
                         {% for region in regions %}
 
-                            <div>
+                            <div class="mb-2">
 
                                 <input
                                     type="text"
@@ -163,7 +194,7 @@ Day編集 | Tripper
 
                     <button
                         type="button"
-                        class="btn btn-outline-primary btn-sm add-region mt-2"
+                        class="btn btn-primary btn-sm add-region mt-2"
                     >
                         ＋ 地域
                     </button>
@@ -177,13 +208,13 @@ Day編集 | Tripper
 
 
             <div
-                class="country-block"
+                class="country-block mb-3"
                 data-index="0"
             >
 
-                <div>
+                <div class="mb-2">
 
-                    <label>
+                    <label class="form-label">
                         国
                     </label>
 
@@ -202,7 +233,7 @@ Day編集 | Tripper
 
                 <div class="region-container">
 
-                    <label>
+                    <label class="form-label">
                         地域
                     </label>
 
@@ -214,7 +245,7 @@ Day編集 | Tripper
                     </datalist>
 
 
-                    <div>
+                    <div class="mb-2">
 
                         <input
                             type="text"
@@ -233,7 +264,7 @@ Day編集 | Tripper
 
                 {% if previous_day_last_location %}
 
-                    <p class="text-muted small mt-2">
+                    <p class="text-muted small mt-2 mb-2">
                         前日の最後の訪問先を初期表示しています。
                         必要に応じて変更できます。
                     </p>
@@ -243,13 +274,12 @@ Day編集 | Tripper
 
                 <button
                     type="button"
-                    class="btn btn-outline-primary btn-sm add-region mt-2"
+                    class="btn btn-primary btn-sm add-region mt-2"
                 >
                     ＋ 地域
                 </button>
 
             </div>
-
 
         {% endif %}
 
@@ -259,10 +289,11 @@ Day編集 | Tripper
     <button
         type="button"
         id="add-country"
-        class="btn btn-outline-primary btn-sm mb-4"
+        class="btn btn-primary btn-sm mb-4"
     >
         ＋ 国
     </button>
+
 
 
     {# ======================================== #}
@@ -278,15 +309,25 @@ Day編集 | Tripper
             メモ
         </label>
 
+
         {{ form.memo }}
 
-        {% for error in form.memo.errors %}
 
-            <p>
-                {{ error }}
-            </p>
+        {% if form.memo.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.memo.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
 
 
         <div class="form-text">
@@ -294,6 +335,7 @@ Day編集 | Tripper
         </div>
 
     </div>
+
 
 
     {# ======================================== #}
@@ -305,13 +347,17 @@ Day編集 | Tripper
 
     {% if reference_url_formset.non_form_errors %}
 
-        {% for error in reference_url_formset.non_form_errors %}
+        <div class="alert alert-danger">
 
-            <p class="text-danger">
-                {{ error }}
-            </p>
+            {% for error in reference_url_formset.non_form_errors %}
 
-        {% endfor %}
+                <div>
+                    {{ error }}
+                </div>
+
+            {% endfor %}
+
+        </div>
 
     {% endif %}
 
@@ -320,9 +366,7 @@ Day編集 | Tripper
 
         {% for url_form in reference_url_formset %}
 
-            <div
-                class="reference-url-form mb-3"
-            >
+            <div class="reference-url-form mb-3">
 
                 {% for hidden in url_form.hidden_fields %}
 
@@ -333,13 +377,17 @@ Day編集 | Tripper
 
                 {% if url_form.non_field_errors %}
 
-                    {% for error in url_form.non_field_errors %}
+                    <div class="text-danger small mb-2">
 
-                        <p class="text-danger">
-                            {{ error }}
-                        </p>
+                        {% for error in url_form.non_field_errors %}
 
-                    {% endfor %}
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
 
                 {% endif %}
 
@@ -353,15 +401,25 @@ Day編集 | Tripper
                         参考URL名
                     </label>
 
+
                     {{ url_form.title }}
 
-                    {% for error in url_form.title.errors %}
 
-                        <p class="text-danger mb-0">
-                            {{ error }}
-                        </p>
+                    {% if url_form.title.errors %}
 
-                    {% endfor %}
+                        <div class="text-danger small mt-1">
+
+                            {% for error in url_form.title.errors %}
+
+                                <div>
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
 
                 </div>
 
@@ -375,15 +433,25 @@ Day編集 | Tripper
                         URL
                     </label>
 
+
                     {{ url_form.url }}
 
-                    {% for error in url_form.url.errors %}
 
-                        <p class="text-danger mb-0">
-                            {{ error }}
-                        </p>
+                    {% if url_form.url.errors %}
 
-                    {% endfor %}
+                        <div class="text-danger small mt-1">
+
+                            {% for error in url_form.url.errors %}
+
+                                <div>
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
 
                 </div>
 
@@ -392,17 +460,15 @@ Day編集 | Tripper
                     class="delete-field"
                     style="display: none;"
                 >
-
                     {{ url_form.DELETE }}
-
                 </div>
 
 
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
 
                     <button
                         type="button"
-                        class="btn btn-outline-primary btn-sm register-reference-url"
+                        class="btn {% if url_form.instance.pk %}btn-outline-secondary{% else %}btn-primary{% endif %} btn-sm register-reference-url"
                     >
                         {% if url_form.instance.pk %}
                             登録済み
@@ -428,11 +494,14 @@ Day編集 | Tripper
     </div>
 
 
+
+    {# ======================================== #}
+    {# 新規参考URL用フォーム #}
+    {# ======================================== #}
+
     <template id="empty-reference-url-form">
 
-        <div
-            class="reference-url-form mb-3"
-        >
+        <div class="reference-url-form mb-3">
 
             {% for hidden in reference_url_formset.empty_form.hidden_fields %}
 
@@ -467,17 +536,15 @@ Day編集 | Tripper
                 class="delete-field"
                 style="display: none;"
             >
-
                 {{ reference_url_formset.empty_form.DELETE }}
-
             </div>
 
 
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
 
                 <button
                     type="button"
-                    class="btn btn-outline-primary btn-sm register-reference-url"
+                    class="btn btn-primary btn-sm register-reference-url"
                 >
                     登録
                 </button>
@@ -500,10 +567,11 @@ Day編集 | Tripper
     <button
         type="button"
         id="add-reference-url"
-        class="btn btn-outline-primary mb-4"
+        class="btn btn-primary btn-sm mb-4"
     >
         ＋ 参考URL
     </button>
+
 
 
     {# ======================================== #}
@@ -519,15 +587,26 @@ Day編集 | Tripper
             自由費予算
         </label>
 
+
         {{ form.budget }}
 
-        {% for error in form.budget.errors %}
 
-            <p class="text-danger mb-0">
-                {{ error }}
-            </p>
+        {% if form.budget.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.budget.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
 
         <div class="form-text">
             食事・コンビニ・細かな交通費など、
@@ -535,6 +614,7 @@ Day編集 | Tripper
         </div>
 
     </div>
+
 
 
     {# ======================================== #}
@@ -550,15 +630,26 @@ Day編集 | Tripper
             Day予定金額
         </label>
 
+
         {{ form.planned_amount }}
 
-        {% for error in form.planned_amount.errors %}
 
-            <p class="text-danger mb-0">
-                {{ error }}
-            </p>
+        {% if form.planned_amount.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.planned_amount.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
 
         <div class="form-text">
             1日ツアーや1日レンタカーなど、
@@ -566,6 +657,7 @@ Day編集 | Tripper
         </div>
 
     </div>
+
 
 
     {# ======================================== #}
@@ -581,15 +673,26 @@ Day編集 | Tripper
             Day実際支払額
         </label>
 
+
         {{ form.actual_amount }}
 
-        {% for error in form.actual_amount.errors %}
 
-            <p class="text-danger mb-0">
-                {{ error }}
-            </p>
+        {% if form.actual_amount.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.actual_amount.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
+
 
         <div class="form-text">
             1日ツアーなどを予約・事前決済している場合に入力してください。
@@ -599,15 +702,15 @@ Day編集 | Tripper
 
     </div>
 
-
 </form>
 
 
+
 {# ======================================== #}
-{# 保存・リセット #}
+{# 保存・戻る・リセット #}
 {# ======================================== #}
 
-<div class="d-flex gap-2 mb-4">
+<div class="d-flex flex-wrap align-items-center gap-2 mb-4">
 
     <button
         type="submit"
@@ -618,10 +721,31 @@ Day編集 | Tripper
     </button>
 
 
+    {% if trip.status == "draft" %}
+
+        <a
+            href="{% url 'trip_detail' trip.trip_id %}"
+            class="btn btn-outline-secondary"
+        >
+            戻る
+        </a>
+
+    {% else %}
+
+        <a
+            href="{% url 'trip_detail' trip.trip_id %}?edit=1"
+            class="btn btn-outline-secondary"
+        >
+            戻る
+        </a>
+
+    {% endif %}
+
+
     <form
         method="post"
         action="{% url 'day_reset' day.day_id %}"
-        class="m-0"
+        class="m-0 ms-sm-auto"
     >
 
         {% csrf_token %}
@@ -640,40 +764,16 @@ Day編集 | Tripper
 
         <button
             type="submit"
-            class="btn btn-danger"
-            onclick="return confirm('このDayのタイトル・訪問先・メモ・自由費予算・参考URLをリセットしますか？\nスケジュール・旅の記録・費用明細は削除されません。');"
+            class="btn btn-outline-danger"
+            onclick="return confirm('このDayのタイトル・訪問先・メモ・自由費予算・Day予定金額・参考URLをリセットしますか？\nDay実際支払額・スケジュール・旅の記録・費用明細は削除されません。');"
         >
-            リセット
+            Dayをリセット
         </button>
 
     </form>
 
 </div>
 
-
-{# ------------------------- #}
-{# 戻るボタン #}
-{# ------------------------- #}
-
-{% if trip.status == "draft" %}
-
-    <a
-        href="{% url 'trip_detail' trip.trip_id %}"
-        class="btn btn-outline-secondary"
-    >
-        戻る
-    </a>
-
-{% else %}
-
-    <a
-        href="{% url 'trip_detail' trip.trip_id %}?edit=1"
-        class="btn btn-outline-secondary"
-    >
-        戻る
-    </a>
-
-{% endif %}
 
 
 <script>
@@ -700,9 +800,9 @@ Day編集 | Tripper
                 );
 
 
-            // --------------------------------
+            // ========================================
             // 国に対応する地域候補を更新
-            // --------------------------------
+            // ========================================
 
             function updateRegionOptions(
                 countryBlock
@@ -753,9 +853,10 @@ Day編集 | Tripper
             }
 
 
-            // --------------------------------
+
+            // ========================================
             // 「地域を追加」ボタン設定
-            // --------------------------------
+            // ========================================
 
             function setupAddRegionButton(
                 countryBlock
@@ -783,6 +884,9 @@ Day編集 | Tripper
                             document.createElement(
                                 "div"
                             );
+
+                        div.className =
+                            "mb-2";
 
                         const input =
                             document.createElement(
@@ -823,9 +927,10 @@ Day編集 | Tripper
             }
 
 
-            // --------------------------------
+
+            // ========================================
             // 国入力欄のイベント設定
-            // --------------------------------
+            // ========================================
 
             function setupCountryInput(
                 countryBlock
@@ -865,9 +970,10 @@ Day編集 | Tripper
             }
 
 
-            // --------------------------------
+
+            // ========================================
             // 既存の国ブロックを設定
-            // --------------------------------
+            // ========================================
 
             document.querySelectorAll(
                 ".country-block"
@@ -885,9 +991,10 @@ Day編集 | Tripper
             );
 
 
-            // --------------------------------
-            // 「国を追加」
-            // --------------------------------
+
+            // ========================================
+            // 国を追加
+            // ========================================
 
             addCountryButton.addEventListener(
                 "click",
@@ -904,16 +1011,16 @@ Day編集 | Tripper
                         );
 
                     countryBlock.className =
-                        "country-block";
+                        "country-block mb-3";
 
                     countryBlock.dataset.index =
                         index;
 
 
                     countryBlock.innerHTML = `
-                        <div>
+                        <div class="mb-2">
 
-                            <label>
+                            <label class="form-label">
                                 国
                             </label>
 
@@ -931,7 +1038,7 @@ Day編集 | Tripper
 
                         <div class="region-container">
 
-                            <label>
+                            <label class="form-label">
                                 地域
                             </label>
 
@@ -943,7 +1050,7 @@ Day編集 | Tripper
                             </datalist>
 
 
-                            <div>
+                            <div class="mb-2">
 
                                 <input
                                     type="text"
@@ -961,7 +1068,7 @@ Day編集 | Tripper
 
                         <button
                             type="button"
-                            class="btn btn-outline-primary btn-sm add-region mt-2"
+                            class="btn btn-primary btn-sm add-region mt-2"
                         >
                             ＋ 地域
                         </button>
@@ -984,9 +1091,10 @@ Day編集 | Tripper
             );
 
 
-            // =================================
+
+            // ========================================
             // Day参考URL
-            // =================================
+            // ========================================
 
             const referenceUrlContainer =
                 document.getElementById(
@@ -1016,9 +1124,9 @@ Day編集 | Tripper
                 && totalReferenceUrlFormsInput
             ) {
 
-                // -----------------------------
+                // ========================================
                 // 参考URLを追加
-                // -----------------------------
+                // ========================================
 
                 addReferenceUrlButton.addEventListener(
                     "click",
@@ -1048,9 +1156,9 @@ Day編集 | Tripper
                 );
 
 
-                // -----------------------------
+                // ========================================
                 // 登録・削除
-                // -----------------------------
+                // ========================================
 
                 referenceUrlContainer.addEventListener(
                     "click",
@@ -1062,7 +1170,6 @@ Day編集 | Tripper
                             );
 
                         if (!referenceUrlForm) {
-
                             return;
                         }
 
@@ -1090,8 +1197,17 @@ Day編集 | Tripper
                                 return;
                             }
 
+
                             event.target.textContent =
                                 "登録済み";
+
+                            event.target.classList.remove(
+                                "btn-primary"
+                            );
+
+                            event.target.classList.add(
+                                "btn-outline-secondary"
+                            );
 
                             return;
                         }
@@ -1114,6 +1230,7 @@ Day編集 | Tripper
                                     true;
                             }
 
+
                             referenceUrlForm.style.display =
                                 "none";
                         }
@@ -1121,10 +1238,10 @@ Day編集 | Tripper
                 );
 
 
-                // -----------------------------
+                // ========================================
                 // 登録後に内容を編集した場合
-                // 表示を「登録」に戻す
-                // -----------------------------
+                // 「登録済み」から「登録」に戻す
+                // ========================================
 
                 referenceUrlContainer.addEventListener(
                     "input",
@@ -1139,29 +1256,39 @@ Day編集 | Tripper
                             return;
                         }
 
+
                         const referenceUrlForm =
                             event.target.closest(
                                 ".reference-url-form"
                             );
 
                         if (!referenceUrlForm) {
-
                             return;
                         }
+
 
                         const registerButton =
                             referenceUrlForm.querySelector(
                                 ".register-reference-url"
                             );
 
+
                         if (
                             registerButton
                             && registerButton.textContent.trim()
-                            === "登録済み"
+                                === "登録済み"
                         ) {
 
                             registerButton.textContent =
                                 "登録";
+
+                            registerButton.classList.remove(
+                                "btn-outline-secondary"
+                            );
+
+                            registerButton.classList.add(
+                                "btn-primary"
+                            );
                         }
                     }
                 );

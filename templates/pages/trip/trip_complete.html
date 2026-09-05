@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 
+
 {% block title %}
 
     {% if is_completed_edit %}
@@ -14,170 +15,310 @@
 {% block main %}
 
 
-{% if is_completed_edit %}
+<div class="row justify-content-center">
 
-    <h1>
-        代表写真・感想を編集
-    </h1>
-
-{% else %}
-
-    <h1>
-        旅を完了する
-    </h1>
-
-{% endif %}
+    <div class="col-lg-8">
 
 
-<form
-    method="post"
-    enctype="multipart/form-data"
->
+        {# ======================================== #}
+        {# タイトル #}
+        {# ======================================== #}
 
-    {% csrf_token %}
+        {% if is_completed_edit %}
 
+            <h1 class="mb-4">
+                代表写真・感想を編集
+            </h1>
 
-    {% if form.non_field_errors %}
+        {% else %}
 
-        <div>
-
-            {% for error in form.non_field_errors %}
-
-                <p>
-                    {{ error }}
-                </p>
-
-            {% endfor %}
-
-        </div>
-
-    {% endif %}
-
-
-    <div>
-
-        <label for="{{ form.main_media.id_for_label }}">
-            代表写真
-        </label>
-
-        {{ form.main_media }}
-
-        {% if form.main_media.errors %}
-
-            {% for error in form.main_media.errors %}
-
-                <p>
-                    {{ error }}
-                </p>
-
-            {% endfor %}
+            <h1 class="mb-4">
+                旅を完了する
+            </h1>
 
         {% endif %}
 
-    </div>
 
 
-    <br>
+        {# ======================================== #}
+        {# 入力エラー #}
+        {# ======================================== #}
 
+        {% if form.errors %}
 
-    <div>
-
-        <label for="{{ form.overview.id_for_label }}">
-            感想
-        </label>
-
-        {{ form.overview }}
-
-        {% if form.overview.errors %}
-
-            {% for error in form.overview.errors %}
-
-                <p>
-                    {{ error }}
-                </p>
-
-            {% endfor %}
+            <div
+                class="alert alert-danger"
+                role="alert"
+            >
+                入力内容を確認してください。
+            </div>
 
         {% endif %}
 
-    </div>
 
 
-    <br>
-
-
-    <div>
-
-        {{ form.is_public }}
-
-        <label for="{{ form.is_public.id_for_label }}">
-            このTripを公開する
-        </label>
-
-        {% if form.is_public.errors %}
-
-            {% for error in form.is_public.errors %}
-
-                <p>
-                    {{ error }}
-                </p>
-
-            {% endfor %}
-
-        {% endif %}
-
-    </div>
-
-
-    <br>
-
-
-    <p>
-        ※ 公開する場合は、
-        代表写真と感想の登録が必要です。
-    </p>
-
-
-    {% if is_completed_edit %}
-
-        <button
-            type="submit"
-            class="btn btn-primary"
+        <form
+            method="post"
+            enctype="multipart/form-data"
         >
-            保存
-        </button>
 
-    {% else %}
-
-        <button
-            type="submit"
-            class="btn btn-primary"
-        >
-            旅を完了する
-        </button>
-
-    {% endif %}
+            {% csrf_token %}
 
 
-</form>
+
+            {# ======================================== #}
+            {# フォーム全体エラー #}
+            {# ======================================== #}
+
+            {% if form.non_field_errors %}
+
+                <div class="alert alert-danger">
+
+                    {% for error in form.non_field_errors %}
+
+                        <div>
+                            {{ error }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
 
 
-<hr>
+
+            {# ======================================== #}
+            {# 代表写真 #}
+            {# ======================================== #}
+
+            <div class="mb-4">
+
+                <label
+                    for="{{ form.main_media.id_for_label }}"
+                    class="form-label"
+                >
+                    <strong>
+                        代表写真
+                    </strong>
+                </label>
 
 
-{% if is_completed_edit %}
 
-    <a href="{% url 'trip_detail' trip.trip_id %}?edit=1">
-        Trip編集画面に戻る
-    </a>
+                {# ======================================== #}
+                {# 現在の代表写真 #}
+                {# ======================================== #}
 
-{% else %}
+                {% if trip.main_media %}
 
-    <a href="{% url 'trip_detail' trip.trip_id %}">
-        Trip詳細に戻る
-    </a>
+                    <div class="mb-3">
 
-{% endif %}
+                        <p class="text-muted small mb-2">
+                            現在の代表写真
+                        </p>
+
+
+                        <img
+                            src="{{ trip.main_media.url }}"
+                            alt="{{ trip.title }}"
+                            class="img-fluid rounded"
+                            style="
+                                width: 100%;
+                                max-height: 350px;
+                                object-fit: cover;
+                            "
+                        >
+
+                    </div>
+
+                {% endif %}
+
+
+                {{ form.main_media }}
+
+
+                {% if form.main_media.errors %}
+
+                    <div class="text-danger small mt-1">
+
+                        {% for error in form.main_media.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                {% if form.main_media.help_text %}
+
+                    <div class="form-text">
+                        {{ form.main_media.help_text }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# 感想 #}
+            {# ======================================== #}
+
+            <div class="mb-4">
+
+                <label
+                    for="{{ form.overview.id_for_label }}"
+                    class="form-label"
+                >
+                    <strong>
+                        感想
+                    </strong>
+                </label>
+
+
+                {{ form.overview }}
+
+
+                {% if form.overview.errors %}
+
+                    <div class="text-danger small mt-1">
+
+                        {% for error in form.overview.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                {% if form.overview.help_text %}
+
+                    <div class="form-text">
+                        {{ form.overview.help_text }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# 公開設定 #}
+            {# ======================================== #}
+
+            <div class="mb-4">
+
+                <p class="form-label mb-2">
+                    <strong>
+                        公開設定
+                    </strong>
+                </p>
+
+
+                <div class="form-check">
+
+                    {{ form.is_public }}
+
+
+                    <label
+                        for="{{ form.is_public.id_for_label }}"
+                        class="form-check-label"
+                    >
+                        このTripを公開する
+                    </label>
+
+                </div>
+
+
+                {% if form.is_public.errors %}
+
+                    <div class="text-danger small mt-1">
+
+                        {% for error in form.is_public.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                <div class="form-text mt-2">
+                    公開する場合は、代表写真と感想の登録が必要です。
+                </div>
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# 保存・旅完了 #}
+            {# ======================================== #}
+
+            <div class="d-flex flex-wrap gap-2">
+
+                {% if is_completed_edit %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        保存
+                    </button>
+
+
+                    <a
+                        href="{% url 'trip_detail' trip.trip_id %}?edit=1"
+                        class="btn btn-outline-secondary"
+                    >
+                        Trip編集画面に戻る
+                    </a>
+
+
+                {% else %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        旅を完了する
+                    </button>
+
+
+                    <a
+                        href="{% url 'trip_detail' trip.trip_id %}"
+                        class="btn btn-outline-secondary"
+                    >
+                        Trip詳細に戻る
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+
+        </form>
+
+
+    </div>
+
+</div>
 
 
 {% endblock %}

@@ -1,21 +1,26 @@
-<header class="container-fluid bg-dark text-white">
+<header class="navbar navbar-expand-lg navbar-dark bg-dark">
 
-    <nav class="container d-flex justify-content-between align-items-center">
+    <div class="container">
 
-        <!-- ロゴ + ようこそ表示 -->
-        <div class="d-flex align-items-center">
+
+        {# ======================================== #}
+        {# ロゴ + ようこそ表示 #}
+        {# ======================================== #}
+
+        <div class="d-flex align-items-center gap-2 gap-md-3">
 
             <a
-                class="text-white text-decoration-none fw-bold fs-5"
+                class="navbar-brand fw-bold mb-0"
                 href="{% url 'home' %}"
             >
                 🌍 Tripper
             </a>
 
+
             {% if user.is_authenticated %}
 
                 <span
-                    class="text-white ms-3 d-flex align-items-center"
+                    class="text-white-50 text-nowrap"
                     style="font-size: 0.9rem;"
                 >
                     ようこそ {{ user.username }} さん
@@ -26,83 +31,292 @@
         </div>
 
 
-        <!-- メニュー -->
-        <div class="d-flex gap-4 align-items-center">
 
-            {% if user.is_authenticated %}
+        {# ======================================== #}
+        {# スマホ用 ハンバーガーボタン #}
+        {# ======================================== #}
 
-                <a
-                    class="py-2 text-white text-decoration-none"
-                    href="{% url 'home' %}"
-                >
-                    Home
-                </a>
+        <button
+            class="navbar-toggler"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#tripperNavbar"
+            aria-controls="tripperNavbar"
+            aria-expanded="false"
+            aria-label="メニューを開く"
+        >
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-                <a
-                    class="py-2 text-white text-decoration-none"
-                    href="{% url 'public_trip' %}"
-                >
-                    みんなのTrip
-                </a>
 
-                <a
-                    class="py-2 text-white text-decoration-none"
-                    href="{% url 'trip_list' %}"
-                >
-                    My Trip
-                </a>
 
-                <a
-                    class="py-2 text-white text-decoration-none"
-                    href="{% url 'trip_create' %}"
-                >
-                    Trip作成
-                </a>
+        {# ======================================== #}
+        {# ハンバーガー内メニュー #}
+        {# ======================================== #}
 
-                <a
-                    class="py-2 text-white text-decoration-none"
-                    href="{% url 'profile' %}"
-                >
-                    Profile
-                </a>
+        <div
+            class="collapse navbar-collapse"
+            id="tripperNavbar"
+        >
 
-                <form
-                    method="post"
-                    action="{% url 'logout' %}"
-                    class="d-inline"
-                >
+            <ul class="navbar-nav ms-lg-auto mt-2 mt-lg-0 mb-2 mb-lg-0">
 
-                    {% csrf_token %}
 
-                    <button
-                        type="submit"
-                        class="border-0 bg-transparent text-white py-2"
+                {# ======================================== #}
+                {# Home #}
+                {# ======================================== #}
+
+                <li class="nav-item">
+
+                    <a
+                        href="{% url 'home' %}"
+                        class="
+                            nav-link
+                            {% if request.resolver_match.url_name == 'home' %}
+                                active
+                                fw-semibold
+                            {% endif %}
+                        "
+                        {% if request.resolver_match.url_name == 'home' %}
+                            aria-current="page"
+                        {% endif %}
                     >
-                        ログアウト
-                    </button>
+                        Home
+                    </a>
 
-                </form>
+                </li>
 
-            {% else %}
 
-                <a
-                    class="py-2 text-white text-decoration-none"
-                    href="{% url 'login' %}"
-                >
-                    ログイン
-                </a>
 
-                <a
-                    class="py-2 text-white text-decoration-none"
-                    href="{% url 'signup' %}"
-                >
-                    新規登録
-                </a>
+                {# ======================================== #}
+                {# みんなのTrip #}
+                {# ======================================== #}
 
-            {% endif %}
+                <li class="nav-item">
+
+                    <a
+                        href="{% url 'public_trip' %}"
+                        class="
+                            nav-link
+                            {% if request.resolver_match.url_name == 'public_trip' %}
+                                active
+                                fw-semibold
+                            {% endif %}
+                        "
+                        {% if request.resolver_match.url_name == 'public_trip' %}
+                            aria-current="page"
+                        {% endif %}
+                    >
+                        みんなのTrip
+                    </a>
+
+                </li>
+
+
+
+                {% if user.is_authenticated %}
+
+
+                    {# ======================================== #}
+                    {# My Trip #}
+                    {# ======================================== #}
+
+                    <li class="nav-item">
+
+                        <a
+                            href="{% url 'trip_list' %}"
+                            class="
+                                nav-link
+                                {% if request.resolver_match.url_name == 'trip_list' %}
+                                    active
+                                    fw-semibold
+                                {% endif %}
+                            "
+                            {% if request.resolver_match.url_name == 'trip_list' %}
+                                aria-current="page"
+                            {% endif %}
+                        >
+                            My Trip
+                        </a>
+
+                    </li>
+
+
+
+                    {# ======================================== #}
+                    {# 保存Trip #}
+                    {# ======================================== #}
+
+                    <li class="nav-item">
+
+                        <a
+                            href="{% url 'saved_trip_list' %}"
+                            class="
+                                nav-link
+                                {% if request.resolver_match.url_name == 'saved_trip_list' %}
+                                    active
+                                    fw-semibold
+                                {% endif %}
+                            "
+                            {% if request.resolver_match.url_name == 'saved_trip_list' %}
+                                aria-current="page"
+                            {% endif %}
+                        >
+                            保存Trip
+                        </a>
+
+                    </li>
+
+
+
+                    {# ======================================== #}
+                    {# Trip作成 #}
+                    {# ======================================== #}
+
+                    <li class="nav-item">
+
+                        <a
+                            href="{% url 'trip_create' %}"
+                            class="
+                                nav-link
+                                {% if request.resolver_match.url_name == 'trip_create' %}
+                                    active
+                                    fw-semibold
+                                {% endif %}
+                            "
+                            {% if request.resolver_match.url_name == 'trip_create' %}
+                                aria-current="page"
+                            {% endif %}
+                        >
+                            Trip作成
+                        </a>
+
+                    </li>
+
+
+
+                    {# ======================================== #}
+                    {# Profile #}
+                    {# ======================================== #}
+
+                    <li class="nav-item">
+
+                        <a
+                            href="{% url 'profile' %}"
+                            class="
+                                nav-link
+                                {% if request.resolver_match.url_name == 'profile' %}
+                                    active
+                                    fw-semibold
+                                {% endif %}
+                            "
+                            {% if request.resolver_match.url_name == 'profile' %}
+                                aria-current="page"
+                            {% endif %}
+                        >
+                            Profile
+                        </a>
+
+                    </li>
+
+
+
+                    {# ======================================== #}
+                    {# ログアウト #}
+                    {# ======================================== #}
+
+                    <li class="nav-item">
+
+                        <form
+                            method="post"
+                            action="{% url 'logout' %}"
+                            class="m-0"
+                        >
+
+                            {% csrf_token %}
+
+
+                            <button
+                                type="submit"
+                                class="
+                                    nav-link
+                                    btn
+                                    btn-link
+                                    border-0
+                                    text-start
+                                    w-100
+                                "
+                            >
+                                ログアウト
+                            </button>
+
+                        </form>
+
+                    </li>
+
+
+                {% else %}
+
+
+                    {# ======================================== #}
+                    {# ログイン #}
+                    {# ======================================== #}
+
+                    <li class="nav-item">
+
+                        <a
+                            href="{% url 'login' %}"
+                            class="
+                                nav-link
+                                {% if request.resolver_match.url_name == 'login' %}
+                                    active
+                                    fw-semibold
+                                {% endif %}
+                            "
+                            {% if request.resolver_match.url_name == 'login' %}
+                                aria-current="page"
+                            {% endif %}
+                        >
+                            ログイン
+                        </a>
+
+                    </li>
+
+
+
+                    {# ======================================== #}
+                    {# 新規登録 #}
+                    {# ======================================== #}
+
+                    <li class="nav-item">
+
+                        <a
+                            href="{% url 'signup' %}"
+                            class="
+                                nav-link
+                                {% if request.resolver_match.url_name == 'signup' %}
+                                    active
+                                    fw-semibold
+                                {% endif %}
+                            "
+                            {% if request.resolver_match.url_name == 'signup' %}
+                                aria-current="page"
+                            {% endif %}
+                        >
+                            新規登録
+                        </a>
+
+                    </li>
+
+
+                {% endif %}
+
+
+            </ul>
 
         </div>
 
-    </nav>
+
+    </div>
 
 </header>

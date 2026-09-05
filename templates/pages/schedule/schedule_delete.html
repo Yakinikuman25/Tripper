@@ -1,186 +1,294 @@
 {% extends "base.html" %}
+{% load humanize %}
+
 
 {% block title %}
 スケジュール削除 | Tripper
 {% endblock %}
 
+
 {% block main %}
 
 
-<h1>
-    スケジュール削除
-</h1>
+<div class="row justify-content-center">
+
+    <div class="col-md-8 col-lg-6">
+
+        <div class="card shadow-sm">
+
+            <div class="card-body p-4">
 
 
-<p>
-    以下のスケジュールを削除してもよろしいですか？
-</p>
+                {# ======================================== #}
+                {# タイトル #}
+                {# ======================================== #}
+
+                <h1 class="mb-3">
+                    スケジュール削除
+                </h1>
 
 
-<div class="mb-4">
+                <div class="alert alert-danger mb-4">
+
+                    <strong>
+                        このスケジュールを削除しますか？
+                    </strong>
+
+                    <div class="mt-1">
+                        削除した内容は元に戻せません。
+                    </div>
+
+                </div>
 
 
-    {# ======================================== #}
-    {# 時間 #}
-    {# ======================================== #}
 
-    <p>
+                {# ======================================== #}
+                {# Day情報 #}
+                {# ======================================== #}
 
-        <strong>
+                <div class="mb-4">
 
-            {% if object.start_time %}
+                    <p class="mb-1">
+                        <strong>
+                            Day {{ day.day_order }}
+                        </strong>
+                    </p>
 
-                {{ object.start_time|time:"H:i" }}
+                    <p class="text-muted mb-0">
+                        {{ day.date }}
+                    </p>
 
-                {% if object.end_time %}
-
-                    〜{{ object.end_time|time:"H:i" }}
-
-                {% endif %}
-
-            {% else %}
-
-                時間未定
-
-            {% endif %}
-
-        </strong>
-
-    </p>
+                </div>
 
 
-    {# ======================================== #}
-    {# スケジュール名 #}
-    {# ======================================== #}
 
-    <p>
+                {# ======================================== #}
+                {# 削除対象のスケジュール #}
+                {# ======================================== #}
 
-        <strong>
-            {{ object.name }}
-        </strong>
-
-    </p>
+                <div class="border rounded p-3 mb-4">
 
 
-    {# ======================================== #}
-    {# 参考URL #}
-    {# ======================================== #}
+                    {# ======================================== #}
+                    {# 時間 #}
+                    {# ======================================== #}
 
-    {% if object.reference_urls.all %}
+                    <p class="mb-2">
 
-        <div class="mb-3">
+                        <strong>
+                            時間：
+                        </strong>
 
-            <p class="mb-1">
+                        {% if object.start_time %}
 
-                <strong>
-                    参考URL：
-                </strong>
+                            {{ object.start_time|time:"H:i" }}
 
-            </p>
+                            {% if object.end_time %}
+
+                                〜{{ object.end_time|time:"H:i" }}
+
+                            {% endif %}
+
+                        {% else %}
+
+                            時間未定
+
+                        {% endif %}
+
+                    </p>
 
 
-            {% for reference_url in object.reference_urls.all %}
 
-                <p class="mb-1">
+                    {# ======================================== #}
+                    {# スケジュール名 #}
+                    {# ======================================== #}
 
-                    {% if reference_url.title %}
+                    <p class="mb-3">
 
-                        {{ reference_url.title }}：
+                        <strong>
+                            スケジュール名：
+                        </strong>
+
+                        {{ object.name }}
+
+                    </p>
+
+
+
+                    {# ======================================== #}
+                    {# 予定金額 #}
+                    {# ======================================== #}
+
+                    {% if object.planned_amount != None %}
+
+                        <p class="mb-2">
+
+                            <strong>
+                                予定金額：
+                            </strong>
+
+                            {{ object.planned_amount|intcomma }}円
+
+                        </p>
 
                     {% endif %}
 
 
-                    <a
-                        href="{{ reference_url.url }}"
-                        target="_blank"
-                        rel="noopener noreferrer"
+
+                    {# ======================================== #}
+                    {# 実際支払額 #}
+                    {# ======================================== #}
+
+                    {% if object.actual_amount != None %}
+
+                        <p class="mb-3">
+
+                            <strong>
+                                実際支払額：
+                            </strong>
+
+                            {{ object.actual_amount|intcomma }}円
+
+                        </p>
+
+                    {% endif %}
+
+
+
+                    {# ======================================== #}
+                    {# 参考URL #}
+                    {# ======================================== #}
+
+                    {% with reference_urls=object.reference_urls.all %}
+
+                        {% if reference_urls %}
+
+                            <div class="mb-3">
+
+                                <p class="mb-1">
+
+                                    <strong>
+                                        参考URL：
+                                    </strong>
+
+                                </p>
+
+
+                                {% for reference_url in reference_urls %}
+
+                                    <p class="mb-1">
+
+                                        {% if reference_url.title %}
+
+                                            {{ reference_url.title }}：
+
+                                        {% endif %}
+
+
+                                        <a
+                                            href="{{ reference_url.url }}"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {{ reference_url.url }}
+                                        </a>
+
+                                    </p>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endwith %}
+
+
+
+                    {# ======================================== #}
+                    {# メモ #}
+                    {# ======================================== #}
+
+                    {% if object.memo %}
+
+                        <div>
+
+                            <p class="mb-1">
+
+                                <strong>
+                                    メモ：
+                                </strong>
+
+                            </p>
+
+
+                            <p class="mb-0">
+                                {{ object.memo|linebreaksbr }}
+                            </p>
+
+                        </div>
+
+                    {% endif %}
+
+
+                </div>
+
+
+
+                {# ======================================== #}
+                {# 削除・キャンセル #}
+                {# ======================================== #}
+
+                <div class="d-flex flex-wrap gap-2">
+
+                    <form
+                        method="post"
+                        class="m-0"
                     >
-                        {{ reference_url.url }}
-                    </a>
 
-                </p>
+                        {% csrf_token %}
 
-            {% endfor %}
+
+                        <button
+                            type="submit"
+                            class="btn btn-danger"
+                        >
+                            削除する
+                        </button>
+
+                    </form>
+
+
+                    {% if trip.status == "draft" %}
+
+                        <a
+                            href="{% url 'trip_detail' trip.trip_id %}#day-{{ day.day_id }}"
+                            class="btn btn-outline-secondary"
+                        >
+                            キャンセル
+                        </a>
+
+                    {% else %}
+
+                        <a
+                            href="{% url 'trip_detail' trip.trip_id %}?edit=1#day-{{ day.day_id }}"
+                            class="btn btn-outline-secondary"
+                        >
+                            キャンセル
+                        </a>
+
+                    {% endif %}
+
+                </div>
+
+
+            </div>
 
         </div>
 
-    {% endif %}
-
-
-    {# ======================================== #}
-    {# メモ #}
-    {# ======================================== #}
-
-    {% if object.memo %}
-
-        <div class="mb-3">
-
-            <p class="mb-1">
-
-                <strong>
-                    メモ：
-                </strong>
-
-            </p>
-
-            <p>
-                {{ object.memo|linebreaksbr }}
-            </p>
-
-        </div>
-
-    {% endif %}
-
+    </div>
 
 </div>
-
-
-<hr>
-
-
-{# ======================================== #}
-{# 削除 #}
-{# ======================================== #}
-
-<form method="post">
-
-    {% csrf_token %}
-
-    <button
-        type="submit"
-        class="btn btn-danger"
-        onclick="return confirm('このスケジュールを削除しますか？');"
-    >
-        削除する
-    </button>
-
-</form>
-
-
-<hr>
-
-
-{# ======================================== #}
-{# 戻る #}
-{# ======================================== #}
-
-{% if trip.status == "draft" %}
-
-    <a
-        href="{% url 'trip_detail' trip.trip_id %}#day-{{ day.day_id }}"
-    >
-        Trip詳細に戻る
-    </a>
-
-{% else %}
-
-    <a
-        href="{% url 'trip_detail' trip.trip_id %}?edit=1#day-{{ day.day_id }}"
-    >
-        Trip編集画面に戻る
-    </a>
-
-{% endif %}
 
 
 {% endblock %}

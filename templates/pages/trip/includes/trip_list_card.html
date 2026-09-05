@@ -1,8 +1,16 @@
+{% load humanize %}
+
+
 {# ======================================== #}
-{# Trip一覧共通カード #}
+{# Trip一覧 共通カード #}
+{# #}
+{# card_type #}
+{# ・my     : My Trip #}
+{# ・public : みんなのTrip #}
+{# ・saved  : 保存Trip #}
 {# ======================================== #}
 
-<div class="col-md-6 col-lg-4 mb-4">
+<div class="col-12 col-md-6 col-lg-4 mb-4">
 
     <div class="card shadow-sm h-100">
 
@@ -17,6 +25,7 @@
                 src="{{ trip.main_media.url }}"
                 class="card-img-top"
                 alt="{{ trip.title }}"
+                loading="lazy"
                 style="
                     height: 200px;
                     object-fit: cover;
@@ -44,6 +53,7 @@
         {% endif %}
 
 
+
         <div class="card-body d-flex flex-column">
 
 
@@ -51,59 +61,84 @@
             {# Tripタイトル #}
             {# ======================================== #}
 
-            <h5 class="card-title">
-
+            <h5 class="card-title mb-3">
                 {{ trip.title }}
-
             </h5>
 
 
+
             {# ======================================== #}
-            {# 保存Tripの場合は投稿者を表示 #}
+            {# 投稿者 #}
+            {# #}
+            {# みんなのTrip / 保存Tripのみ表示 #}
+            {# タイトルとは別段にする #}
             {# ======================================== #}
 
-            {% if card_type == "saved" %}
+            {% if card_type == "public" or card_type == "saved" %}
 
-                <p class="text-muted small mb-2">
+                <div class="mb-3">
 
-                    投稿者：
-                    {{ trip.user.username }}
+                    {% include "snippets/user_mini_profile.html" with display_user=trip.user %}
 
-                </p>
+                </div>
 
             {% endif %}
+
 
 
             {# ======================================== #}
             {# 旅行期間 #}
             {# ======================================== #}
 
-            <p class="card-text">
+            <p class="card-text mb-1">
 
-                {{ trip.start_date }}
+                {{ trip.start_date|date:"Y年n月j日" }}
                 ～
-                {{ trip.end_date }}
+                {{ trip.end_date|date:"Y年n月j日" }}
 
             </p>
+
+
+
+            {# ======================================== #}
+            {# 旅行日数 #}
+            {# #}
+            {# My Trip / みんなのTrip / 保存Trip共通 #}
+            {# ======================================== #}
+
+            {% if trip.trip_days %}
+
+                <p class="text-muted small mb-3">
+                    {{ trip.trip_days }}日間
+                </p>
+
+            {% endif %}
+
 
 
             {# ======================================== #}
             {# 訪問先 #}
             {# ======================================== #}
 
-            <div class="mb-2">
+            <div class="mb-3">
 
-                {% if card_type == "my" %}
+
+                {# ======================================== #}
+                {# locations_by_country がある場合 #}
+                {# ======================================== #}
+
+                {% if trip.locations_by_country %}
 
                     {% for country, regions in trip.locations_by_country.items %}
 
-                        <span class="badge bg-secondary mb-1">
+                        <span class="badge bg-secondary mb-1 me-1">
 
                             {{ country }}
 
                             {% if regions %}
                                 /
                             {% endif %}
+
 
                             {% for region in regions %}
 
@@ -117,36 +152,39 @@
 
                         </span>
 
-                    {% empty %}
-
-                        <span class="text-muted">
-                            訪問先未設定
-                        </span>
-
                     {% endfor %}
+
+
+                {# ======================================== #}
+                {# locations_by_country がない場合 #}
+                {# Locationモデルを直接使用 #}
+                {# ======================================== #}
 
                 {% else %}
 
                     {% for location in trip.locations.all %}
 
-                        <span class="badge bg-secondary mb-1">
+                        <span class="badge bg-secondary mb-1 me-1">
 
                             {{ location.country }}
 
                             {% if location.region %}
-
                                 /
                                 {{ location.region }}
-
                             {% endif %}
 
                         </span>
 
+
                     {% empty %}
 
-                        <span class="text-muted">
-                            訪問先未設定
-                        </span>
+                        {% if card_type == "my" %}
+
+                            <span class="text-muted small">
+                                訪問先未設定
+                            </span>
+
+                        {% endif %}
 
                     {% endfor %}
 
@@ -155,15 +193,100 @@
             </div>
 
 
+
+            {# ======================================== #}
+            {# カテゴリ #}
+            {# ======================================== #}
+
+            {% if trip.category %}
+
+                <div class="mb-2">
+
+                    <span class="badge bg-primary">
+                        {{ trip.category.name }}
+                    </span>
+
+                </div>
+
+
+            {% else %}
+
+                {% if card_type == "my" %}
+
+                    <div class="mb-2">
+
+                        <span class="text-muted small">
+                            カテゴリ未設定
+                        </span>
+
+                    </div>
+
+                {% endif %}
+
+            {% endif %}
+
+
+
+            {# ======================================== #}
+            {# ハッシュタグ #}
+            {# #}
+            {# 黒文字で統一 #}
+            {# ======================================== #}
+
+            {% with trip_hashtags=trip.trip_hashtags.all %}
+
+                {% if trip_hashtags %}
+
+                    <div class="mb-3">
+
+                        {% for trip_hashtag in trip_hashtags %}
+
+                            <span class="text-dark me-2">
+                                #{{ trip_hashtag.hashtag.name }}
+                            </span>
+
+                        {% endfor %}
+
+                    </div>
+
+
+                {% else %}
+
+                    {% if card_type == "my" %}
+
+                        <div class="mb-3">
+
+                            <span class="text-muted small">
+                                ハッシュタグ未設定
+                            </span>
+
+                        </div>
+
+                    {% endif %}
+
+                {% endif %}
+
+            {% endwith %}
+
+
+
             {# ======================================== #}
             {# My Trip専用情報 #}
             {# ======================================== #}
 
             {% if card_type == "my" %}
 
-                <p>
 
-                    ステータス：
+                {# ======================================== #}
+                {# ステータス #}
+                {# ======================================== #}
+
+                <div class="mb-2">
+
+                    <span class="me-1">
+                        ステータス：
+                    </span>
+
 
                     {% if trip.status == "draft" %}
 
@@ -171,38 +294,49 @@
                             作成中
                         </span>
 
+
                     {% elif trip.status == "planned" %}
 
-                        <span class="badge bg-info text-dark">
+                        <span class="badge bg-primary">
                             出発待ち
                         </span>
 
+
                     {% elif trip.status == "traveling" %}
 
-                        <span class="badge bg-warning text-dark">
+                        <span class="badge bg-success">
                             旅中
                         </span>
 
+
                     {% elif trip.status == "completed" %}
 
-                        <span class="badge bg-success">
+                        <span class="badge bg-dark">
                             旅完了
                         </span>
 
                     {% endif %}
 
-                </p>
+                </div>
 
+
+
+                {# ======================================== #}
+                {# 公開設定 #}
+                {# ======================================== #}
 
                 {% if trip.status == "completed" %}
 
-                    <p>
+                    <div class="mb-3">
 
-                        公開設定：
+                        <span class="me-1">
+                            公開設定：
+                        </span>
+
 
                         {% if trip.is_public %}
 
-                            <span class="badge bg-success">
+                            <span class="badge bg-info text-dark">
                                 公開
                             </span>
 
@@ -214,75 +348,90 @@
 
                         {% endif %}
 
-                    </p>
+                    </div>
 
                 {% endif %}
 
             {% endif %}
 
 
+
             {# ======================================== #}
-            {# 保存Trip専用情報 #}
+            {# みんなのTrip / 保存Trip専用情報 #}
             {# ======================================== #}
 
-            {% if card_type == "saved" %}
+            {% if card_type == "public" or card_type == "saved" %}
 
-                {% if trip.category %}
 
-                    <div class="mb-2">
+                {# ======================================== #}
+                {# 実費合計 #}
+                {# ======================================== #}
 
-                        <span class="badge bg-primary">
+                {% if trip.final_actual_total != None %}
 
-                            {{ trip.category.name }}
+                    <div class="mb-3">
 
+                        <span class="fw-bold">
+                            実費合計：
                         </span>
+
+                        {{ trip.final_actual_total|intcomma }}円
 
                     </div>
 
                 {% endif %}
 
 
-                <div class="mb-2">
 
-                    {% for trip_hashtag in trip.trip_hashtags.all %}
+                {# ======================================== #}
+                {# 感想 #}
+                {# ======================================== #}
 
-                        <span class="text-primary me-1">
+                {% if trip.overview %}
 
-                            #{{ trip_hashtag.hashtag.name }}
+                    <div class="mb-3">
 
-                        </span>
+                        <p class="fw-bold mb-2">
+                            感想
+                        </p>
 
-                    {% endfor %}
 
-                </div>
+                        <div
+                            class="
+                                border
+                                rounded
+                                px-3
+                                py-2
+                                overflow-hidden
+                            "
+                            style="
+                                height: 95px;
+                            "
+                        >
+
+                            <p class="card-text mb-0">
+                                {{ trip.overview|truncatechars:50 }}
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                {% endif %}
 
             {% endif %}
 
-
-            {# ======================================== #}
-            {# 概要・感想 #}
-            {# ======================================== #}
-
-            {% if trip.overview %}
-
-                <p class="card-text">
-
-                    {{ trip.overview|truncatechars:80 }}
-
-                </p>
-
-            {% endif %}
 
 
             {# ======================================== #}
             {# Trip詳細 #}
             {# ======================================== #}
 
-            <div class="mt-auto">
+            <div class="mt-auto pt-2">
 
                 <a
                     href="{% url 'trip_detail' trip.trip_id %}"
-                    class="btn btn-outline-primary"
+                    class="btn btn-primary"
                 >
                     Tripを見る
                 </a>

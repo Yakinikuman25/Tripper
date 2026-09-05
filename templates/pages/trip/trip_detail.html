@@ -27,6 +27,17 @@
 
 
 {# ======================================== #}
+{# 今日の日付 #}
+{# #}
+{# traveling時に #}
+{# 今日のDayを初期表示するために使用 #}
+{# ======================================== #}
+
+{% now "Y-m-d" as today_date %}
+
+
+
+{# ======================================== #}
 {# Trip基本情報 #}
 {# ======================================== #}
 
@@ -35,7 +46,7 @@
 
 
 {# ======================================== #}
-{# Trip保存・保存解除 #}
+{# Trip保存・保存解除・再利用 #}
 {# ======================================== #}
 
 {% include "pages/trip/includes/trip_save_button.html" %}
@@ -58,41 +69,246 @@
 {# 費用サマリー #}
 {# ======================================== #}
 
-{% include "pages/trip/includes/trip_cost_summary.html" %}
+{% if has_planned_cost or has_final_actual_cost %}
 
+    {% include "pages/trip/includes/trip_cost_summary.html" %}
 
+    <hr>
 
-<hr>
-
-
-
-{# ======================================== #}
-{# Trip全体費用 #}
-{# ======================================== #}
-
-{% include "pages/trip/includes/trip_expenses.html" %}
-
-
-
-<hr>
+{% endif %}
 
 
 
 {# ======================================== #}
-{# Day一覧 #}
+{# Trip内容 #}
+{# #}
+{# 全体費用 + Day #}
 {# ======================================== #}
 
-{% for day in days %}
+{% if days or trip.user == request.user or trip_expenses %}
 
-    {% include "pages/trip/includes/day_card.html" %}
+    <div
+        id="trip-content-tabs"
+        class="trip-content-tabs-wrapper"
+        data-trip-status="{{ trip.status }}"
+    >
 
-{% empty %}
 
-    <p>
-        Dayがありません。
-    </p>
+        {# ======================================== #}
+        {# 左ボタン + タブ一覧 + 右ボタン #}
+        {# ======================================== #}
 
-{% endfor %}
+        <div class="trip-content-tabs-navigation">
+
+
+            {# ======================================== #}
+            {# 左へスクロール #}
+            {# ======================================== #}
+
+            <button
+                type="button"
+                id="trip-tabs-scroll-left"
+                class="btn btn-outline-secondary trip-content-tabs-scroll-button"
+                aria-label="前のDayを表示"
+                title="前のDayを表示"
+                disabled
+            >
+                &lsaquo;
+            </button>
+
+
+
+            {# ======================================== #}
+            {# 横スクロールするタブ一覧 #}
+            {# ======================================== #}
+
+            <div
+                id="trip-content-tabs-scroll"
+                class="trip-content-tabs"
+                role="tablist"
+                aria-label="Trip内容"
+            >
+
+
+                {# ======================================== #}
+                {# 全体費用タブ #}
+                {# ======================================== #}
+
+                {% if trip.user == request.user or trip_expenses %}
+
+                    <button
+                        type="button"
+                        id="trip-expenses-tab"
+                        class="
+                            trip-content-tab-button
+                            trip-expense-tab
+                            {% if not days %}active{% endif %}
+                        "
+                        data-trip-content-tab
+                        data-trip-expense-tab="true"
+                        data-target="trip-expenses-panel"
+                        role="tab"
+                        aria-controls="trip-expenses-panel"
+                        aria-selected="{% if not days %}true{% else %}false{% endif %}"
+                        tabindex="{% if not days %}0{% else %}-1{% endif %}"
+                    >
+
+                        <span class="trip-content-tab-expense-label">
+                            全体費用
+                        </span>
+
+                    </button>
+
+                {% endif %}
+
+
+
+                {# ======================================== #}
+                {# Dayタブ #}
+                {# ======================================== #}
+
+                {% for day in days %}
+
+                    <button
+                        type="button"
+                        id="day-tab-{{ day.day_id }}"
+                        class="
+                            trip-content-tab-button
+                            {% if forloop.first %}active{% endif %}
+                        "
+                        data-trip-content-tab
+                        data-day-id="{{ day.day_id }}"
+                        data-target="day-panel-{{ day.day_id }}"
+                        data-is-today="{% if day.date|date:'Y-m-d' == today_date %}true{% else %}false{% endif %}"
+                        role="tab"
+                        aria-controls="day-panel-{{ day.day_id }}"
+                        aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+                        tabindex="{% if forloop.first %}0{% else %}-1{% endif %}"
+                    >
+
+
+                        <span class="trip-content-tab-day-number">
+                            Day {{ day.day_order }}
+                        </span>
+
+
+                        <span class="trip-content-tab-date">
+                            {{ day.date|date:"n/j" }}
+                        </span>
+
+
+                        <span
+                            class="trip-content-tab-title"
+                            title="{% if day.title %}{{ day.title }}{% else %}タイトル未設定{% endif %}"
+                        >
+
+                            {% if day.title %}
+
+                                {{ day.title }}
+
+                            {% else %}
+
+                                タイトル未設定
+
+                            {% endif %}
+
+                        </span>
+
+                    </button>
+
+                {% endfor %}
+
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# 右へスクロール #}
+            {# ======================================== #}
+
+            <button
+                type="button"
+                id="trip-tabs-scroll-right"
+                class="btn btn-outline-secondary trip-content-tabs-scroll-button"
+                aria-label="次のDayを表示"
+                title="次のDayを表示"
+            >
+                &rsaquo;
+            </button>
+
+
+        </div>
+
+    </div>
+
+
+
+    {# ======================================== #}
+    {# タブ内容 #}
+    {# ======================================== #}
+
+    <div class="trip-content-panels">
+
+
+        {# ======================================== #}
+        {# 全体費用 #}
+        {# ======================================== #}
+
+        {% if trip.user == request.user or trip_expenses %}
+
+            <section
+                id="trip-expenses-panel"
+                class="trip-content-panel"
+                data-trip-content-panel
+                role="tabpanel"
+                aria-labelledby="trip-expenses-tab"
+                {% if days %}hidden{% endif %}
+            >
+
+                {% include "pages/trip/includes/trip_expenses.html" %}
+
+            </section>
+
+        {% endif %}
+
+
+
+        {# ======================================== #}
+        {# Day一覧 #}
+        {# ======================================== #}
+
+        {% for day in days %}
+
+            <section
+                id="day-panel-{{ day.day_id }}"
+                class="trip-content-panel"
+                data-trip-content-panel
+                role="tabpanel"
+                aria-labelledby="day-tab-{{ day.day_id }}"
+                {% if not forloop.first %}hidden{% endif %}
+            >
+
+                {% include "pages/trip/includes/day_card.html" %}
+
+            </section>
+
+
+        {% empty %}
+
+            {% if trip.user == request.user %}
+
+                <p class="text-muted mt-3 mb-0">
+                    Dayがありません。
+                </p>
+
+            {% endif %}
+
+        {% endfor %}
+
+    </div>
+
+{% endif %}
 
 
 {% endblock %}

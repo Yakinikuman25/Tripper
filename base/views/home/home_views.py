@@ -2,18 +2,32 @@ from django.views.generic import TemplateView
 
 from base.models import Trip
 
+from base.views.trip.trip_services import (
+    prepare_trip_card_data,
+    sync_trip_status,
+)
+
 
 class HomeView(TemplateView):
 
     template_name = "pages/home.html"
 
-    def get_context_data(self, **kwargs):
 
-        context = super().get_context_data(**kwargs)
+    def get_context_data(
+        self,
+        **kwargs
+    ):
 
-        # -------------------------
+        context = (
+            super().get_context_data(
+                **kwargs
+            )
+        )
+
+
+        # =====================================
         # My Trip
-        # -------------------------
+        # =====================================
 
         if self.request.user.is_authenticated:
 
@@ -34,13 +48,16 @@ class HomeView(TemplateView):
                 )
             )
 
+
             my_trip_count = (
                 my_trip_queryset.count()
             )
 
+
             my_trips = (
                 my_trip_queryset[:3]
             )
+
 
         else:
 
@@ -49,9 +66,10 @@ class HomeView(TemplateView):
             my_trip_count = 0
 
 
-        # -------------------------
+
+        # =====================================
         # 公開されている旅完了Trip
-        # -------------------------
+        # =====================================
 
         public_trip_queryset = (
             Trip.objects
@@ -67,100 +85,82 @@ class HomeView(TemplateView):
             .prefetch_related(
                 "locations",
                 "trip_hashtags__hashtag",
+                "trip_expenses",
+                "days__day_expenses",
+                "days__schedules",
             )
             .order_by(
                 "-created_at"
             )
         )
 
+
         public_trip_count = (
             public_trip_queryset.count()
         )
+
 
         public_trips = (
             public_trip_queryset[:6]
         )
 
 
-        # -------------------------
-        # My Tripごとの訪問先を
-        # 国ごとにまとめる
-        # -------------------------
+
+        # =====================================
+        # My Tripのカード表示用データを設定
+        # =====================================
 
         for trip in my_trips:
 
-            locations_by_country = {}
 
-            for location in trip.locations.all():
+            # =====================================
+            # 現在の日付に合わせて
+            # Tripステータスを更新
+            # =====================================
 
-                if (
-                    location.country
-                    not in locations_by_country
-                ):
-
-                    locations_by_country[
-                        location.country
-                    ] = []
-
-                if (
-                    location.region
-                    not in locations_by_country[
-                        location.country
-                    ]
-                ):
-
-                    locations_by_country[
-                        location.country
-                    ].append(
-                        location.region
-                    )
-
-            trip.locations_by_country = (
-                locations_by_country
+            sync_trip_status(
+                trip
             )
 
 
-        # -------------------------
-        # 公開Tripごとの訪問先を
-        # 国ごとにまとめる
-        # -------------------------
+            # =====================================
+            # 共通Tripカード用データ
+            #
+            # ・旅行日数
+            # ・国ごとにまとめた訪問先
+            # =====================================
+
+            prepare_trip_card_data(
+                trip
+            )
+
+
+
+        # =====================================
+        # 公開Tripのカード表示用データを設定
+        # =====================================
 
         for trip in public_trips:
 
-            locations_by_country = {}
 
-            for location in trip.locations.all():
+            # =====================================
+            # 共通Tripカード用データ
+            #
+            # ・旅行日数
+            # ・国ごとにまとめた訪問先
+            # ・実費合計
+            # =====================================
 
-                if (
-                    location.country
-                    not in locations_by_country
-                ):
-
-                    locations_by_country[
-                        location.country
-                    ] = []
-
-                if (
-                    location.region
-                    not in locations_by_country[
-                        location.country
-                    ]
-                ):
-
-                    locations_by_country[
-                        location.country
-                    ].append(
-                        location.region
-                    )
-
-            trip.locations_by_country = (
-                locations_by_country
+            prepare_trip_card_data(
+                trip,
+                include_actual_total=True,
             )
 
 
-        # -------------------------
+
+        # =====================================
         # Context
-        # -------------------------
+        # =====================================
 
         context["my_trips"] = (
             my_trips
@@ -177,5 +177,6 @@ class HomeView(TemplateView):
         context["public_trip_count"] = (
             public_trip_count
         )
+
 
         return context

@@ -1,34 +1,6 @@
-{% if trip.main_media %}
-
-    <div class="mb-4">
-
-        <img
-            src="{{ trip.main_media.url }}"
-            alt="{{ trip.title }}"
-            class="img-fluid w-100 rounded trip-main-image"
-        >
-
-    </div>
-
-{% endif %}
-
-
-{% if trip.overview %}
-
-    <div class="mb-4">
-
-        <h3>
-            旅の感想
-        </h3>
-
-        <p>
-            {{ trip.overview|linebreaksbr }}
-        </p>
-
-    </div>
-
-{% endif %}
-
+{# ======================================== #}
+{# Tripタイトル #}
+{# ======================================== #}
 
 <h1 class="mb-3">
     {{ trip.title }}
@@ -48,6 +20,7 @@
             参考：
         </span>
 
+
         {% include "snippets/user_mini_profile.html" with display_user=trip.source_user %}
 
     </div>
@@ -56,13 +29,17 @@
 
 
 
+{# ======================================== #}
+{# ハッシュタグ #}
+{# ======================================== #}
+
 {% if trip_hashtags %}
 
     <div class="mb-3">
 
         {% for trip_hashtag in trip_hashtags %}
 
-            <span class="badge bg-primary me-1">
+            <span class="badge bg-primary me-1 mb-1">
                 #{{ trip_hashtag.hashtag.name }}
             </span>
 
@@ -73,59 +50,150 @@
 {% endif %}
 
 
-<p>
-    カテゴリ：
 
-    {% if trip.category %}
+{# ======================================== #}
+{# カテゴリ #}
+{# ======================================== #}
 
-        {{ trip.category }}
+{% if trip.category %}
 
-    {% else %}
+    <p class="mb-2">
 
-        未設定
+        <strong>
+            カテゴリ：
+        </strong>
 
-    {% endif %}
-</p>
+        {{ trip.category.name }}
+
+    </p>
+
+{% elif trip.user == request.user %}
+
+    <p class="mb-2 text-muted">
+        カテゴリはまだ設定されていません。
+    </p>
+
+{% endif %}
 
 
-<p id="trip-period-line">
-    旅行期間：
-    {{ trip.start_date }}
+
+{# ======================================== #}
+{# 旅行期間 #}
+{# ======================================== #}
+
+<p
+    id="trip-period-line"
+    class="mb-3"
+>
+
+    <strong>
+        旅行期間：
+    </strong>
+
+    {{ trip.start_date|date:"Y年n月j日" }}
     ～
-    {{ trip.end_date }}
+    {{ trip.end_date|date:"Y年n月j日" }}
+
 </p>
 
 
-<h3>
-    訪問先
-</h3>
+
+{# ======================================== #}
+{# 代表写真 #}
+{# ======================================== #}
+
+{% if trip.main_media %}
+
+    <div class="mb-4">
+
+        <img
+            src="{{ trip.main_media.url }}"
+            alt="{{ trip.title }}"
+            class="img-fluid w-100 rounded trip-main-image"
+        >
+
+    </div>
+
+{% endif %}
 
 
-{% for country, regions in locations_by_country.items %}
 
-    <p>
+{# ======================================== #}
+{# 旅の感想 #}
+{# ======================================== #}
 
-        {{ country }}：
+{% if trip.overview %}
 
-        {% for region in regions %}
+    <div class="mb-4">
 
-            {{ region }}
+        <h3 class="mb-3">
+            旅の感想
+        </h3>
 
-            {% if not forloop.last %}
-                ・
+
+        <p class="mb-0">
+            {{ trip.overview|linebreaksbr }}
+        </p>
+
+    </div>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# 訪問先 #}
+{# ======================================== #}
+
+<div class="mb-4">
+
+    <h3 class="mb-3">
+        訪問先
+    </h3>
+
+
+    {% for country, regions in locations_by_country.items %}
+
+        <p class="mb-2">
+
+            <strong>
+                {{ country }}
+            </strong>
+
+
+            {% if regions %}
+
+                ：
+
+                {% for region in regions %}
+
+                    {{ region }}
+
+                    {% if not forloop.last %}
+                        ・
+                    {% endif %}
+
+                {% endfor %}
+
             {% endif %}
 
-        {% endfor %}
+        </p>
 
-    </p>
 
-{% empty %}
+    {% empty %}
 
-    <p>
-        まだ訪問先が登録されていません。
-    </p>
+        {% if trip.user == request.user %}
 
-{% endfor %}
+            <p class="text-muted mb-0">
+                まだ訪問先が登録されていません。
+            </p>
+
+        {% endif %}
+
+    {% endfor %}
+
+</div>
+
 
 
 {# ======================================== #}
@@ -136,7 +204,7 @@
 
     <div class="mb-4">
 
-        <h3>
+        <h3 class="mb-3">
             旅行ルート
         </h3>
 
@@ -148,13 +216,22 @@
 
             {% for route in trip_route %}
 
-                <span
-                    class="d-inline-flex align-items-center trip-route-item"
-                >
+                <span class="d-inline-flex align-items-center trip-route-item">
 
                     <strong>
-                        {{ route.location.region }}
+
+                        {% if route.location.region %}
+
+                            {{ route.location.region }}
+
+                        {% else %}
+
+                            {{ route.location.country }}
+
+                        {% endif %}
+
                     </strong>
+
 
                     <span>
                         （{{ route.date|date:"n/j" }}）
@@ -183,17 +260,20 @@
 
 {# ======================================== #}
 {# Tripメモ #}
+{# #}
+{# 所有者のみ表示 #}
 {# ======================================== #}
 
 {% if trip.user == request.user and trip.memo %}
 
     <div class="mb-4">
 
-        <h3>
+        <h3 class="mb-3">
             メモ
         </h3>
 
-        <p>
+
+        <p class="mb-0">
             {{ trip.memo|linebreaksbr }}
         </p>
 
@@ -211,19 +291,21 @@
 
     <div class="mb-4">
 
-        <h3>
+        <h3 class="mb-3">
             参考URL
         </h3>
 
+
         {% for reference_url in trip_reference_urls %}
 
-            <p class="mb-1">
+            <p class="mb-1 text-break">
 
                 {% if reference_url.title %}
 
                     {{ reference_url.title }}：
 
                 {% endif %}
+
 
                 <a
                     href="{{ reference_url.url }}"

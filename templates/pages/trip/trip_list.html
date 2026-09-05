@@ -36,6 +36,9 @@ My Trip | Tripper
 
 {# ======================================== #}
 {# My Trip一覧 #}
+{# #}
+{# Tripカード本体は #}
+{# trip_list_card.html で一元管理 #}
 {# ======================================== #}
 
 <div class="row">
@@ -44,20 +47,32 @@ My Trip | Tripper
 
         {% include "pages/trip/includes/trip_list_card.html" with card_type="my" %}
 
+
     {% empty %}
 
         <div class="col-12">
 
-            <p>
-                まだTripがありません。
-            </p>
+            <div class="text-center py-5">
 
-            <a
-                href="{% url 'trip_create' %}"
-                class="btn btn-primary"
-            >
-                最初のTripを作成
-            </a>
+                <h2 class="h5 mb-3">
+                    まだTripがありません。
+                </h2>
+
+
+                <p class="text-muted mb-4">
+                    最初のTripを作成して、
+                    旅行の予定を記録してみましょう。
+                </p>
+
+
+                <a
+                    href="{% url 'trip_create' %}"
+                    class="btn btn-primary"
+                >
+                    ＋ 最初のTripを作成
+                </a>
+
+            </div>
 
         </div>
 

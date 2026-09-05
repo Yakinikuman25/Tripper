@@ -1,44 +1,74 @@
 {% extends "base.html" %}
 
+
 {% block title %}
 スケジュール追加 | Tripper
 {% endblock %}
 
+
 {% block main %}
 
 
-<h1>
+<h1 class="mb-3">
     スケジュール追加
 </h1>
 
 
-<h2>
+<h2 class="mb-2">
     Day {{ day.day_order }}
 </h2>
 
 
-<p>
+<p class="mb-4">
     日付：
     {{ day.date }}
 </p>
 
+
+
+{# ======================================== #}
+{# 入力エラー #}
+{# ======================================== #}
+
+{% if form.errors or reference_url_formset.total_error_count %}
+
+    <div class="alert alert-danger">
+        入力内容を確認してください。
+    </div>
+
+{% endif %}
+
+
+
+{# ======================================== #}
+{# スケジュール追加フォーム #}
+{# ======================================== #}
 
 <form method="post">
 
     {% csrf_token %}
 
 
+    {# ======================================== #}
+    {# フォーム全体エラー #}
+    {# ======================================== #}
+
     {% if form.non_field_errors %}
 
-        {% for error in form.non_field_errors %}
+        <div class="alert alert-danger">
 
-            <p class="text-danger">
-                {{ error }}
-            </p>
+            {% for error in form.non_field_errors %}
 
-        {% endfor %}
+                <div>
+                    {{ error }}
+                </div>
+
+            {% endfor %}
+
+        </div>
 
     {% endif %}
+
 
 
     {# ======================================== #}
@@ -54,17 +84,28 @@
             開始時間
         </label>
 
+
         {{ form.start_time }}
 
-        {% for error in form.start_time.errors %}
 
-            <p class="text-danger mb-0">
-                {{ error }}
-            </p>
+        {% if form.start_time.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.start_time.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
 
     </div>
+
 
 
     {# ======================================== #}
@@ -80,23 +121,34 @@
             終了時間
         </label>
 
+
         {{ form.end_time }}
 
-        {% for error in form.end_time.errors %}
 
-            <p class="text-danger mb-0">
-                {{ error }}
-            </p>
+        {% if form.end_time.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.end_time.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
 
 
-        <p class="text-muted small mt-1 mb-0">
+        <div class="form-text">
             終了時間は任意です。
             開始時間だけ入力することもできます。
-        </p>
+        </div>
 
     </div>
+
 
 
     {# ======================================== #}
@@ -112,17 +164,28 @@
             スケジュール名
         </label>
 
+
         {{ form.name }}
 
-        {% for error in form.name.errors %}
 
-            <p class="text-danger mb-0">
-                {{ error }}
-            </p>
+        {% if form.name.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.name.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
 
     </div>
+
 
 
     {# ======================================== #}
@@ -138,23 +201,34 @@
             予定金額
         </label>
 
+
         {{ form.planned_amount }}
 
-        {% for error in form.planned_amount.errors %}
 
-            <p class="text-danger mb-0">
-                {{ error }}
-            </p>
+        {% if form.planned_amount.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.planned_amount.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
 
 
-        <p class="text-muted small mt-1 mb-0">
+        <div class="form-text">
             このスケジュールにかかる予定金額を入力してください。
             金額が未定の場合は空欄でも構いません。
-        </p>
+        </div>
 
     </div>
+
 
 
     {# ======================================== #}
@@ -170,24 +244,35 @@
             実際支払額
         </label>
 
+
         {{ form.actual_amount }}
 
-        {% for error in form.actual_amount.errors %}
 
-            <p class="text-danger mb-0">
-                {{ error }}
-            </p>
+        {% if form.actual_amount.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.actual_amount.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
 
 
-        <p class="text-muted small mt-1 mb-0">
+        <div class="form-text">
             予約・事前決済などですでに支払った場合に入力してください。
             まだ支払っていない場合は空欄で構いません。
             予定金額が空欄の場合は、実際支払額を予定金額としても登録します。
-        </p>
+        </div>
 
     </div>
+
 
 
     {# ======================================== #}
@@ -203,17 +288,28 @@
             メモ
         </label>
 
+
         {{ form.memo }}
 
-        {% for error in form.memo.errors %}
 
-            <p class="text-danger mb-0">
-                {{ error }}
-            </p>
+        {% if form.memo.errors %}
 
-        {% endfor %}
+            <div class="text-danger small mt-1">
+
+                {% for error in form.memo.errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
 
     </div>
+
 
 
     {# ======================================== #}
@@ -223,41 +319,37 @@
 
     <div class="mb-4">
 
-        {# ==================================== #}
-        {# FormSetでは必須 #}
-        {# ==================================== #}
-
         {{ reference_url_formset.management_form }}
 
 
         {% if reference_url_formset.non_form_errors %}
 
-            {% for error in reference_url_formset.non_form_errors %}
+            <div class="alert alert-danger">
 
-                <p class="text-danger">
-                    {{ error }}
-                </p>
+                {% for error in reference_url_formset.non_form_errors %}
 
-            {% endfor %}
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
 
         {% endif %}
 
 
-        {# ==================================== #}
-        {# 現在表示されているURLフォーム #}
-        {# ==================================== #}
+
+        {# ======================================== #}
+        {# 現在表示されている参考URLフォーム #}
+        {# ======================================== #}
 
         <div id="reference-url-forms">
 
             {% for url_form in reference_url_formset %}
 
-                <div
-                    class="reference-url-form mb-3"
-                >
+                <div class="reference-url-form mb-3">
 
-                    {# ------------------------- #}
-                    {# hiddenフィールド #}
-                    {# ------------------------- #}
 
                     {% for hidden in url_form.hidden_fields %}
 
@@ -266,9 +358,27 @@
                     {% endfor %}
 
 
-                    {# ------------------------- #}
+                    {% if url_form.non_field_errors %}
+
+                        <div class="text-danger small mb-2">
+
+                            {% for error in url_form.non_field_errors %}
+
+                                <div>
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
+
+
+
+                    {# ======================================== #}
                     {# 参考URL名 #}
-                    {# ------------------------- #}
+                    {# ======================================== #}
 
                     <div class="mb-2">
 
@@ -279,22 +389,33 @@
                             参考URL名
                         </label>
 
+
                         {{ url_form.title }}
 
-                        {% for error in url_form.title.errors %}
 
-                            <p class="text-danger mb-0">
-                                {{ error }}
-                            </p>
+                        {% if url_form.title.errors %}
 
-                        {% endfor %}
+                            <div class="text-danger small mt-1">
+
+                                {% for error in url_form.title.errors %}
+
+                                    <div>
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
 
                     </div>
 
 
-                    {# ------------------------- #}
+
+                    {# ======================================== #}
                     {# URL #}
-                    {# ------------------------- #}
+                    {# ======================================== #}
 
                     <div class="mb-2">
 
@@ -305,41 +426,56 @@
                             URL
                         </label>
 
+
                         {{ url_form.url }}
 
-                        {% for error in url_form.url.errors %}
 
-                            <p class="text-danger mb-0">
-                                {{ error }}
-                            </p>
+                        {% if url_form.url.errors %}
 
-                        {% endfor %}
+                            <div class="text-danger small mt-1">
+
+                                {% for error in url_form.url.errors %}
+
+                                    <div>
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
 
                     </div>
 
 
-                    {# ------------------------- #}
-                    {# 削除 #}
-                    {# ------------------------- #}
+
+                    {# ======================================== #}
+                    {# DELETEフィールド #}
+                    {# ======================================== #}
 
                     <div
                         class="delete-field"
                         style="display: none;"
                     >
-
                         {{ url_form.DELETE }}
-
                     </div>
 
 
-                    <div class="d-flex gap-2">
+
+                    {# ======================================== #}
+                    {# 登録・削除 #}
+                    {# ======================================== #}
+
+                    <div class="d-flex flex-wrap gap-2">
 
                         <button
                             type="button"
-                            class="btn btn-outline-primary btn-sm register-reference-url"
+                            class="btn btn-primary btn-sm register-reference-url"
                         >
                             登録
                         </button>
+
 
                         <button
                             type="button"
@@ -357,15 +493,14 @@
         </div>
 
 
-        {# ==================================== #}
+
+        {# ======================================== #}
         {# JavaScript追加用の空フォーム #}
-        {# ==================================== #}
+        {# ======================================== #}
 
         <template id="empty-reference-url-form">
 
-            <div
-                class="reference-url-form mb-3"
-            >
+            <div class="reference-url-form mb-3">
 
                 {% for hidden in reference_url_formset.empty_form.hidden_fields %}
 
@@ -400,20 +535,19 @@
                     class="delete-field"
                     style="display: none;"
                 >
-
                     {{ reference_url_formset.empty_form.DELETE }}
-
                 </div>
 
 
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
 
                     <button
                         type="button"
-                        class="btn btn-outline-primary btn-sm register-reference-url"
+                        class="btn btn-primary btn-sm register-reference-url"
                     >
                         登録
                     </button>
+
 
                     <button
                         type="button"
@@ -429,10 +563,15 @@
         </template>
 
 
+
+        {# ======================================== #}
+        {# 参考URL追加 #}
+        {# ======================================== #}
+
         <button
             type="button"
             id="add-reference-url"
-            class="btn btn-outline-primary"
+            class="btn btn-primary btn-sm"
         >
             ＋ 参考URL
         </button>
@@ -440,44 +579,45 @@
     </div>
 
 
+
     {# ======================================== #}
-    {# スケジュール登録 #}
+    {# スケジュール追加 #}
     {# ======================================== #}
 
-    <button
-        type="submit"
-        class="btn btn-primary"
-    >
-        追加
-    </button>
+    <div class="d-flex flex-wrap gap-2 mb-4">
 
+        <button
+            type="submit"
+            class="btn btn-primary"
+        >
+            スケジュールを追加
+        </button>
+
+
+        {% if trip.status == "draft" %}
+
+            <a
+                href="{% url 'trip_detail' trip.trip_id %}#day-{{ day.day_id }}"
+                class="btn btn-outline-secondary"
+            >
+                戻る
+            </a>
+
+        {% else %}
+
+            <a
+                href="{% url 'trip_detail' trip.trip_id %}?edit=1#day-{{ day.day_id }}"
+                class="btn btn-outline-secondary"
+            >
+                戻る
+            </a>
+
+        {% endif %}
+
+    </div>
 
 </form>
 
-
-{# ======================================== #}
-{# 戻る #}
-{# ======================================== #}
-
-{% if trip.status == "draft" %}
-
-    <a
-        href="{% url 'trip_detail' trip.trip_id %}#day-{{ day.day_id }}"
-        class="btn btn-outline-secondary mt-3"
-    >
-        戻る
-    </a>
-
-{% else %}
-
-    <a
-        href="{% url 'trip_detail' trip.trip_id %}?edit=1#day-{{ day.day_id }}"
-        class="btn btn-outline-secondary mt-3"
-    >
-        戻る
-    </a>
-
-{% endif %}
 
 
 {# ======================================== #}
@@ -511,9 +651,21 @@
                 );
 
 
-            // =====================================
+            if (
+                !formContainer
+                || !addButton
+                || !emptyFormTemplate
+                || !totalFormsInput
+            ) {
+
+                return;
+            }
+
+
+
+            // ========================================
             // 参考URLを追加
-            // =====================================
+            // ========================================
 
             addButton.addEventListener(
                 "click",
@@ -546,9 +698,10 @@
             );
 
 
-            // =====================================
+
+            // ========================================
             // 参考URLの登録・削除
-            // =====================================
+            // ========================================
 
             formContainer.addEventListener(
                 "click",
@@ -566,9 +719,10 @@
                     }
 
 
-                    // =================================
+
+                    // ========================================
                     // 参考URLを登録状態にする
-                    // =================================
+                    // ========================================
 
                     if (
                         event.target.classList.contains(
@@ -595,24 +749,35 @@
                         }
 
 
-                        // -------------------------
-                        // 「登録」を押しても入力欄は
-                        // 編集可能なままにする
+                        // ====================================
+                        // DB保存は最後の
+                        // 「スケジュールを追加」で行う
                         //
-                        // DBへの保存は最後の
-                        // 「追加」で行う
-                        // -------------------------
+                        // ここでは入力内容の
+                        // 登録状態だけを表示する
+                        // ====================================
 
                         event.target.textContent =
                             "登録済み";
+
+
+                        event.target.classList.remove(
+                            "btn-primary"
+                        );
+
+                        event.target.classList.add(
+                            "btn-outline-secondary"
+                        );
+
 
                         return;
                     }
 
 
-                    // =================================
+
+                    // ========================================
                     // 参考URLを削除
-                    // =================================
+                    // ========================================
 
                     if (
                         !event.target.classList.contains(
@@ -643,10 +808,11 @@
             );
 
 
-            // =====================================
+
+            // ========================================
             // 登録後に内容を変更した場合
-            // 表示を「登録」に戻す
-            // =====================================
+            // 「登録済み」から「登録」に戻す
+            // ========================================
 
             formContainer.addEventListener(
                 "input",
@@ -683,11 +849,20 @@
                     if (
                         registerButton
                         && registerButton.textContent.trim()
-                        === "登録済み"
+                            === "登録済み"
                     ) {
 
                         registerButton.textContent =
                             "登録";
+
+
+                        registerButton.classList.remove(
+                            "btn-outline-secondary"
+                        );
+
+                        registerButton.classList.add(
+                            "btn-primary"
+                        );
                     }
                 }
             );

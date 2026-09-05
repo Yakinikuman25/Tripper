@@ -9,23 +9,20 @@
 {% block main %}
 
 
-
 {# ======================================== #}
 {# タイトル #}
 {# ======================================== #}
 
 <div class="mb-4">
 
-
-    <h1>
+    <h1 class="mb-2">
         みんなのTrip
     </h1>
 
 
-    <p class="text-muted">
+    <p class="text-muted mb-0">
         みんなが公開しているTripを見ることができます。
     </p>
-
 
 </div>
 
@@ -37,15 +34,36 @@
 
 <div class="card shadow-sm mb-5">
 
-
     <div class="card-body">
 
-
-        <h5 class="card-title mb-4">
-
+        <h2 class="h5 card-title mb-4">
             Tripを検索・絞り込み
+        </h2>
 
-        </h5>
+
+
+        {# ======================================== #}
+        {# 入力エラー #}
+        {# ======================================== #}
+
+        {% if filter_errors %}
+
+            <div
+                class="alert alert-danger"
+                role="alert"
+            >
+
+                {% for error in filter_errors %}
+
+                    <div>
+                        {{ error }}
+                    </div>
+
+                {% endfor %}
+
+            </div>
+
+        {% endif %}
 
 
 
@@ -58,14 +76,11 @@
 
             <div class="mb-3">
 
-
                 <label
                     for="q"
                     class="form-label"
                 >
-
                     キーワード
-
                 </label>
 
 
@@ -74,10 +89,9 @@
                     class="form-control"
                     id="q"
                     name="q"
-                    value="{{ request.GET.q }}"
+                    value="{{ request.GET.q|default_if_none:'' }}"
                     placeholder="国・地域・タイトル・カテゴリ・ハッシュタグ・感想など"
                 >
-
 
             </div>
 
@@ -89,17 +103,13 @@
 
             <div class="row mb-3">
 
-
                 <div class="col-md-6 mb-3 mb-md-0">
-
 
                     <label
                         for="category"
                         class="form-label"
                     >
-
                         カテゴリ
-
                     </label>
 
 
@@ -109,16 +119,12 @@
                         name="category"
                     >
 
-
                         <option value="">
-
                             すべてのカテゴリ
-
                         </option>
 
 
                         {% for category in categories %}
-
 
                             <option
                                 value="{{ category.category_id }}"
@@ -126,17 +132,12 @@
                                     selected
                                 {% endif %}
                             >
-
                                 {{ category.name }}
-
                             </option>
-
 
                         {% endfor %}
 
-
                     </select>
-
 
                 </div>
 
@@ -144,14 +145,11 @@
 
                 <div class="col-md-6">
 
-
                     <label
                         for="hashtag"
                         class="form-label"
                     >
-
                         ハッシュタグ
-
                     </label>
 
 
@@ -160,13 +158,11 @@
                         class="form-control"
                         id="hashtag"
                         name="hashtag"
-                        value="{{ request.GET.hashtag }}"
+                        value="{{ request.GET.hashtag|default_if_none:'' }}"
                         placeholder="例：登山"
                     >
 
-
                 </div>
-
 
             </div>
 
@@ -178,219 +174,173 @@
 
             <div class="mb-3">
 
-
                 <label class="form-label">
-
                     旅行日数
-
                 </label>
 
 
                 <div class="row align-items-center">
 
-
                     <div class="col-md-5">
-
 
                         <div class="input-group">
 
-
                             <span class="input-group-text">
-
                                 最低
-
                             </span>
 
 
                             <input
                                 type="number"
                                 class="form-control"
+                                id="min-days"
                                 name="min_days"
-                                value="{{ request.GET.min_days }}"
+                                value="{{ request.GET.min_days|default_if_none:'' }}"
                                 min="1"
                                 placeholder="1"
+                                aria-label="最低旅行日数"
                             >
 
 
                             <span class="input-group-text">
-
                                 日
-
                             </span>
-
 
                         </div>
 
-
                     </div>
-
 
 
                     <div class="col-md-2 text-center my-2 my-md-0">
-
                         ～
-
                     </div>
-
 
 
                     <div class="col-md-5">
 
-
                         <div class="input-group">
 
-
                             <span class="input-group-text">
-
                                 最高
-
                             </span>
 
 
                             <input
                                 type="number"
                                 class="form-control"
+                                id="max-days"
                                 name="max_days"
-                                value="{{ request.GET.max_days }}"
+                                value="{{ request.GET.max_days|default_if_none:'' }}"
                                 min="1"
                                 placeholder="10"
+                                aria-label="最高旅行日数"
                             >
 
 
                             <span class="input-group-text">
-
                                 日
-
                             </span>
-
 
                         </div>
 
-
                     </div>
-
 
                 </div>
 
 
                 <div class="form-text">
-
-                    最低だけ入力するとその日数以上、最高だけ入力するとその日数以下で検索します。
-
+                    最低だけ入力するとその日数以上、
+                    最高だけ入力するとその日数以下で検索します。
                 </div>
-
 
             </div>
 
 
 
             {# ======================================== #}
-            {# 費用 #}
+            {# 実費合計 #}
             {# ======================================== #}
 
             <div class="mb-3">
 
-
                 <label class="form-label">
-
-                    実際の合計費用
-
+                    実費合計
                 </label>
 
 
                 <div class="row align-items-center">
 
-
                     <div class="col-md-5">
-
 
                         <div class="input-group">
 
-
                             <span class="input-group-text">
-
                                 最低
-
                             </span>
 
 
                             <input
                                 type="number"
                                 class="form-control"
+                                id="min-cost"
                                 name="min_cost"
-                                value="{{ request.GET.min_cost }}"
+                                value="{{ request.GET.min_cost|default_if_none:'' }}"
                                 min="0"
                                 placeholder="30000"
+                                aria-label="最低実費合計"
                             >
 
 
                             <span class="input-group-text">
-
                                 円
-
                             </span>
-
 
                         </div>
 
-
                     </div>
-
 
 
                     <div class="col-md-2 text-center my-2 my-md-0">
-
                         ～
-
                     </div>
-
 
 
                     <div class="col-md-5">
 
-
                         <div class="input-group">
 
-
                             <span class="input-group-text">
-
                                 最高
-
                             </span>
 
 
                             <input
                                 type="number"
                                 class="form-control"
+                                id="max-cost"
                                 name="max_cost"
-                                value="{{ request.GET.max_cost }}"
+                                value="{{ request.GET.max_cost|default_if_none:'' }}"
                                 min="0"
                                 placeholder="100000"
+                                aria-label="最高実費合計"
                             >
 
 
                             <span class="input-group-text">
-
                                 円
-
                             </span>
-
 
                         </div>
 
-
                     </div>
-
 
                 </div>
 
 
                 <div class="form-text">
-
-                    費用を指定した場合、実際の費用が未登録のTripは検索結果に表示されません。
-
+                    費用を指定した場合、
+                    実費合計が未登録のTripは検索結果に表示されません。
                 </div>
-
 
             </div>
 
@@ -402,14 +352,11 @@
 
             <div class="mb-4">
 
-
                 <label
                     for="sort"
                     class="form-label"
                 >
-
                     表示順
-
                 </label>
 
 
@@ -419,9 +366,7 @@
                     name="sort"
                 >
 
-
                     {% for value, label in sort_choices %}
-
 
                         <option
                             value="{{ value }}"
@@ -431,36 +376,28 @@
                                 selected
                             {% endif %}
                         >
-
                             {{ label }}
-
                         </option>
-
 
                     {% endfor %}
 
-
                 </select>
-
 
             </div>
 
 
 
             {# ======================================== #}
-            {# 検索ボタン #}
+            {# 検索・条件クリア #}
             {# ======================================== #}
 
-            <div class="d-flex gap-2">
-
+            <div class="d-flex flex-wrap gap-2">
 
                 <button
                     type="submit"
                     class="btn btn-primary"
                 >
-
                     検索
-
                 </button>
 
 
@@ -468,468 +405,58 @@
                     href="{% url 'public_trip' %}"
                     class="btn btn-outline-secondary"
                 >
-
                     条件をクリア
-
                 </a>
-
 
             </div>
 
-
         </form>
 
-
     </div>
-
 
 </div>
 
 
 
 {# ======================================== #}
-{# 入力エラー #}
-{# ======================================== #}
-
-{% if filter_errors %}
-
-
-    <div
-        class="alert alert-danger"
-        role="alert"
-    >
-
-
-        {% for error in filter_errors %}
-
-
-            <div>
-
-                {{ error }}
-
-            </div>
-
-
-        {% endfor %}
-
-
-    </div>
-
-
-{% endif %}
-
-
-
-{# ======================================== #}
 {# Trip一覧 #}
+{# #}
+{# Tripカード本体は #}
+{# trip_list_card.html で一元管理 #}
 {# ======================================== #}
 
 <div class="row">
 
-
     {% for trip in public_trips %}
 
-
-        <div class="col-12 col-md-6 col-lg-4 mb-4">
-
-
-            <div class="card shadow-sm h-100">
-
-
-
-                {# ======================================== #}
-                {# 代表写真 #}
-                {# ======================================== #}
-
-                {% if trip.main_media %}
-
-
-                    <img
-                        src="{{ trip.main_media.url }}"
-                        class="card-img-top"
-                        alt="{{ trip.title }}"
-                        style="
-                            height: 200px;
-                            object-fit: cover;
-                        "
-                    >
-
-
-                {% else %}
-
-
-                    <div
-                        class="card-img-top bg-light d-flex align-items-center justify-content-center text-muted"
-                        style="
-                            height: 200px;
-                        "
-                    >
-
-                        写真未設定
-
-                    </div>
-
-
-                {% endif %}
-
-
-
-                <div class="card-body d-flex flex-column">
-
-
-
-                    {# ======================================== #}
-                    {# 投稿者 #}
-                    {# ======================================== #}
-
-                    <div class="d-flex align-items-center mb-3">
-
-
-                        {% if trip.user.profile.profile_image %}
-
-
-                            <img
-                                src="{{ trip.user.profile.profile_image.url }}"
-                                alt="{{ trip.user.username }}"
-                                class="rounded-circle me-2"
-                                style="
-                                    width: 40px;
-                                    height: 40px;
-                                    object-fit: cover;
-                                "
-                            >
-
-
-                        {% else %}
-
-
-                            <div
-                                class="rounded-circle bg-light d-flex align-items-center justify-content-center text-muted me-2"
-                                style="
-                                    width: 40px;
-                                    height: 40px;
-                                    font-size: 10px;
-                                "
-                            >
-
-                                No Image
-
-                            </div>
-
-
-                        {% endif %}
-
-
-
-                        <div>
-
-
-                            <div class="fw-semibold">
-
-                                {{ trip.user.username }}
-
-                            </div>
-
-
-                            <div
-                                class="text-muted"
-                                style="font-size: 12px;"
-                            >
-
-                                投稿者
-
-                            </div>
-
-
-                        </div>
-
-
-                    </div>
-
-
-
-                    {# ======================================== #}
-                    {# タイトル #}
-                    {# ======================================== #}
-
-                    <h5 class="card-title mb-3">
-
-                        {{ trip.title }}
-
-                    </h5>
-
-
-
-                    {# ======================================== #}
-                    {# 旅行期間 #}
-                    {# ======================================== #}
-
-                    <p class="card-text mb-1">
-
-                        {{ trip.start_date }}
-                        ～
-                        {{ trip.end_date }}
-
-                    </p>
-
-
-                    <p class="text-muted small">
-
-                        {{ trip.trip_days }}日間
-
-                    </p>
-
-
-
-                    {# ======================================== #}
-                    {# 訪問先 #}
-                    {# ======================================== #}
-
-                    <div class="mb-2">
-
-
-                        {% for country, regions in trip.locations_by_country.items %}
-
-
-                            <span class="badge bg-secondary">
-
-
-                                {{ country }}
-
-
-                                {% if regions %}
-
-                                    /
-
-                                {% endif %}
-
-
-                                {% for region in regions %}
-
-
-                                    {{ region }}
-
-
-                                    {% if not forloop.last %}
-
-                                        ・
-
-                                    {% endif %}
-
-
-                                {% endfor %}
-
-
-                            </span>
-
-
-                        {% empty %}
-
-
-                            <span class="text-muted">
-
-                                訪問先未設定
-
-                            </span>
-
-
-                        {% endfor %}
-
-
-                    </div>
-
-
-
-                    {# ======================================== #}
-                    {# カテゴリ #}
-                    {# ======================================== #}
-
-                    <p>
-
-                        カテゴリ：
-
-                        {% if trip.category %}
-
-                            {{ trip.category }}
-
-                        {% else %}
-
-                            未設定
-
-                        {% endif %}
-
-                    </p>
-
-
-
-                    {# ======================================== #}
-                    {# ハッシュタグ #}
-                    {# ======================================== #}
-
-                    <div
-                        class="mb-3"
-                        style="min-height: 30px;"
-                    >
-
-
-                        {% for trip_hashtag in trip.trip_hashtags.all %}
-
-
-                            <span class="badge bg-primary me-1">
-
-                                #{{ trip_hashtag.hashtag.name }}
-
-                            </span>
-
-
-                        {% empty %}
-
-
-                            <span class="text-muted">
-
-                                ハッシュタグ未設定
-
-                            </span>
-
-
-                        {% endfor %}
-
-
-                    </div>
-
-
-
-                    {# ======================================== #}
-                    {# 実際の合計費用 #}
-                    {# ======================================== #}
-
-                    <div class="mb-3">
-
-
-                        <span class="fw-bold">
-
-                            実際の合計費用：
-
-                        </span>
-
-
-                        {% if trip.final_actual_total is not None %}
-
-
-                            {{ trip.final_actual_total }}円
-
-
-                        {% else %}
-
-
-                            <span class="text-muted">
-
-                                未登録
-
-                            </span>
-
-
-                        {% endif %}
-
-
-                    </div>
-
-
-
-                    {# ======================================== #}
-                    {# 感想 #}
-                    {# ======================================== #}
-
-                    <div class="mb-3">
-
-
-                        <p class="fw-bold mb-2">
-
-                            感想
-
-                        </p>
-
-
-                        <div
-                            class="border rounded px-3 py-2"
-                            style="
-                                height: 95px;
-                            "
-                        >
-
-
-                            <p class="card-text mb-0">
-
-                                {{ trip.overview|truncatechars:50 }}
-
-                            </p>
-
-
-                        </div>
-
-
-                    </div>
-
-
-
-                    {# ======================================== #}
-                    {# 詳細 #}
-                    {# ======================================== #}
-
-                    <a
-                        href="{% url 'trip_detail' trip.trip_id %}"
-                        class="btn btn-outline-primary mt-auto"
-                    >
-
-                        Tripを見る
-
-                    </a>
-
-
-
-                </div>
-
-
-            </div>
-
-
-        </div>
+        {% include "pages/trip/includes/trip_list_card.html" with card_type="public" %}
 
 
     {% empty %}
 
-
         <div class="col-12">
 
+            <div class="text-center py-5">
 
-            {% if request.GET %}
+                {% if request.GET %}
 
+                    <p class="text-muted mb-0">
+                        条件に一致するTripがありません。
+                    </p>
 
-                <p class="text-muted">
+                {% else %}
 
-                    条件に一致するTripがありません。
+                    <p class="text-muted mb-0">
+                        まだ公開されているTripはありません。
+                    </p>
 
-                </p>
+                {% endif %}
 
-
-            {% else %}
-
-
-                <p>
-
-                    まだ公開されているTripはありません。
-
-                </p>
-
-
-            {% endif %}
-
+            </div>
 
         </div>
 
-
     {% endfor %}
-
 
 </div>
 
@@ -942,15 +469,20 @@
 
 {% if is_paginated %}
 
-
     <nav
         aria-label="公開Tripページ"
         class="mt-4 mb-5"
     >
 
-
-        <div class="d-flex justify-content-center align-items-center gap-2 flex-wrap">
-
+        <div
+            class="
+                d-flex
+                justify-content-center
+                align-items-center
+                gap-2
+                flex-wrap
+            "
+        >
 
 
             {# ======================================== #}
@@ -959,16 +491,12 @@
 
             {% if page_obj.has_previous %}
 
-
                 <a
-                    class="btn btn-outline-secondary"
-                    href="?page=1{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.hashtag %}&hashtag={{ request.GET.hashtag|urlencode }}{% endif %}{% if request.GET.min_days %}&min_days={{ request.GET.min_days }}{% endif %}{% if request.GET.max_days %}&max_days={{ request.GET.max_days }}{% endif %}{% if request.GET.min_cost %}&min_cost={{ request.GET.min_cost }}{% endif %}{% if request.GET.max_cost %}&max_cost={{ request.GET.max_cost }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                    class="btn btn-outline-secondary btn-sm"
+                    href="{% querystring page=1 %}"
                 >
-
                     最初へ
-
                 </a>
-
 
             {% endif %}
 
@@ -980,16 +508,12 @@
 
             {% if page_obj.has_previous %}
 
-
                 <a
-                    class="btn btn-outline-primary"
-                    href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.hashtag %}&hashtag={{ request.GET.hashtag|urlencode }}{% endif %}{% if request.GET.min_days %}&min_days={{ request.GET.min_days }}{% endif %}{% if request.GET.max_days %}&max_days={{ request.GET.max_days }}{% endif %}{% if request.GET.min_cost %}&min_cost={{ request.GET.min_cost }}{% endif %}{% if request.GET.max_cost %}&max_cost={{ request.GET.max_cost }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                    class="btn btn-outline-secondary btn-sm"
+                    href="{% querystring page=page_obj.previous_page_number %}"
                 >
-
                     前へ
-
                 </a>
-
 
             {% endif %}
 
@@ -999,13 +523,14 @@
             {# 現在ページ #}
             {# ======================================== #}
 
-            <span class="mx-2">
-
+            <span
+                class="mx-2 small"
+                aria-current="page"
+            >
                 {{ page_obj.number }}
                 /
                 {{ page_obj.paginator.num_pages }}
                 ページ
-
             </span>
 
 
@@ -1016,16 +541,12 @@
 
             {% if page_obj.has_next %}
 
-
                 <a
-                    class="btn btn-outline-primary"
-                    href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.hashtag %}&hashtag={{ request.GET.hashtag|urlencode }}{% endif %}{% if request.GET.min_days %}&min_days={{ request.GET.min_days }}{% endif %}{% if request.GET.max_days %}&max_days={{ request.GET.max_days }}{% endif %}{% if request.GET.min_cost %}&min_cost={{ request.GET.min_cost }}{% endif %}{% if request.GET.max_cost %}&max_cost={{ request.GET.max_cost }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                    class="btn btn-outline-secondary btn-sm"
+                    href="{% querystring page=page_obj.next_page_number %}"
                 >
-
                     次へ
-
                 </a>
-
 
             {% endif %}
 
@@ -1037,28 +558,21 @@
 
             {% if page_obj.has_next %}
 
-
                 <a
-                    class="btn btn-outline-secondary"
-                    href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.q %}&q={{ request.GET.q|urlencode }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}{% if request.GET.hashtag %}&hashtag={{ request.GET.hashtag|urlencode }}{% endif %}{% if request.GET.min_days %}&min_days={{ request.GET.min_days }}{% endif %}{% if request.GET.max_days %}&max_days={{ request.GET.max_days }}{% endif %}{% if request.GET.min_cost %}&min_cost={{ request.GET.min_cost }}{% endif %}{% if request.GET.max_cost %}&max_cost={{ request.GET.max_cost }}{% endif %}{% if request.GET.sort %}&sort={{ request.GET.sort }}{% endif %}"
+                    class="btn btn-outline-secondary btn-sm"
+                    href="{% querystring page=page_obj.paginator.num_pages %}"
                 >
-
                     最後へ
-
                 </a>
-
 
             {% endif %}
 
 
         </div>
 
-
     </nav>
 
-
 {% endif %}
-
 
 
 {% endblock %}

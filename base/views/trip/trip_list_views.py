@@ -9,7 +9,7 @@ from base.models import (
 
 from .trip_services import (
     sync_trip_status,
-    calculate_trip_actual_total,
+    prepare_trip_card_data,
 )
 
 
@@ -30,6 +30,7 @@ class TripListView(
 
     context_object_name = "trips"
 
+
     # =====================================
     # ログインユーザー本人の
     # Trip一覧を取得
@@ -44,12 +45,21 @@ class TripListView(
             .filter(
                 user=self.request.user
             )
+            .select_related(
+                "category",
+            )
+            .prefetch_related(
+                "locations",
+                "trip_hashtags__hashtag",
+            )
             .order_by(
                 "-created_at"
             )
         )
 
+
         for trip in trips:
+
 
             # =====================================
             # 現在の日付に合わせて
@@ -60,44 +70,21 @@ class TripListView(
                 trip
             )
 
+
             # =====================================
-            # 訪問先を
-            # 国ごとにまとめる
+            # 共通Tripカード用データ
+            #
+            # ・旅行日数
+            # ・国ごとにまとめた訪問先
             # =====================================
 
-            locations_by_country = {}
-
-            for location in (
-                trip.locations.all()
-            ):
-
-                if (
-                    location.country
-                    not in locations_by_country
-                ):
-
-                    locations_by_country[
-                        location.country
-                    ] = []
-
-                if (
-                    location.region
-                    not in locations_by_country[
-                        location.country
-                    ]
-                ):
-
-                    locations_by_country[
-                        location.country
-                    ].append(
-                        location.region
-                    )
-
-            trip.locations_by_country = (
-                locations_by_country
+            prepare_trip_card_data(
+                trip
             )
 
+
         return trips
+
 
 
 # =========================================
@@ -119,11 +106,13 @@ class PublicTripListView(
         "public_trips"
     )
 
+
     # =====================================
     # 1ページに表示する公開Trip数
     # =====================================
 
     paginate_by = 30
+
 
     # =====================================
     # GETパラメータを整数に変換する関数
@@ -146,9 +135,11 @@ class PublicTripListView(
             .strip()
         )
 
+
         if not value:
 
             return None
+
 
         try:
 
@@ -160,6 +151,7 @@ class PublicTripListView(
 
             return None
 
+
         if (
             minimum is not None
             and number < minimum
@@ -167,7 +159,10 @@ class PublicTripListView(
 
             return None
 
+
         return number
+
+
 
     # =====================================
     # 公開Trip取得・検索・絞り込み
@@ -178,6 +173,7 @@ class PublicTripListView(
     ):
 
         self.filter_errors = []
+
 
         trips = (
             Trip.objects
@@ -195,8 +191,11 @@ class PublicTripListView(
                 "trip_hashtags__hashtag",
                 "trip_expenses",
                 "days__day_expenses",
+                "days__schedules",
             )
         )
+
+
 
         # =====================================
         # キーワード検索
@@ -217,6 +216,7 @@ class PublicTripListView(
             )
             .strip()
         )
+
 
         if keyword:
 
@@ -253,6 +253,8 @@ class PublicTripListView(
                 )
             )
 
+
+
         # =====================================
         # カテゴリ絞り込み
         # =====================================
@@ -264,6 +266,7 @@ class PublicTripListView(
             )
         )
 
+
         if (
             category_id
             is not None
@@ -272,6 +275,8 @@ class PublicTripListView(
             trips = trips.filter(
                 category_id=category_id
             )
+
+
 
         # =====================================
         # ハッシュタグ絞り込み
@@ -288,6 +293,7 @@ class PublicTripListView(
             .strip()
         )
 
+
         # =====================================
         # 先頭に#が入力されても
         # 検索できるようにする
@@ -297,6 +303,7 @@ class PublicTripListView(
             hashtag.lstrip("#")
         )
 
+
         if hashtag:
 
             trips = trips.filter(
@@ -304,6 +311,8 @@ class PublicTripListView(
                     hashtag
                 )
             )
+
+
 
         # =====================================
         # M2M・訪問先検索による
@@ -313,6 +322,8 @@ class PublicTripListView(
         trips = (
             trips.distinct()
         )
+
+
 
         # =====================================
         # 旅行日数条件
@@ -332,6 +343,7 @@ class PublicTripListView(
             )
         )
 
+
         if (
             min_days is not None
             and max_days is not None
@@ -344,6 +356,8 @@ class PublicTripListView(
                     "最高日数以下にしてください。"
                 )
             )
+
+
 
         # =====================================
         # 費用条件
@@ -363,6 +377,7 @@ class PublicTripListView(
             )
         )
 
+
         if (
             min_cost is not None
             and max_cost is not None
@@ -376,74 +391,34 @@ class PublicTripListView(
                 )
             )
 
+
+
         # =====================================
-        # QuerySetをリスト化して
-        # 計算値を各Tripへ設定
+        # QuerySetをリスト化
         # =====================================
 
         trip_list = list(
             trips
         )
 
+
+
+        # =====================================
+        # 共通Tripカード用データを設定
+        #
+        # ・旅行日数
+        # ・国ごとにまとめた訪問先
+        # ・実費合計
+        # =====================================
+
         for trip in trip_list:
 
-            # =====================================
-            # 訪問先を国ごとにまとめる
-            # =====================================
-
-            locations_by_country = {}
-
-            for location in (
-                trip.locations.all()
-            ):
-
-                if (
-                    location.country
-                    not in locations_by_country
-                ):
-
-                    locations_by_country[
-                        location.country
-                    ] = []
-
-                if (
-                    location.region
-                    not in locations_by_country[
-                        location.country
-                    ]
-                ):
-
-                    locations_by_country[
-                        location.country
-                    ].append(
-                        location.region
-                    )
-
-            trip.locations_by_country = (
-                locations_by_country
+            prepare_trip_card_data(
+                trip,
+                include_actual_total=True,
             )
 
-            # =====================================
-            # 旅行日数
-            #
-            # 開始日と終了日を含めるため
-            # +1日する
-            # =====================================
 
-            trip.trip_days = (
-                trip.end_date
-                - trip.start_date
-            ).days + 1
-
-            # =====================================
-            # 旅行全体の実際費用
-            # =====================================
-
-            trip.final_actual_total = (
-                calculate_trip_actual_total(
-                    trip
-                )
-            )
 
         # =====================================
         # 入力条件に矛盾がある場合
@@ -453,6 +428,8 @@ class PublicTripListView(
         if self.filter_errors:
 
             return []
+
+
 
         # =====================================
         # 旅行日数で絞り込み
@@ -478,6 +455,7 @@ class PublicTripListView(
                 )
             ]
 
+
         if (
             max_days
             is not None
@@ -491,6 +469,8 @@ class PublicTripListView(
                     <= max_days
                 )
             ]
+
+
 
         # =====================================
         # 費用で絞り込み
@@ -513,6 +493,7 @@ class PublicTripListView(
                 )
             ]
 
+
         if (
             min_cost
             is not None
@@ -526,6 +507,7 @@ class PublicTripListView(
                     >= min_cost
                 )
             ]
+
 
         if (
             max_cost
@@ -541,6 +523,8 @@ class PublicTripListView(
                 )
             ]
 
+
+
         # =====================================
         # 並び順
         # =====================================
@@ -551,6 +535,8 @@ class PublicTripListView(
                 "new",
             )
         )
+
+
 
         # =====================================
         # 古い順
@@ -563,6 +549,8 @@ class PublicTripListView(
                     trip.updated_at
                 )
             )
+
+
 
         # =====================================
         # 費用が安い順
@@ -589,6 +577,8 @@ class PublicTripListView(
                 )
             )
 
+
+
         # =====================================
         # 費用が高い順
         #
@@ -614,6 +604,8 @@ class PublicTripListView(
                 )
             )
 
+
+
         # =====================================
         # 旅行期間が短い順
         # =====================================
@@ -625,6 +617,8 @@ class PublicTripListView(
                     trip.trip_days
                 )
             )
+
+
 
         # =====================================
         # 旅行期間が長い順
@@ -638,6 +632,8 @@ class PublicTripListView(
                 ),
                 reverse=True,
             )
+
+
 
         # =====================================
         # 新しい順
@@ -653,7 +649,10 @@ class PublicTripListView(
                 reverse=True,
             )
 
+
         return trip_list
+
+
 
     # =====================================
     # Templateへ渡す追加データ
@@ -670,6 +669,8 @@ class PublicTripListView(
             )
         )
 
+
+
         # =====================================
         # カテゴリ選択欄で使用
         # =====================================
@@ -683,6 +684,8 @@ class PublicTripListView(
             )
         )
 
+
+
         # =====================================
         # 入力条件のエラー
         # =====================================
@@ -694,6 +697,8 @@ class PublicTripListView(
             "filter_errors",
             [],
         )
+
+
 
         # =====================================
         # 並び順の選択肢
@@ -727,5 +732,6 @@ class PublicTripListView(
                 "旅行期間が長い順",
             ),
         ]
+
 
         return context

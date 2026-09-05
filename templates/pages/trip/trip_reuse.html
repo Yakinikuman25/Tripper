@@ -33,38 +33,85 @@
             <div class="card-body">
 
 
-                <p class="text-muted mb-2">
+                <p class="text-muted small mb-2">
                     参考にするTrip
                 </p>
 
 
-                <h4 class="mb-3">
+                <h2 class="h4 mb-3">
                     {{ source_trip.title }}
-                </h4>
+                </h2>
 
+
+
+                {# ======================================== #}
+                {# 投稿者 #}
+                {# ======================================== #}
+
+                <div class="d-flex align-items-center gap-2 mb-3">
+
+                    {% if source_trip.user.profile.profile_image %}
+
+                        <img
+                            src="{{ source_trip.user.profile.profile_image.url }}"
+                            alt="{{ source_trip.user.username }}"
+                            class="rounded-circle"
+                            style="
+                                width: 36px;
+                                height: 36px;
+                                object-fit: cover;
+                                flex-shrink: 0;
+                            "
+                        >
+
+                    {% endif %}
+
+
+                    <div>
+
+                        <div class="text-muted small">
+                            投稿者
+                        </div>
+
+
+                        <div class="fw-semibold">
+                            {{ source_trip.user.username }}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+
+                {# ======================================== #}
+                {# 元の旅行期間 #}
+                {# ======================================== #}
 
                 <p class="mb-2">
 
-                    参考：
-                    {{ source_trip.user.username }}
+                    <span class="text-muted">
+                        元の旅行期間：
+                    </span>
 
-                </p>
-
-
-                <p class="mb-2">
-
-                    元の旅行期間：
-
-                    {{ source_trip.start_date }}
+                    {{ source_trip.start_date|date:"Y年n月j日" }}
                     ～
-                    {{ source_trip.end_date }}
+                    {{ source_trip.end_date|date:"Y年n月j日" }}
 
                 </p>
 
+
+
+                {# ======================================== #}
+                {# 旅行日数 #}
+                {# ======================================== #}
 
                 <p class="mb-0">
 
-                    旅行日数：
+                    <span class="text-muted">
+                        旅行日数：
+                    </span>
+
                     {{ trip_days }}日間
 
                 </p>
@@ -93,12 +140,29 @@
 
             <p class="mb-0 text-muted small">
 
-                写真・感想・旅の記録・実際支払額などの
-                実績情報はコピーされません。
+                写真・感想・旅の記録・実際支払額など、
+                旅行後の記録はコピーされません。
 
             </p>
 
         </div>
+
+
+
+        {# ======================================== #}
+        {# 入力エラー #}
+        {# ======================================== #}
+
+        {% if form.errors %}
+
+            <div
+                class="alert alert-danger"
+                role="alert"
+            >
+                入力内容を確認してください。
+            </div>
+
+        {% endif %}
 
 
 
@@ -111,15 +175,20 @@
             {% csrf_token %}
 
 
+
+            {# ======================================== #}
+            {# フォーム全体エラー #}
+            {# ======================================== #}
+
             {% if form.non_field_errors %}
 
-                <div class="mb-3">
+                <div class="alert alert-danger">
 
                     {% for error in form.non_field_errors %}
 
-                        <p class="text-danger">
+                        <div>
                             {{ error }}
-                        </p>
+                        </div>
 
                     {% endfor %}
 
@@ -128,6 +197,10 @@
             {% endif %}
 
 
+
+            {# ======================================== #}
+            {# 新しい旅行開始日 #}
+            {# ======================================== #}
 
             <div class="mb-4">
 
@@ -143,18 +216,36 @@
                 {{ form.start_date }}
 
 
-                {% for error in form.start_date.errors %}
+                {% if form.start_date.errors %}
 
-                    <p class="text-danger">
-                        {{ error }}
-                    </p>
+                    <div class="text-danger small mt-1">
 
-                {% endfor %}
+                        {% for error in form.start_date.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
 
 
-                <div class="form-text">
-                    カレンダーから日付を選択してください。
-                </div>
+                {% if form.start_date.help_text %}
+
+                    <div class="form-text">
+                        {{ form.start_date.help_text }}
+                    </div>
+
+                {% else %}
+
+                    <div class="form-text">
+                        カレンダーから日付を選択してください。
+                    </div>
+
+                {% endif %}
 
 
             </div>
@@ -165,7 +256,7 @@
             {# 操作ボタン #}
             {# ======================================== #}
 
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
 
 
                 <button
@@ -218,9 +309,7 @@
 
 
             if (!startDateInput) {
-
                 return;
-
             }
 
 

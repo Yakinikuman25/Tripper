@@ -21,23 +21,41 @@
 
     {% if trip.user == request.user and edit_mode %}
 
+
+        {# ======================================== #}
+        {# 現在の写真 #}
+        {# ======================================== #}
+
         {% if day.media %}
 
-            <p>
-                現在の写真
-            </p>
+            <div class="mb-3">
 
-            <img
-                src="{{ day.media.url }}"
-                alt="{{ day.title }}"
-                class="img-fluid rounded mb-3 day-record-image"
-            >
+                <p class="mb-2">
+                    <strong>
+                        現在の写真
+                    </strong>
+                </p>
+
+
+                <img
+                    src="{{ day.media.url }}"
+                    alt="{% if day.title %}{{ day.title }}{% else %}Day {{ day.day_order }}{% endif %}"
+                    class="img-fluid rounded day-record-image"
+                >
+
+            </div>
 
         {% endif %}
 
 
+
         {# ======================================== #}
         {# 旅の記録 各項目の個別削除フォーム #}
+        {# ======================================== #}
+
+
+        {# ======================================== #}
+        {# 写真削除フォーム #}
         {# ======================================== #}
 
         {% if day.media %}
@@ -68,6 +86,11 @@
         {% endif %}
 
 
+
+        {# ======================================== #}
+        {# 感想削除フォーム #}
+        {# ======================================== #}
+
         {% if day.content %}
 
             <form
@@ -95,6 +118,11 @@
 
         {% endif %}
 
+
+
+        {# ======================================== #}
+        {# 自由実費削除フォーム #}
+        {# ======================================== #}
 
         {% if day.actual_cost != None %}
 
@@ -124,6 +152,11 @@
         {% endif %}
 
 
+
+        {# ======================================== #}
+        {# 旅の記録編集フォーム #}
+        {# ======================================== #}
+
         <form
             method="post"
             action="{% url 'day_record_edit' day.day_id %}"
@@ -139,24 +172,51 @@
             >
 
 
+
+            {# ======================================== #}
+            {# フォーム全体エラー #}
+            {# ======================================== #}
+
+            {% if day.record_form.non_field_errors %}
+
+                <div class="alert alert-danger">
+
+                    {% for error in day.record_form.non_field_errors %}
+
+                        <div>
+                            {{ error }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+            {% endif %}
+
+
+
             {# ======================================== #}
             {# 写真 #}
             {# ======================================== #}
 
             <div class="mb-3">
 
-                <div class="d-flex align-items-center justify-content-between mb-1">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
 
-                    <label class="form-label mb-0">
+                    <label
+                        for="{{ day.record_form.media.id_for_label }}"
+                        class="form-label mb-0"
+                    >
                         写真
                     </label>
+
 
                     {% if day.media %}
 
                         <button
                             type="submit"
                             form="delete-day-media-{{ day.day_id }}"
-                            class="btn btn-danger btn-sm confirm-day-record-delete"
+                            class="btn btn-outline-danger btn-sm confirm-day-record-delete"
                             data-confirm-message="写真を削除しますか？"
                         >
                             削除
@@ -166,9 +226,28 @@
 
                 </div>
 
+
                 {{ day.record_form.media }}
 
+
+                {% if day.record_form.media.errors %}
+
+                    <div class="text-danger small mt-1">
+
+                        {% for error in day.record_form.media.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
             </div>
+
 
 
             {# ======================================== #}
@@ -177,18 +256,22 @@
 
             <div class="mb-3">
 
-                <div class="d-flex align-items-center justify-content-between mb-1">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
 
-                    <label class="form-label mb-0">
+                    <label
+                        for="{{ day.record_form.content.id_for_label }}"
+                        class="form-label mb-0"
+                    >
                         感想
                     </label>
+
 
                     {% if day.content %}
 
                         <button
                             type="submit"
                             form="delete-day-content-{{ day.day_id }}"
-                            class="btn btn-danger btn-sm confirm-day-record-delete"
+                            class="btn btn-outline-danger btn-sm confirm-day-record-delete"
                             data-confirm-message="感想を削除しますか？"
                         >
                             削除
@@ -198,9 +281,28 @@
 
                 </div>
 
+
                 {{ day.record_form.content }}
 
+
+                {% if day.record_form.content.errors %}
+
+                    <div class="text-danger small mt-1">
+
+                        {% for error in day.record_form.content.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
             </div>
+
 
 
             {# ======================================== #}
@@ -214,18 +316,22 @@
 
             <div class="mb-3">
 
-                <div class="d-flex align-items-center justify-content-between mb-1">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
 
-                    <label class="form-label mb-0">
+                    <label
+                        for="{{ day.record_form.actual_cost.id_for_label }}"
+                        class="form-label mb-0"
+                    >
                         自由実費
                     </label>
+
 
                     {% if day.actual_cost != None %}
 
                         <button
                             type="submit"
                             form="delete-day-actual-cost-{{ day.day_id }}"
-                            class="btn btn-danger btn-sm confirm-day-record-delete"
+                            class="btn btn-outline-danger btn-sm confirm-day-record-delete"
                             data-confirm-message="自由実費を削除しますか？"
                         >
                             削除
@@ -235,7 +341,25 @@
 
                 </div>
 
+
                 {{ day.record_form.actual_cost }}
+
+
+                {% if day.record_form.actual_cost.errors %}
+
+                    <div class="text-danger small mt-1">
+
+                        {% for error in day.record_form.actual_cost.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
 
 
                 {% if day.has_day_expense %}
@@ -264,6 +388,7 @@
             </div>
 
 
+
             {# ======================================== #}
             {# Day費用明細 FormSet #}
             {# ======================================== #}
@@ -274,6 +399,11 @@
                     費用明細
                 </label>
 
+
+
+                {# ======================================== #}
+                {# FormSet管理項目 #}
+                {# ======================================== #}
 
                 <input
                     type="hidden"
@@ -300,6 +430,11 @@
                     value="1000"
                 >
 
+
+
+                {# ======================================== #}
+                {# 登録済み費用明細 #}
+                {# ======================================== #}
 
                 <div
                     id="day-expense-forms-{{ day.day_id }}"
@@ -329,6 +464,7 @@
                                     何に使ったか
                                 </label>
 
+
                                 <input
                                     type="text"
                                     name="day_expenses_{{ day.day_id }}-{{ forloop.counter0 }}-name"
@@ -345,6 +481,7 @@
                                 <label class="form-label">
                                     金額
                                 </label>
+
 
                                 <input
                                     type="number"
@@ -367,7 +504,7 @@
 
                             <button
                                 type="button"
-                                class="btn btn-danger btn-sm remove-day-expense"
+                                class="btn btn-outline-danger btn-sm remove-day-expense"
                             >
                                 削除
                             </button>
@@ -375,6 +512,7 @@
                         </div>
 
                     {% endfor %}
+
 
 
                     {# ======================================== #}
@@ -397,6 +535,7 @@
                                 何に使ったか
                             </label>
 
+
                             <input
                                 type="text"
                                 name="day_expenses_{{ day.day_id }}-{{ day.day_expenses.count }}-name"
@@ -412,6 +551,7 @@
                             <label class="form-label">
                                 金額
                             </label>
+
 
                             <input
                                 type="number"
@@ -433,7 +573,7 @@
 
                         <button
                             type="button"
-                            class="btn btn-danger btn-sm remove-day-expense"
+                            class="btn btn-outline-danger btn-sm remove-day-expense"
                         >
                             削除
                         </button>
@@ -441,6 +581,7 @@
                     </div>
 
                 </div>
+
 
 
                 {# ======================================== #}
@@ -464,6 +605,7 @@
                                 何に使ったか
                             </label>
 
+
                             <input
                                 type="text"
                                 name="day_expenses_{{ day.day_id }}-__prefix__-name"
@@ -479,6 +621,7 @@
                             <label class="form-label">
                                 金額
                             </label>
+
 
                             <input
                                 type="number"
@@ -500,7 +643,7 @@
 
                         <button
                             type="button"
-                            class="btn btn-danger btn-sm remove-day-expense"
+                            class="btn btn-outline-danger btn-sm remove-day-expense"
                         >
                             削除
                         </button>
@@ -510,9 +653,14 @@
                 </template>
 
 
+
+                {# ======================================== #}
+                {# 費用明細追加 #}
+                {# ======================================== #}
+
                 <button
                     type="button"
-                    class="btn btn-outline-primary btn-sm add-day-expense"
+                    class="btn btn-primary btn-sm add-day-expense"
                     data-container-id="day-expense-forms-{{ day.day_id }}"
                     data-template-id="day-expense-empty-{{ day.day_id }}"
                     data-total-forms-id="id_day_expenses_{{ day.day_id }}-TOTAL_FORMS"
@@ -521,17 +669,32 @@
                 </button>
 
 
+
+                {# ======================================== #}
+                {# 費用明細合計 #}
+                {# ======================================== #}
+
                 {% if day.has_day_expense %}
 
                     <p class="mt-3 mb-0">
-                        費用明細合計：
+
+                        <strong>
+                            費用明細合計：
+                        </strong>
+
                         {{ day.day_expense_total|intcomma }}円
+
                     </p>
 
                 {% endif %}
 
             </div>
 
+
+
+            {# ======================================== #}
+            {# 保存 #}
+            {# ======================================== #}
 
             <button
                 type="submit"
@@ -541,6 +704,7 @@
             </button>
 
         </form>
+
 
 
     {# ======================================== #}
@@ -555,6 +719,7 @@
         {% if day.media or day.content or day.has_actual_cost or day.has_day_expense %}
 
 
+
             {# ======================================== #}
             {# 写真 #}
             {# ======================================== #}
@@ -564,15 +729,17 @@
                 <div class="mb-4">
 
                     <p class="mb-2">
+
                         <strong>
                             写真
                         </strong>
+
                     </p>
 
 
                     <img
                         src="{{ day.media.url }}"
-                        alt="{{ day.title }}"
+                        alt="{% if day.title %}{{ day.title }}{% else %}Day {{ day.day_order }}{% endif %}"
                         class="img-fluid rounded day-record-image"
                     >
 
@@ -591,9 +758,11 @@
                 <div class="mb-4">
 
                     <p class="mb-2">
+
                         <strong>
                             感想
                         </strong>
+
                     </p>
 
 
@@ -620,11 +789,11 @@
 
                 <p class="mb-4">
 
-                    自由実費：
-
                     <strong>
-                        {{ day.adopted_actual_cost|intcomma }}円
+                        自由実費：
                     </strong>
+
+                    {{ day.adopted_actual_cost|intcomma }}円
 
                 </p>
 
@@ -643,9 +812,11 @@
                 <div class="mt-3 mb-4">
 
                     <p class="mb-2">
+
                         <strong>
                             費用明細
                         </strong>
+
                     </p>
 
 
@@ -677,7 +848,9 @@
 
                     <p class="mt-2 mb-0">
 
-                        費用明細合計：
+                        <strong>
+                            費用明細合計：
+                        </strong>
 
                         {{ day.day_expense_total|intcomma }}円
 
@@ -690,16 +863,31 @@
 
         {% else %}
 
-            <p>
-                旅の記録はまだ登録されていません。
-            </p>
+
+            {# ======================================== #}
+            {# 所有者だけ未登録案内を表示 #}
+            {# ======================================== #}
+
+            {% if trip.user == request.user %}
+
+                <p>
+                    旅の記録はまだ登録されていません。
+                </p>
+
+            {% endif %}
+
 
         {% endif %}
 
 
+
+        {# ======================================== #}
+        {# 所有者向け編集案内 #}
+        {# ======================================== #}
+
         {% if trip.user == request.user %}
 
-            <p class="text-muted small">
+            <p class="text-muted small mb-0">
                 登録・編集・削除する場合は「Trip全体を編集」を押してください。
             </p>
 

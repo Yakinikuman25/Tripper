@@ -1,47 +1,190 @@
-<footer class="container-fluid bg-dark text-white py-5">
+<footer class="container-fluid bg-dark text-white py-5 mt-5">
 
     <div class="container">
 
         <div class="row">
 
-            <!-- サイト情報 -->
-            <div class="col-md-4 mb-4">
-                <h5>🌍 Tripper</h5>
-                <p class="text-secondary">
-                    世界中の旅を共有・記録する旅行プラットフォーム
+
+            {# ======================================== #}
+            {# Tripper #}
+            {# ======================================== #}
+
+            <div class="col-12 col-lg-4 mb-4">
+
+                <h5 class="mb-3">
+                    🌍 Tripper
+                </h5>
+
+
+                <p class="text-white-50 mb-3">
+                    旅を計画・記録し、
+                    みんなの旅を次の旅の参考にできる旅行プラットフォーム
                 </p>
-                <small class="text-secondary">
-                    &copy; 2026 Tripper. All Rights Reserved.
+
+
+                <small class="text-white-50">
+                    &copy; {% now "Y" %} Tripper. All Rights Reserved.
                 </small>
+
             </div>
 
-            <!-- ナビゲーション -->
-            <div class="col-md-2 mb-4">
-                <h5>Menu</h5>
-                <ul class="list-unstyled">
-                    <li><a class="text-secondary text-decoration-none" href="/">Home</a></li>
-                    <li><a class="text-secondary text-decoration-none" href="#">My Trip</a></li>
-                    <li><a class="text-secondary text-decoration-none" href="#">Trip作成</a></li>
-                </ul>
+
+
+            {# ======================================== #}
+            {# Menu #}
+            {# ======================================== #}
+
+            <div class="col-4 col-lg-3 mb-4">
+
+                <h5 class="h6 mb-3">
+                    Menu
+                </h5>
+
+
+                <nav aria-label="フッターメニュー">
+
+                    <ul class="list-unstyled mb-0 small">
+
+
+                        <li class="mb-2">
+
+                            <a
+                                class="text-white-50 text-decoration-none"
+                                href="{% url 'home' %}"
+                            >
+                                Home
+                            </a>
+
+                        </li>
+
+
+                        <li class="mb-2">
+
+                            <a
+                                class="text-white-50 text-decoration-none"
+                                href="{% url 'public_trip' %}"
+                            >
+                                みんなのTrip
+                            </a>
+
+                        </li>
+
+
+                        {% if user.is_authenticated %}
+
+                            <li class="mb-2">
+
+                                <a
+                                    class="text-white-50 text-decoration-none"
+                                    href="{% url 'trip_list' %}"
+                                >
+                                    My Trip
+                                </a>
+
+                            </li>
+
+
+                            <li class="mb-2">
+
+                                <a
+                                    class="text-white-50 text-decoration-none"
+                                    href="{% url 'saved_trip_list' %}"
+                                >
+                                    保存Trip
+                                </a>
+
+                            </li>
+
+
+                            <li class="mb-2">
+
+                                <a
+                                    class="text-white-50 text-decoration-none"
+                                    href="{% url 'trip_create' %}"
+                                >
+                                    Trip作成
+                                </a>
+
+                            </li>
+
+                        {% else %}
+
+                            <li class="mb-2">
+
+                                <a
+                                    class="text-white-50 text-decoration-none"
+                                    href="{% url 'login' %}"
+                                >
+                                    ログイン
+                                </a>
+
+                            </li>
+
+                        {% endif %}
+
+
+                    </ul>
+
+                </nav>
+
             </div>
 
-            <!-- サポート -->
-            <div class="col-md-3 mb-4">
-                <h5>Support</h5>
-                <ul class="list-unstyled">
-                    <li><a class="text-secondary text-decoration-none" href="#">お問い合わせ</a></li>
-                    <li><a class="text-secondary text-decoration-none" href="#">よくある質問</a></li>
+
+
+            {# ======================================== #}
+            {# Support #}
+            {# ======================================== #}
+
+            <div class="col-3 col-lg-2 mb-4">
+
+                <h5 class="h6 mb-3">
+                    Support
+                </h5>
+
+
+                <ul class="list-unstyled mb-0 small">
+
+                    <li class="text-white-50 mb-2">
+                        お問い合わせ
+                    </li>
+
+
+                    <li class="text-white-50 mb-2">
+                        よくある質問
+                    </li>
+
                 </ul>
+
             </div>
 
-            <!-- サイト情報 -->
-            <div class="col-md-3 mb-4">
-                <h5>About</h5>
-                <ul class="list-unstyled">
-                    <li><a class="text-secondary text-decoration-none" href="#">利用規約</a></li>
-                    <li><a class="text-secondary text-decoration-none" href="#">プライバシーポリシー</a></li>
+
+
+            {# ======================================== #}
+            {# About #}
+            {# ======================================== #}
+
+            <div class="col-5 col-lg-3 mb-4">
+
+                <h5 class="h6 mb-3">
+                    About
+                </h5>
+
+
+                <ul class="list-unstyled mb-0 small">
+
+                    <li class="text-white-50 mb-2">
+                        利用規約
+                    </li>
+
+
+                    <li class="text-white-50 mb-2">
+                        プライバシーポリシー
+                    </li>
+
                 </ul>
+
             </div>
+
 
         </div>
 

@@ -26,6 +26,7 @@ def sync_trip_days(
 
     day_order = 1
 
+
     while (
         current_date
         <= trip.end_date
@@ -40,6 +41,7 @@ def sync_trip_days(
                 },
             )
         )
+
 
         # =====================================
         # 既存Dayの場合も
@@ -61,11 +63,13 @@ def sync_trip_days(
                 ]
             )
 
+
         current_date += timedelta(
             days=1
         )
 
         day_order += 1
+
 
     # =====================================
     # Trip期間外のDayを取得
@@ -80,12 +84,14 @@ def sync_trip_days(
         )
     )
 
+
     # =====================================
     # ここまで来る時点では
     # 削除してよいDayなので削除
     # =====================================
 
     outside_days.delete()
+
 
     # =====================================
     # DayLocationから使われなくなった
@@ -95,6 +101,7 @@ def sync_trip_days(
     trip.locations.filter(
         day_locations__isnull=True
     ).delete()
+
 
 
 # =========================================
@@ -112,6 +119,7 @@ def sync_trip_hashtags(
     # =====================================
 
     trip.trip_hashtags.all().delete()
+
 
     # =====================================
     # 入力されたハッシュタグを登録
@@ -133,6 +141,7 @@ def sync_trip_hashtags(
         )
 
 
+
 # =========================================
 # Trip参考URL FormSetから
 # 保存対象データを取り出す関数
@@ -144,6 +153,7 @@ def get_trip_reference_url_items(
 
     reference_url_items = []
 
+
     for url_form in (
         formset.forms
     ):
@@ -154,15 +164,18 @@ def get_trip_reference_url_items(
             None,
         )
 
+
         if not cleaned_data:
 
             continue
+
 
         if cleaned_data.get(
             "DELETE"
         ):
 
             continue
+
 
         url = (
             cleaned_data.get(
@@ -172,6 +185,7 @@ def get_trip_reference_url_items(
             or ""
         ).strip()
 
+
         title = (
             cleaned_data.get(
                 "title",
@@ -179,6 +193,7 @@ def get_trip_reference_url_items(
             )
             or ""
         ).strip()
+
 
         # =====================================
         # URLが空欄の追加フォームは
@@ -189,6 +204,7 @@ def get_trip_reference_url_items(
 
             continue
 
+
         reference_url_items.append(
             {
                 "title": title,
@@ -196,7 +212,9 @@ def get_trip_reference_url_items(
             }
         )
 
+
     return reference_url_items
+
 
 
 # =========================================
@@ -214,6 +232,7 @@ def sync_trip_reference_urls(
 
     trip.reference_urls.all().delete()
 
+
     for url_order, item in enumerate(
         reference_url_items,
         start=1,
@@ -230,6 +249,7 @@ def sync_trip_reference_urls(
         )
 
 
+
 # =========================================
 # Trip全体費用参考URL FormSetから
 # 保存対象データを取り出す関数
@@ -241,6 +261,7 @@ def get_trip_expense_reference_url_items(
 
     reference_url_items = []
 
+
     for url_form in (
         formset.forms
     ):
@@ -251,15 +272,18 @@ def get_trip_expense_reference_url_items(
             None,
         )
 
+
         if not cleaned_data:
 
             continue
+
 
         if cleaned_data.get(
             "DELETE"
         ):
 
             continue
+
 
         title = (
             cleaned_data.get(
@@ -269,6 +293,7 @@ def get_trip_expense_reference_url_items(
             or ""
         ).strip()
 
+
         url = (
             cleaned_data.get(
                 "url",
@@ -276,6 +301,7 @@ def get_trip_expense_reference_url_items(
             )
             or ""
         ).strip()
+
 
         # =====================================
         # URLが空欄の追加フォームは
@@ -286,6 +312,7 @@ def get_trip_expense_reference_url_items(
 
             continue
 
+
         reference_url_items.append(
             {
                 "title": title,
@@ -293,7 +320,9 @@ def get_trip_expense_reference_url_items(
             }
         )
 
+
     return reference_url_items
+
 
 
 # =========================================
@@ -311,6 +340,7 @@ def sync_trip_expense_reference_urls(
 
     trip_expense.reference_urls.all().delete()
 
+
     for url_order, item in enumerate(
         reference_url_items,
         start=1,
@@ -325,6 +355,7 @@ def sync_trip_expense_reference_urls(
             url=item["url"],
             url_order=url_order,
         )
+
 
 
 # =========================================
@@ -354,6 +385,7 @@ def day_has_data(
     )
 
 
+
 # =========================================
 # Tripの日付に合わせて
 # ステータスを更新する関数
@@ -366,6 +398,7 @@ def sync_trip_status(
     today = (
         timezone.localdate()
     )
+
 
     # =====================================
     # 作成中
@@ -381,6 +414,7 @@ def sync_trip_status(
 
         return
 
+
     # =====================================
     # 旅完了は自動変更しない
     # =====================================
@@ -391,6 +425,7 @@ def sync_trip_status(
     ):
 
         return
+
 
     # =====================================
     # 旅行開始日前
@@ -405,6 +440,7 @@ def sync_trip_status(
             "planned"
         )
 
+
     # =====================================
     # 旅行開始日以降
     # =====================================
@@ -414,6 +450,7 @@ def sync_trip_status(
         new_status = (
             "traveling"
         )
+
 
     # =====================================
     # 現在のステータスと違う場合だけ更新
@@ -435,25 +472,26 @@ def sync_trip_status(
         )
 
 
+
 # =========================================
 # 旅行全体の実費を計算する関数
 #
 # 1. Trip.total_cost が
-#    手入力されている場合
-#    → その金額を最優先
+# 手入力されている場合
+# → その金額を最優先
 #
 # 2. Trip.total_cost が未入力の場合
 #
-#    Trip全体費用の実際支払額
+# Trip全体費用の実際支払額
 #
-#    ＋
+# ＋
 #
-#    各Dayの
-#    ・自由実費
-#    ・Day実際支払額
-#    ・Schedule実際支払額
+# 各Dayの
+# ・自由実費
+# ・Day実際支払額
+# ・Schedule実際支払額
 #
-#    を合計する
+# を合計する
 #
 # -----------------------------------------
 # 自由実費の採用ルール
@@ -470,7 +508,7 @@ def sync_trip_status(
 # -----------------------------------------
 #
 # 3. 実費が1件もない場合
-#    → None
+# → None
 # =========================================
 
 def calculate_trip_actual_total(
@@ -490,11 +528,13 @@ def calculate_trip_actual_total(
             trip.total_cost
         )
 
+
     actual_total = 0
 
     has_actual_cost = (
         False
     )
+
 
     # =====================================
     # Trip全体費用
@@ -519,6 +559,7 @@ def calculate_trip_actual_total(
                 True
             )
 
+
     # =====================================
     # Dayごとの実費
     # =====================================
@@ -526,6 +567,7 @@ def calculate_trip_actual_total(
     for day in (
         trip.days.all()
     ):
+
 
         # =====================================
         # 自由実費
@@ -549,6 +591,7 @@ def calculate_trip_actual_total(
                 True
             )
 
+
         # =====================================
         # 自由実費が未入力の場合
         #
@@ -563,6 +606,7 @@ def calculate_trip_actual_total(
             has_day_expense = (
                 False
             )
+
 
             for expense in (
                 day.day_expenses.all()
@@ -581,6 +625,7 @@ def calculate_trip_actual_total(
                         True
                     )
 
+
             if has_day_expense:
 
                 actual_total += (
@@ -590,6 +635,7 @@ def calculate_trip_actual_total(
                 has_actual_cost = (
                     True
                 )
+
 
         # =====================================
         # Day実際支払額
@@ -611,6 +657,7 @@ def calculate_trip_actual_total(
             has_actual_cost = (
                 True
             )
+
 
         # =====================================
         # Schedule実際支払額
@@ -639,6 +686,7 @@ def calculate_trip_actual_total(
                     True
                 )
 
+
     # =====================================
     # 実費が1件もない場合
     # =====================================
@@ -647,7 +695,101 @@ def calculate_trip_actual_total(
 
         return None
 
+
     return actual_total
+
+
+
+# =========================================
+# Tripカード表示用データを設定する関数
+#
+# 共通Tripカードで使用する
+# ・旅行日数
+# ・国ごとにまとめた訪問先
+#
+# 必要な場合は
+# ・実費合計
+#
+# も設定する
+# =========================================
+
+def prepare_trip_card_data(
+    trip,
+    include_actual_total=False,
+):
+
+    # =====================================
+    # 旅行日数
+    #
+    # 開始日と終了日を含めるため
+    # +1日する
+    # =====================================
+
+    trip.trip_days = (
+        trip.end_date
+        - trip.start_date
+    ).days + 1
+
+
+    # =====================================
+    # 訪問先を国ごとにまとめる
+    # =====================================
+
+    locations_by_country = {}
+
+
+    for location in (
+        trip.locations.all()
+    ):
+
+        if (
+            location.country
+            not in locations_by_country
+        ):
+
+            locations_by_country[
+                location.country
+            ] = []
+
+
+        if (
+            location.region
+            and location.region
+            not in locations_by_country[
+                location.country
+            ]
+        ):
+
+            locations_by_country[
+                location.country
+            ].append(
+                location.region
+            )
+
+
+    trip.locations_by_country = (
+        locations_by_country
+    )
+
+
+    # =====================================
+    # 実費合計
+    #
+    # みんなのTrip・保存Tripなど、
+    # 必要な場合だけ計算する
+    # =====================================
+
+    if include_actual_total:
+
+        trip.final_actual_total = (
+            calculate_trip_actual_total(
+                trip
+            )
+        )
+
+
+    return trip
+
 
 
 # =========================================
@@ -666,8 +808,10 @@ def get_trip_detail_url(
         },
     )
 
+
     if edit_mode:
 
         url += "?edit=1"
+
 
     return url

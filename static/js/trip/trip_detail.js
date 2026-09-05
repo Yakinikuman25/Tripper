@@ -2,6 +2,7 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
+
         // =================================
         // Trip旅行期間・旅行ルート
         // =================================
@@ -17,6 +18,7 @@ document.addEventListener(
             );
 
 
+
         // =================================
         // Trip全体費用
         // =================================
@@ -25,6 +27,1014 @@ document.addEventListener(
             document.getElementById(
                 "trip-expenses"
             );
+
+
+
+        // =================================
+        // Trip内容タブ
+        //
+        // 全体費用
+        // Day 1
+        // Day 2
+        // ...
+        //
+        // を横タブで切り替える
+        // =================================
+
+        const tripContentTabs =
+            document.getElementById(
+                "trip-content-tabs"
+            );
+
+
+        const tripContentTabsScroll =
+            document.getElementById(
+                "trip-content-tabs-scroll"
+            );
+
+
+        const tripTabsScrollLeft =
+            document.getElementById(
+                "trip-tabs-scroll-left"
+            );
+
+
+        const tripTabsScrollRight =
+            document.getElementById(
+                "trip-tabs-scroll-right"
+            );
+
+
+        const tripContentTabButtons =
+            Array.from(
+                document.querySelectorAll(
+                    "[data-trip-content-tab]"
+                )
+            );
+
+
+        const tripContentPanels =
+            Array.from(
+                document.querySelectorAll(
+                    "[data-trip-content-panel]"
+                )
+            );
+
+
+
+        // =================================
+        // 指定されたタブを
+        // 横スクロール領域内へ表示
+        // =================================
+
+        function scrollTabIntoView(
+            button,
+            behavior = "smooth"
+        ) {
+
+            if (
+                !tripContentTabsScroll
+                || !button
+            ) {
+
+                return;
+            }
+
+
+            const containerRect =
+                tripContentTabsScroll
+                    .getBoundingClientRect();
+
+
+            const buttonRect =
+                button
+                    .getBoundingClientRect();
+
+
+            // -----------------------------
+            // 左側へ隠れている
+            // -----------------------------
+
+            if (
+                buttonRect.left
+                < containerRect.left
+            ) {
+
+                tripContentTabsScroll.scrollBy({
+                    left:
+                        buttonRect.left
+                        - containerRect.left
+                        - 8,
+
+                    behavior: behavior,
+                });
+
+
+                return;
+            }
+
+
+            // -----------------------------
+            // 右側へ隠れている
+            // -----------------------------
+
+            if (
+                buttonRect.right
+                > containerRect.right
+            ) {
+
+                tripContentTabsScroll.scrollBy({
+                    left:
+                        buttonRect.right
+                        - containerRect.right
+                        + 8,
+
+                    behavior: behavior,
+                });
+            }
+
+        }
+
+
+
+        // =================================
+        // 指定されたパネルを表示
+        // =================================
+
+        function activateTripContentPanel(
+            targetId,
+            options = {}
+        ) {
+
+            const {
+                updateHash = false,
+                scrollTab = true,
+            } = options;
+
+
+            if (
+                !targetId
+                || tripContentTabButtons.length === 0
+                || tripContentPanels.length === 0
+            ) {
+
+                return;
+            }
+
+
+            const targetPanel =
+                document.getElementById(
+                    targetId
+                );
+
+
+            if (!targetPanel) {
+
+                return;
+            }
+
+
+
+            // -----------------------------
+            // パネル切り替え
+            // -----------------------------
+
+            tripContentPanels.forEach(
+                function (panel) {
+
+                    const isActive =
+                        panel.id === targetId;
+
+
+                    panel.hidden =
+                        !isActive;
+
+                }
+            );
+
+
+
+            // -----------------------------
+            // タブボタン切り替え
+            // -----------------------------
+
+            let activeButton =
+                null;
+
+
+            tripContentTabButtons.forEach(
+                function (button) {
+
+                    const isActive =
+                        button.dataset.target
+                        === targetId;
+
+
+                    button.classList.toggle(
+                        "active",
+                        isActive
+                    );
+
+
+                    button.setAttribute(
+                        "aria-selected",
+                        isActive
+                            ? "true"
+                            : "false"
+                    );
+
+
+                    button.tabIndex =
+                        isActive
+                            ? 0
+                            : -1;
+
+
+                    if (isActive) {
+
+                        activeButton =
+                            button;
+
+                    }
+
+                }
+            );
+
+
+
+            // -----------------------------
+            // 選択したタブを
+            // 横スクロール領域内へ表示
+            // -----------------------------
+
+            if (
+                scrollTab
+                && activeButton
+            ) {
+
+                scrollTabIntoView(
+                    activeButton,
+                    "smooth"
+                );
+
+            }
+
+
+
+            // -----------------------------
+            // URLのhash更新
+            //
+            // Dayをクリック
+            // ↓
+            // #day-panel-○○
+            //
+            // 再読み込みしても
+            // 同じDayを開ける
+            // -----------------------------
+
+            if (updateHash) {
+
+                const newUrl =
+                    window.location.pathname
+                    + window.location.search
+                    + "#"
+                    + targetId;
+
+
+                window.history.replaceState(
+                    null,
+                    "",
+                    newUrl
+                );
+
+            }
+
+        }
+
+
+
+        // =================================
+        // URLのhashから
+        // 開くべきパネルを取得
+        //
+        // パネルそのものだけでなく
+        // パネル内部の要素を指定している場合も
+        // そのDayを開く
+        // =================================
+
+        function getPanelIdFromHash() {
+
+            if (!window.location.hash) {
+
+                return null;
+
+            }
+
+
+            const hashId =
+                decodeURIComponent(
+                    window.location.hash.substring(
+                        1
+                    )
+                );
+
+
+            if (!hashId) {
+
+                return null;
+
+            }
+
+
+            const hashElement =
+                document.getElementById(
+                    hashId
+                );
+
+
+            if (!hashElement) {
+
+                return null;
+
+            }
+
+
+
+            // -----------------------------
+            // hash先そのものがパネル
+            // -----------------------------
+
+            if (
+                hashElement.matches(
+                    "[data-trip-content-panel]"
+                )
+            ) {
+
+                return hashElement.id;
+
+            }
+
+
+
+            // -----------------------------
+            // hash先がパネル内部
+            // -----------------------------
+
+            const parentPanel =
+                hashElement.closest(
+                    "[data-trip-content-panel]"
+                );
+
+
+            if (parentPanel) {
+
+                return parentPanel.id;
+
+            }
+
+
+            return null;
+
+        }
+
+
+
+        // =================================
+        // 今日のDay取得
+        //
+        // HTML側で
+        // data-is-today="true"
+        // を付けたDayを探す
+        // =================================
+
+        function getTodayDayTarget() {
+
+            const todayButton =
+                tripContentTabButtons.find(
+                    function (button) {
+
+                        return (
+                            button.dataset.isToday
+                            === "true"
+                        );
+
+                    }
+                );
+
+
+            if (!todayButton) {
+
+                return null;
+
+            }
+
+
+            return (
+                todayButton.dataset.target
+                || null
+            );
+
+        }
+
+
+
+        // =================================
+        // Day1取得
+        // =================================
+
+        function getFirstDayTarget() {
+
+            const firstDayButton =
+                tripContentTabButtons.find(
+                    function (button) {
+
+                        return (
+                            button.dataset.dayId
+                            !== undefined
+                        );
+
+                    }
+                );
+
+
+            if (!firstDayButton) {
+
+                return null;
+
+            }
+
+
+            return (
+                firstDayButton.dataset.target
+                || null
+            );
+
+        }
+
+
+
+        // =================================
+        // 全体費用タブ取得
+        // =================================
+
+        function getTripExpenseTarget() {
+
+            const expenseButton =
+                tripContentTabButtons.find(
+                    function (button) {
+
+                        return (
+                            button.dataset.tripExpenseTab
+                            === "true"
+                        );
+
+                    }
+                );
+
+
+            if (!expenseButton) {
+
+                return null;
+
+            }
+
+
+            return (
+                expenseButton.dataset.target
+                || null
+            );
+
+        }
+
+
+
+        // =================================
+        // 初期表示するタブ
+        //
+        // 優先順位
+        //
+        // 1. URLのhashで指定されたDay
+        //
+        // 2. traveling ＋ 今日のDay
+        //
+        // 3. Day1
+        //
+        // 4. 全体費用
+        // =================================
+
+        function setupInitialTripContentTab() {
+
+            if (
+                !tripContentTabs
+                || tripContentTabButtons.length === 0
+                || tripContentPanels.length === 0
+            ) {
+
+                return;
+
+            }
+
+
+
+            // -----------------------------
+            // 1. URL hash
+            // -----------------------------
+
+            const hashTarget =
+                getPanelIdFromHash();
+
+
+            if (hashTarget) {
+
+                activateTripContentPanel(
+                    hashTarget,
+                    {
+                        updateHash: false,
+                        scrollTab: true,
+                    }
+                );
+
+
+                return;
+
+            }
+
+
+
+            // -----------------------------
+            // Trip状態
+            // -----------------------------
+
+            const tripStatus =
+                tripContentTabs.dataset.tripStatus;
+
+
+
+            // -----------------------------
+            // 2. 旅中なら今日のDay
+            // -----------------------------
+
+            if (
+                tripStatus === "traveling"
+            ) {
+
+                const todayTarget =
+                    getTodayDayTarget();
+
+
+                if (todayTarget) {
+
+                    activateTripContentPanel(
+                        todayTarget,
+                        {
+                            updateHash: false,
+                            scrollTab: true,
+                        }
+                    );
+
+
+                    return;
+
+                }
+
+            }
+
+
+
+            // -----------------------------
+            // 3. Day1
+            // -----------------------------
+
+            const firstDayTarget =
+                getFirstDayTarget();
+
+
+            if (firstDayTarget) {
+
+                activateTripContentPanel(
+                    firstDayTarget,
+                    {
+                        updateHash: false,
+                        scrollTab: true,
+                    }
+                );
+
+
+                return;
+
+            }
+
+
+
+            // -----------------------------
+            // 4. 全体費用
+            // -----------------------------
+
+            const expenseTarget =
+                getTripExpenseTarget();
+
+
+            if (expenseTarget) {
+
+                activateTripContentPanel(
+                    expenseTarget,
+                    {
+                        updateHash: false,
+                        scrollTab: true,
+                    }
+                );
+
+            }
+
+        }
+
+
+
+        // =================================
+        // タブクリック
+        // =================================
+
+        tripContentTabButtons.forEach(
+            function (button) {
+
+                button.addEventListener(
+                    "click",
+                    function () {
+
+                        const targetId =
+                            button.dataset.target;
+
+
+                        if (!targetId) {
+
+                            return;
+
+                        }
+
+
+                        activateTripContentPanel(
+                            targetId,
+                            {
+                                updateHash: true,
+                                scrollTab: true,
+                            }
+                        );
+
+                    }
+                );
+
+            }
+        );
+
+
+
+        // =================================
+        // キーボード操作
+        //
+        // ← →
+        // でタブを切り替え可能
+        // =================================
+
+        tripContentTabButtons.forEach(
+            function (button) {
+
+                button.addEventListener(
+                    "keydown",
+                    function (event) {
+
+                        if (
+                            event.key !== "ArrowLeft"
+                            && event.key !== "ArrowRight"
+                        ) {
+
+                            return;
+
+                        }
+
+
+                        event.preventDefault();
+
+
+                        const currentIndex =
+                            tripContentTabButtons.indexOf(
+                                button
+                            );
+
+
+                        if (currentIndex === -1) {
+
+                            return;
+
+                        }
+
+
+                        let nextIndex;
+
+
+                        if (
+                            event.key === "ArrowRight"
+                        ) {
+
+                            nextIndex =
+                                currentIndex + 1;
+
+
+                            if (
+                                nextIndex
+                                >= tripContentTabButtons.length
+                            ) {
+
+                                nextIndex = 0;
+
+                            }
+
+
+                        } else {
+
+                            nextIndex =
+                                currentIndex - 1;
+
+
+                            if (nextIndex < 0) {
+
+                                nextIndex =
+                                    tripContentTabButtons.length
+                                    - 1;
+
+                            }
+
+                        }
+
+
+                        const nextButton =
+                            tripContentTabButtons[
+                                nextIndex
+                            ];
+
+
+                        if (!nextButton) {
+
+                            return;
+
+                        }
+
+
+                        const targetId =
+                            nextButton.dataset.target;
+
+
+                        if (!targetId) {
+
+                            return;
+
+                        }
+
+
+                        activateTripContentPanel(
+                            targetId,
+                            {
+                                updateHash: true,
+                                scrollTab: true,
+                            }
+                        );
+
+
+                        nextButton.focus();
+
+                    }
+                );
+
+            }
+        );
+
+
+
+        // =================================
+        // Dayタブ 横スクロール
+        //
+        // スワイプ・横スクロールに加えて
+        // ‹ › ボタンでも移動できる
+        // =================================
+
+        if (
+            tripContentTabsScroll
+            && tripTabsScrollLeft
+            && tripTabsScrollRight
+        ) {
+
+
+            // -----------------------------
+            // 1回にスクロールする距離
+            //
+            // 基本的に
+            // タブ1個分 + gap
+            // -----------------------------
+
+            function getTripTabScrollAmount() {
+
+                const firstTab =
+                    tripContentTabsScroll
+                        .querySelector(
+                            ".trip-content-tab-button"
+                        );
+
+
+                if (!firstTab) {
+
+                    return 150;
+
+                }
+
+
+                const tabsStyle =
+                    window.getComputedStyle(
+                        tripContentTabsScroll
+                    );
+
+
+                const gap =
+                    parseFloat(
+                        tabsStyle.columnGap
+                        || tabsStyle.gap
+                    )
+                    || 0;
+
+
+                return (
+                    firstTab.getBoundingClientRect().width
+                    + gap
+                );
+
+            }
+
+
+
+            // -----------------------------
+            // 左へ
+            // -----------------------------
+
+            tripTabsScrollLeft.addEventListener(
+                "click",
+                function () {
+
+                    tripContentTabsScroll.scrollBy({
+                        left:
+                            -getTripTabScrollAmount(),
+
+                        behavior: "smooth",
+                    });
+
+                }
+            );
+
+
+
+            // -----------------------------
+            // 右へ
+            // -----------------------------
+
+            tripTabsScrollRight.addEventListener(
+                "click",
+                function () {
+
+                    tripContentTabsScroll.scrollBy({
+                        left:
+                            getTripTabScrollAmount(),
+
+                        behavior: "smooth",
+                    });
+
+                }
+            );
+
+
+
+            // -----------------------------
+            // 左右ボタンの
+            // 有効・無効を更新
+            // -----------------------------
+
+            function updateTripTabScrollButtons() {
+
+                const maxScrollLeft =
+                    tripContentTabsScroll.scrollWidth
+                    - tripContentTabsScroll.clientWidth;
+
+
+                // 横スクロール自体が不要
+                if (maxScrollLeft <= 1) {
+
+                    tripTabsScrollLeft.disabled =
+                        true;
+
+                    tripTabsScrollRight.disabled =
+                        true;
+
+
+                    return;
+
+                }
+
+
+                // 左端
+                tripTabsScrollLeft.disabled =
+                    tripContentTabsScroll.scrollLeft
+                    <= 1;
+
+
+                // 右端
+                tripTabsScrollRight.disabled =
+                    tripContentTabsScroll.scrollLeft
+                    >= maxScrollLeft - 1;
+
+            }
+
+
+
+            // -----------------------------
+            // スクロール時
+            // -----------------------------
+
+            tripContentTabsScroll.addEventListener(
+                "scroll",
+                updateTripTabScrollButtons,
+                {
+                    passive: true,
+                }
+            );
+
+
+
+            // -----------------------------
+            // 画面サイズ変更時
+            // -----------------------------
+
+            window.addEventListener(
+                "resize",
+                updateTripTabScrollButtons
+            );
+
+
+
+            // -----------------------------
+            // 初期状態
+            // -----------------------------
+
+            updateTripTabScrollButtons();
+
+
+            // レイアウト確定後にも再確認
+            window.requestAnimationFrame(
+                function () {
+
+                    updateTripTabScrollButtons();
+
+                }
+            );
+
+        }
+
+
+
+        // =================================
+        // ブラウザの戻る・進むなどで
+        // hashが変わった場合
+        // =================================
+
+        window.addEventListener(
+            "hashchange",
+            function () {
+
+                const hashTarget =
+                    getPanelIdFromHash();
+
+
+                if (!hashTarget) {
+
+                    return;
+
+                }
+
+
+                activateTripContentPanel(
+                    hashTarget,
+                    {
+                        updateHash: false,
+                        scrollTab: true,
+                    }
+                );
+
+            }
+        );
+
+
+
+        // =================================
+        // 初期タブ設定
+        // =================================
+
+        setupInitialTripContentTab();
+
 
 
         // =================================
@@ -44,6 +1054,7 @@ document.addEventListener(
                 document.getElementById(
                     tripExpenses.dataset.tripExpenseNameId
                 );
+
         }
 
 
@@ -51,7 +1062,9 @@ document.addEventListener(
 
             tripExpenseNameInput.required =
                 true;
+
         }
+
 
 
         // =================================
@@ -88,8 +1101,10 @@ document.addEventListener(
 
                     tripExpenseAddForm.style.display =
                         "block";
+
                 }
             );
+
         }
 
 
@@ -108,9 +1123,12 @@ document.addEventListener(
 
                     showTripExpenseFormButton.style.display =
                         "inline-block";
+
                 }
             );
+
         }
+
 
 
         // =================================
@@ -132,10 +1150,12 @@ document.addEventListener(
                     const expenseId =
                         showEditButton.dataset.expenseId;
 
+
                     const expenseDisplay =
                         document.getElementById(
                             `expense-display-${expenseId}`
                         );
+
 
                     const expenseEdit =
                         document.getElementById(
@@ -153,11 +1173,14 @@ document.addEventListener(
 
                         expenseEdit.style.display =
                             "block";
+
                     }
 
 
                     return;
+
                 }
+
 
 
                 const hideEditButton =
@@ -171,10 +1194,12 @@ document.addEventListener(
                     const expenseId =
                         hideEditButton.dataset.expenseId;
 
+
                     const expenseDisplay =
                         document.getElementById(
                             `expense-display-${expenseId}`
                         );
+
 
                     const expenseEdit =
                         document.getElementById(
@@ -192,10 +1217,14 @@ document.addEventListener(
 
                         expenseDisplay.style.display =
                             "block";
+
                     }
+
                 }
+
             }
         );
+
 
 
         // =================================
@@ -204,7 +1233,7 @@ document.addEventListener(
         // ・Trip全体費用
         // ・Day写真
         // ・Day感想
-        // ・Day実際費用
+        // ・Day自由実費
         // ・Day費用明細
         //
         // data-confirm-message の内容を
@@ -225,6 +1254,7 @@ document.addEventListener(
                 if (!deleteButton) {
 
                     return;
+
                 }
 
 
@@ -236,9 +1266,12 @@ document.addEventListener(
                 if (!window.confirm(message)) {
 
                     event.preventDefault();
+
                 }
+
             }
         );
+
 
 
         // =================================
@@ -246,6 +1279,7 @@ document.addEventListener(
         // =================================
 
         function setupExpenseReferenceUrlForms() {
+
 
             // -----------------------------
             // 「＋ 参考URL」
@@ -265,10 +1299,12 @@ document.addEventListener(
                                     button.dataset.containerId
                                 );
 
+
                             const template =
                                 document.getElementById(
                                     button.dataset.templateId
                                 );
+
 
                             const totalFormsInput =
                                 document.getElementById(
@@ -283,6 +1319,7 @@ document.addEventListener(
                             ) {
 
                                 return;
+
                             }
 
 
@@ -310,10 +1347,13 @@ document.addEventListener(
 
                             totalFormsInput.value =
                                 formIndex + 1;
+
                         }
                     );
+
                 }
             );
+
 
 
             // -----------------------------
@@ -333,7 +1373,9 @@ document.addEventListener(
                     if (!referenceUrlForm) {
 
                         return;
+
                     }
+
 
 
                     // -------------------------
@@ -367,15 +1409,30 @@ document.addEventListener(
                                 "URLを入力してください。"
                             );
 
+
                             return;
+
                         }
 
 
                         event.target.textContent =
                             "登録済み";
 
+
+                        event.target.classList.remove(
+                            "btn-primary"
+                        );
+
+
+                        event.target.classList.add(
+                            "btn-outline-secondary"
+                        );
+
+
                         return;
+
                     }
+
 
 
                     // -------------------------
@@ -398,14 +1455,18 @@ document.addEventListener(
 
                             deleteInput.checked =
                                 true;
+
                         }
 
 
                         referenceUrlForm.style.display =
                             "none";
+
                     }
+
                 }
             );
+
 
 
             // -----------------------------
@@ -425,6 +1486,7 @@ document.addEventListener(
                     ) {
 
                         return;
+
                     }
 
 
@@ -437,6 +1499,7 @@ document.addEventListener(
                     if (!referenceUrlForm) {
 
                         return;
+
                     }
 
 
@@ -454,13 +1517,27 @@ document.addEventListener(
 
                         registerButton.textContent =
                             "登録";
+
+
+                        registerButton.classList.remove(
+                            "btn-outline-secondary"
+                        );
+
+
+                        registerButton.classList.add(
+                            "btn-primary"
+                        );
+
                     }
+
                 }
             );
+
         }
 
 
         setupExpenseReferenceUrlForms();
+
 
 
         // =================================
@@ -484,10 +1561,12 @@ document.addEventListener(
                                 button.dataset.containerId
                             );
 
+
                         const template =
                             document.getElementById(
                                 button.dataset.templateId
                             );
+
 
                         const totalFormsInput =
                             document.getElementById(
@@ -502,6 +1581,7 @@ document.addEventListener(
                         ) {
 
                             return;
+
                         }
 
 
@@ -529,10 +1609,13 @@ document.addEventListener(
 
                         totalFormsInput.value =
                             formIndex + 1;
+
                     }
                 );
+
             }
         );
+
 
 
         // =================================
@@ -558,6 +1641,7 @@ document.addEventListener(
                 if (!removeButton) {
 
                     return;
+
                 }
 
 
@@ -570,6 +1654,7 @@ document.addEventListener(
                 if (!expenseForm) {
 
                     return;
+
                 }
 
 
@@ -583,13 +1668,16 @@ document.addEventListener(
 
                     deleteInput.checked =
                         true;
+
                 }
 
 
                 expenseForm.style.display =
                     "none";
+
             }
         );
+
 
 
         // =================================
@@ -663,6 +1751,8 @@ document.addEventListener(
                     textWidth,
                     periodWidth
                 ) + "px";
+
         }
+
     }
 );

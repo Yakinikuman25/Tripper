@@ -1,14 +1,20 @@
+{% load static %}
+
 <!DOCTYPE html>
+
 <html lang="ja">
+
 
 <head>
 
     <meta charset="UTF-8">
 
+
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
+
 
     <title>
         {% block title %}
@@ -17,39 +23,57 @@
     </title>
 
 
-    {% load static %}
 
+    {# ======================================== #}
+    {# Bootstrap CSS #}
+    {# ======================================== #}
 
-    <!-- Bootstrap -->
     <link
         href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
         rel="stylesheet"
     >
 
 
-    <!-- 共通CSS -->
+
+    {# ======================================== #}
+    {# 共通CSS #}
+    {# ======================================== #}
+
     <link
         rel="stylesheet"
         href="{% static 'css/style.css' %}"
     >
 
 
-    <!-- ページ専用CSS -->
+
+    {# ======================================== #}
+    {# ページ専用CSS #}
+    {# ======================================== #}
+
     {% block extra_css %}
     {% endblock %}
+
 
 </head>
 
 
-<body>
+
+<body class="d-flex flex-column min-vh-100">
 
 
-    <!-- Header -->
+    {# ======================================== #}
+    {# Header #}
+    {# ======================================== #}
+
     {% include "snippets/header.html" %}
 
 
-    <!-- Main -->
-    <main class="container py-4">
+
+    {# ======================================== #}
+    {# Main #}
+    {# ======================================== #}
+
+    <main class="container py-4 flex-grow-1">
 
         {% block main %}
         {% endblock %}
@@ -57,21 +81,36 @@
     </main>
 
 
-    <!-- Footer -->
+
+    {# ======================================== #}
+    {# Footer #}
+    {# ======================================== #}
+
     {% include "snippets/footer.html" %}
 
 
-    <!-- Bootstrap -->
+
+    {# ======================================== #}
+    {# Bootstrap JavaScript #}
+    {# #}
+    {# navbar / collapse / modal などに必要 #}
+    {# ======================================== #}
+
     <script
         src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"
     ></script>
 
 
-    <!-- ページ専用JavaScript -->
+
+    {# ======================================== #}
+    {# ページ専用JavaScript #}
+    {# ======================================== #}
+
     {% block extra_js %}
     {% endblock %}
 
 
 </body>
+
 
 </html>

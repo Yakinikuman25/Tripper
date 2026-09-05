@@ -3,13 +3,11 @@
 
 {% block title %}
 
-
     {% if object %}
         Trip編集 | Tripper
     {% else %}
         Trip作成 | Tripper
     {% endif %}
-
 
 {% endblock %}
 
@@ -18,684 +16,839 @@
 {% block main %}
 
 
+<div class="row justify-content-center">
 
-{% if object %}
+    <div class="col-lg-8">
 
 
-    <h1>
-        Trip編集
-    </h1>
-
-
-{% else %}
-
-
-    <h1>
-        Trip作成
-    </h1>
-
-
-{% endif %}
-
-
-
-<form method="post">
-
-
-    {% csrf_token %}
-
-
-    {% if form.non_field_errors %}
-
-        <div class="mb-3">
-
-            {% for error in form.non_field_errors %}
-
-                <p class="text-danger">
-                    {{ error }}
-                </p>
-
-            {% endfor %}
-
-        </div>
-
-    {% endif %}
-
-
-
-    {# ======================================== #}
-    {# Tripタイトル #}
-    {# ======================================== #}
-
-    <div class="mb-3">
-
-
-        <label
-            for="{{ form.title.id_for_label }}"
-            class="form-label"
-        >
-            Tripタイトル
-        </label>
-
-
-        {{ form.title }}
-
-
-        {% for error in form.title.errors %}
-
-            <p class="text-danger">
-                {{ error }}
-            </p>
-
-        {% endfor %}
-
-
-    </div>
-
-
-
-    {# ======================================== #}
-    {# カテゴリ #}
-    {# ======================================== #}
-
-    <div class="mb-3">
-
-
-        <label
-            for="{{ form.category.id_for_label }}"
-            class="form-label"
-        >
-            カテゴリ
-        </label>
-
-
-        {{ form.category }}
-
-
-        {% for error in form.category.errors %}
-
-            <p class="text-danger">
-                {{ error }}
-            </p>
-
-        {% endfor %}
-
-
-    </div>
-
-
-
-    {# ======================================== #}
-    {# 旅行開始日 #}
-    {# ======================================== #}
-
-    <div class="mb-3">
-
-
-        <label
-            for="{{ form.start_date.id_for_label }}"
-            class="form-label"
-        >
-            旅行開始日
-        </label>
-
-
-        {{ form.start_date }}
-
-
-        {% for error in form.start_date.errors %}
-
-            <p class="text-danger">
-                {{ error }}
-            </p>
-
-        {% endfor %}
-
-
-        <div class="form-text">
-            カレンダーから日付を選択してください。
-        </div>
-
-
-    </div>
-
-
-
-    {# ======================================== #}
-    {# 旅行終了日 #}
-    {# ======================================== #}
-
-    <div class="mb-3">
-
-
-        <label
-            for="{{ form.end_date.id_for_label }}"
-            class="form-label"
-        >
-            旅行終了日
-        </label>
-
-
-        {{ form.end_date }}
-
-
-        {% for error in form.end_date.errors %}
-
-            <p class="text-danger">
-                {{ error }}
-            </p>
-
-        {% endfor %}
-
-
-        <div class="form-text">
-            カレンダーから日付を選択してください。
-        </div>
-
-
-    </div>
-
-
-
-    {# ======================================== #}
-    {# メモ #}
-    {# ======================================== #}
-
-    <div class="mb-4">
-
-
-        <label
-            for="{{ form.memo.id_for_label }}"
-            class="form-label"
-        >
-            メモ
-        </label>
-
-
-        {{ form.memo }}
-
-
-        <div class="form-text">
-            旅行全体の予定や補足などを自由に入力できます。
-        </div>
-
-
-        {% for error in form.memo.errors %}
-
-            <p class="text-danger">
-                {{ error }}
-            </p>
-
-        {% endfor %}
-
-
-    </div>
-
-
-
-    {# ======================================== #}
-    {# ハッシュタグ #}
-    {# ======================================== #}
-
-    <div class="mb-4">
-
-
-        <label class="form-label">
-            ハッシュタグ
-        </label>
-
-
-        <p class="text-muted small">
-            最大4つまで登録できます。
-            入力しない欄があっても、そのまま保存できます。
-            「#」は入力する必要はありません。
-        </p>
-
-
-        <div class="row g-2">
-
-
-            <div class="col-12 col-sm-6 col-lg-3">
-
-                <div class="input-group">
-
-                    <span class="input-group-text">
-                        #
-                    </span>
-
-                    {{ form.hashtag_1 }}
-
-                </div>
-
-
-                {% for error in form.hashtag_1.errors %}
-
-                    <p class="text-danger mb-0 mt-1">
-                        {{ error }}
-                    </p>
-
-                {% endfor %}
-
-            </div>
-
-
-            <div class="col-12 col-sm-6 col-lg-3">
-
-                <div class="input-group">
-
-                    <span class="input-group-text">
-                        #
-                    </span>
-
-                    {{ form.hashtag_2 }}
-
-                </div>
-
-
-                {% for error in form.hashtag_2.errors %}
-
-                    <p class="text-danger mb-0 mt-1">
-                        {{ error }}
-                    </p>
-
-                {% endfor %}
-
-            </div>
-
-
-            <div class="col-12 col-sm-6 col-lg-3">
-
-                <div class="input-group">
-
-                    <span class="input-group-text">
-                        #
-                    </span>
-
-                    {{ form.hashtag_3 }}
-
-                </div>
-
-
-                {% for error in form.hashtag_3.errors %}
-
-                    <p class="text-danger mb-0 mt-1">
-                        {{ error }}
-                    </p>
-
-                {% endfor %}
-
-            </div>
-
-
-            <div class="col-12 col-sm-6 col-lg-3">
-
-                <div class="input-group">
-
-                    <span class="input-group-text">
-                        #
-                    </span>
-
-                    {{ form.hashtag_4 }}
-
-                </div>
-
-
-                {% for error in form.hashtag_4.errors %}
-
-                    <p class="text-danger mb-0 mt-1">
-                        {{ error }}
-                    </p>
-
-                {% endfor %}
-
-            </div>
-
-
-        </div>
-
-
-    </div>
-
-
-
-    {# ======================================== #}
-    {# Trip参考URL #}
-    {# ======================================== #}
-
-    <div class="mb-4">
-
-
-        {# FormSetで必須 #}
-
-        {{ reference_url_formset.management_form }}
-
-
-        {% if reference_url_formset.non_form_errors %}
-
-            {% for error in reference_url_formset.non_form_errors %}
-
-                <p class="text-danger">
-                    {{ error }}
-                </p>
-
-            {% endfor %}
-
-        {% endif %}
-
-
-
-        {# ==================================== #}
-        {# 現在表示されている参考URL #}
-        {# ==================================== #}
-
-        <div id="reference-url-forms">
-
-
-            {% for url_form in reference_url_formset %}
-
-
-                <div
-                    class="reference-url-form mb-3"
-                >
-
-
-                    {% for hidden in url_form.hidden_fields %}
-
-                        {{ hidden }}
-
-                    {% endfor %}
-
-
-                    {% if url_form.non_field_errors %}
-
-                        {% for error in url_form.non_field_errors %}
-
-                            <p class="text-danger">
-                                {{ error }}
-                            </p>
-
-                        {% endfor %}
-
-                    {% endif %}
-
-
-                    <div class="mb-2">
-
-
-                        <label
-                            for="{{ url_form.title.id_for_label }}"
-                            class="form-label"
-                        >
-                            参考URL名
-                        </label>
-
-
-                        {{ url_form.title }}
-
-
-                        {% for error in url_form.title.errors %}
-
-                            <p class="text-danger mb-0">
-                                {{ error }}
-                            </p>
-
-                        {% endfor %}
-
-
-                    </div>
-
-
-                    <div class="mb-2">
-
-
-                        <label
-                            for="{{ url_form.url.id_for_label }}"
-                            class="form-label"
-                        >
-                            URL
-                        </label>
-
-
-                        {{ url_form.url }}
-
-
-                        {% for error in url_form.url.errors %}
-
-                            <p class="text-danger mb-0">
-                                {{ error }}
-                            </p>
-
-                        {% endfor %}
-
-
-                    </div>
-
-
-                    <div
-                        class="delete-field"
-                        style="display: none;"
-                    >
-
-                        {{ url_form.DELETE }}
-
-                    </div>
-
-
-                    <div class="d-flex gap-2">
-
-
-                        <button
-                            type="button"
-                            class="btn btn-outline-primary btn-sm register-reference-url"
-                        >
-                            {% if url_form.instance.pk %}
-                                登録済み
-                            {% else %}
-                                登録
-                            {% endif %}
-                        </button>
-
-
-                        <button
-                            type="button"
-                            class="btn btn-outline-danger btn-sm remove-reference-url"
-                        >
-                            削除
-                        </button>
-
-
-                    </div>
-
-
-                </div>
-
-
-            {% endfor %}
-
-
-        </div>
-
-
-
-        {# ==================================== #}
-        {# JavaScript追加用の空フォーム #}
-        {# ==================================== #}
-
-        <template id="empty-reference-url-form">
-
-
-            <div
-                class="reference-url-form mb-3"
-            >
-
-
-                {% for hidden in reference_url_formset.empty_form.hidden_fields %}
-
-                    {{ hidden }}
-
-                {% endfor %}
-
-
-                <div class="mb-2">
-
-
-                    <label class="form-label">
-                        参考URL名
-                    </label>
-
-
-                    {{ reference_url_formset.empty_form.title }}
-
-
-                </div>
-
-
-                <div class="mb-2">
-
-
-                    <label class="form-label">
-                        URL
-                    </label>
-
-
-                    {{ reference_url_formset.empty_form.url }}
-
-
-                </div>
-
-
-                <div
-                    class="delete-field"
-                    style="display: none;"
-                >
-
-                    {{ reference_url_formset.empty_form.DELETE }}
-
-                </div>
-
-
-                <div class="d-flex gap-2">
-
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-primary btn-sm register-reference-url"
-                    >
-                        登録
-                    </button>
-
-
-                    <button
-                        type="button"
-                        class="btn btn-outline-danger btn-sm remove-reference-url"
-                    >
-                        削除
-                    </button>
-
-
-                </div>
-
-
-            </div>
-
-
-        </template>
-
-
-
-        <button
-            type="button"
-            id="add-reference-url"
-            class="btn btn-outline-primary"
-        >
-            ＋ 参考URL
-        </button>
-
-
-    </div>
-
-
-
-    {# ======================================== #}
-    {# Trip保存 #}
-    {# ======================================== #}
-
-    <div class="d-flex gap-2">
-
+        {# ======================================== #}
+        {# タイトル #}
+        {# ======================================== #}
 
         {% if object %}
 
-
-            <button
-                type="submit"
-                class="btn btn-primary"
-            >
-                保存
-            </button>
-
+            <h1 class="mb-4">
+                Trip編集
+            </h1>
 
         {% else %}
 
-
-            <button
-                type="submit"
-                class="btn btn-primary"
-            >
-                作成
-            </button>
-
+            <h1 class="mb-4">
+                Trip作成
+            </h1>
 
         {% endif %}
 
 
 
-        {% if object %}
+        {# ======================================== #}
+        {# 入力エラー #}
+        {# ======================================== #}
+
+        {% if form.errors or reference_url_formset.total_error_count %}
+
+            <div
+                class="alert alert-danger"
+                role="alert"
+            >
+                入力内容を確認してください。
+            </div>
+
+        {% endif %}
 
 
-            {% if object.status == "draft" %}
+
+        <form method="post">
+
+            {% csrf_token %}
 
 
-                <a
-                    href="{% url 'trip_detail' object.trip_id %}"
-                    class="btn btn-outline-secondary"
-                >
-                    キャンセル
-                </a>
 
+            {# ======================================== #}
+            {# フォーム全体エラー #}
+            {# ======================================== #}
 
-            {% else %}
+            {% if form.non_field_errors %}
 
+                <div class="alert alert-danger">
 
-                <a
-                    href="{% url 'trip_detail' object.trip_id %}?edit=1"
-                    class="btn btn-outline-secondary"
-                >
-                    キャンセル
-                </a>
+                    {% for error in form.non_field_errors %}
 
+                        <div>
+                            {{ error }}
+                        </div>
+
+                    {% endfor %}
+
+                </div>
 
             {% endif %}
 
 
-        {% else %}
+
+            {# ======================================== #}
+            {# Tripタイトル #}
+            {# ======================================== #}
+
+            <div class="mb-3">
+
+                <label
+                    for="{{ form.title.id_for_label }}"
+                    class="form-label"
+                >
+                    Tripタイトル
+                </label>
 
 
-            <a
-                href="{% url 'trip_list' %}"
-                class="btn btn-outline-secondary"
-            >
-                キャンセル
-            </a>
+                {{ form.title }}
 
 
-        {% endif %}
+                {% if form.title.errors %}
 
+                    <div class="text-danger small mt-1">
+
+                        {% for error in form.title.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                {% if form.title.help_text %}
+
+                    <div class="form-text">
+                        {{ form.title.help_text }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# カテゴリ #}
+            {# ======================================== #}
+
+            <div class="mb-3">
+
+                <label
+                    for="{{ form.category.id_for_label }}"
+                    class="form-label"
+                >
+                    カテゴリ
+                </label>
+
+
+                {{ form.category }}
+
+
+                {% if form.category.errors %}
+
+                    <div class="text-danger small mt-1">
+
+                        {% for error in form.category.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                {% if form.category.help_text %}
+
+                    <div class="form-text">
+                        {{ form.category.help_text }}
+                    </div>
+
+                {% endif %}
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# 旅行開始日 #}
+            {# ======================================== #}
+
+            <div class="mb-3">
+
+                <label
+                    for="{{ form.start_date.id_for_label }}"
+                    class="form-label"
+                >
+                    旅行開始日
+                </label>
+
+
+                {{ form.start_date }}
+
+
+                {% if form.start_date.errors %}
+
+                    <div class="text-danger small mt-1">
+
+                        {% for error in form.start_date.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                <div class="form-text">
+                    カレンダーから日付を選択してください。
+                </div>
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# 旅行終了日 #}
+            {# ======================================== #}
+
+            <div class="mb-3">
+
+                <label
+                    for="{{ form.end_date.id_for_label }}"
+                    class="form-label"
+                >
+                    旅行終了日
+                </label>
+
+
+                {{ form.end_date }}
+
+
+                {% if form.end_date.errors %}
+
+                    <div class="text-danger small mt-1">
+
+                        {% for error in form.end_date.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                <div class="form-text">
+                    カレンダーから日付を選択してください。
+                </div>
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# メモ #}
+            {# ======================================== #}
+
+            <div class="mb-4">
+
+                <label
+                    for="{{ form.memo.id_for_label }}"
+                    class="form-label"
+                >
+                    メモ
+                </label>
+
+
+                {{ form.memo }}
+
+
+                {% if form.memo.errors %}
+
+                    <div class="text-danger small mt-1">
+
+                        {% for error in form.memo.errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+                <div class="form-text">
+                    旅行全体の予定や補足などを自由に入力できます。
+                </div>
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# ハッシュタグ #}
+            {# ======================================== #}
+
+            <div class="mb-4">
+
+                <label class="form-label">
+                    ハッシュタグ
+                </label>
+
+
+                <p class="text-muted small mb-2">
+                    最大4つまで登録できます。
+                    入力しない欄があっても、そのまま保存できます。
+                    「#」は入力する必要はありません。
+                </p>
+
+
+                <div class="row g-2">
+
+
+                    {# ======================================== #}
+                    {# ハッシュタグ1 #}
+                    {# ======================================== #}
+
+                    <div class="col-12 col-sm-6 col-lg-3">
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                #
+                            </span>
+
+
+                            {{ form.hashtag_1 }}
+
+                        </div>
+
+
+                        {% if form.hashtag_1.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {% for error in form.hashtag_1.errors %}
+
+                                    <div>
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+
+                    {# ======================================== #}
+                    {# ハッシュタグ2 #}
+                    {# ======================================== #}
+
+                    <div class="col-12 col-sm-6 col-lg-3">
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                #
+                            </span>
+
+
+                            {{ form.hashtag_2 }}
+
+                        </div>
+
+
+                        {% if form.hashtag_2.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {% for error in form.hashtag_2.errors %}
+
+                                    <div>
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+
+                    {# ======================================== #}
+                    {# ハッシュタグ3 #}
+                    {# ======================================== #}
+
+                    <div class="col-12 col-sm-6 col-lg-3">
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                #
+                            </span>
+
+
+                            {{ form.hashtag_3 }}
+
+                        </div>
+
+
+                        {% if form.hashtag_3.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {% for error in form.hashtag_3.errors %}
+
+                                    <div>
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+
+                    {# ======================================== #}
+                    {# ハッシュタグ4 #}
+                    {# ======================================== #}
+
+                    <div class="col-12 col-sm-6 col-lg-3">
+
+                        <div class="input-group">
+
+                            <span class="input-group-text">
+                                #
+                            </span>
+
+
+                            {{ form.hashtag_4 }}
+
+                        </div>
+
+
+                        {% if form.hashtag_4.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {% for error in form.hashtag_4.errors %}
+
+                                    <div>
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# Trip参考URL #}
+            {# ======================================== #}
+
+            <div class="mb-4">
+
+                <p class="form-label mb-2">
+                    参考URL
+                </p>
+
+
+                {# ======================================== #}
+                {# FormSet管理フォーム #}
+                {# ======================================== #}
+
+                {{ reference_url_formset.management_form }}
+
+
+
+                {# ======================================== #}
+                {# FormSet全体エラー #}
+                {# ======================================== #}
+
+                {% if reference_url_formset.non_form_errors %}
+
+                    <div class="alert alert-danger">
+
+                        {% for error in reference_url_formset.non_form_errors %}
+
+                            <div>
+                                {{ error }}
+                            </div>
+
+                        {% endfor %}
+
+                    </div>
+
+                {% endif %}
+
+
+
+                {# ======================================== #}
+                {# 現在表示されている参考URL #}
+                {# ======================================== #}
+
+                <div id="reference-url-forms">
+
+                    {% for url_form in reference_url_formset %}
+
+                        <div class="reference-url-form mb-3">
+
+                            {% for hidden in url_form.hidden_fields %}
+
+                                {{ hidden }}
+
+                            {% endfor %}
+
+
+
+                            {% if url_form.non_field_errors %}
+
+                                <div class="text-danger small mb-2">
+
+                                    {% for error in url_form.non_field_errors %}
+
+                                        <div>
+                                            {{ error }}
+                                        </div>
+
+                                    {% endfor %}
+
+                                </div>
+
+                            {% endif %}
+
+
+
+                            {# ======================================== #}
+                            {# 参考URL名 #}
+                            {# ======================================== #}
+
+                            <div class="mb-2">
+
+                                <label
+                                    for="{{ url_form.title.id_for_label }}"
+                                    class="form-label"
+                                >
+                                    参考URL名
+                                </label>
+
+
+                                {{ url_form.title }}
+
+
+                                {% if url_form.title.errors %}
+
+                                    <div class="text-danger small mt-1">
+
+                                        {% for error in url_form.title.errors %}
+
+                                            <div>
+                                                {{ error }}
+                                            </div>
+
+                                        {% endfor %}
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+
+
+                            {# ======================================== #}
+                            {# URL #}
+                            {# ======================================== #}
+
+                            <div class="mb-2">
+
+                                <label
+                                    for="{{ url_form.url.id_for_label }}"
+                                    class="form-label"
+                                >
+                                    URL
+                                </label>
+
+
+                                {{ url_form.url }}
+
+
+                                {% if url_form.url.errors %}
+
+                                    <div class="text-danger small mt-1">
+
+                                        {% for error in url_form.url.errors %}
+
+                                            <div>
+                                                {{ error }}
+                                            </div>
+
+                                        {% endfor %}
+
+                                    </div>
+
+                                {% endif %}
+
+                            </div>
+
+
+
+                            {# ======================================== #}
+                            {# DELETE #}
+                            {# ======================================== #}
+
+                            <div class="delete-field d-none">
+                                {{ url_form.DELETE }}
+                            </div>
+
+
+
+                            {# ======================================== #}
+                            {# 登録・削除 #}
+                            {# ======================================== #}
+
+                            <div class="d-flex flex-wrap gap-2">
+
+                                <button
+                                    type="button"
+                                    class="btn {% if url_form.instance.pk %}btn-outline-secondary{% else %}btn-primary{% endif %} btn-sm register-reference-url"
+                                >
+
+                                    {% if url_form.instance.pk %}
+                                        登録済み
+                                    {% else %}
+                                        登録
+                                    {% endif %}
+
+                                </button>
+
+
+                                <button
+                                    type="button"
+                                    class="btn btn-outline-danger btn-sm remove-reference-url"
+                                >
+                                    削除
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    {% endfor %}
+
+                </div>
+
+
+
+                {# ======================================== #}
+                {# JavaScript追加用の空フォーム #}
+                {# ======================================== #}
+
+                <template id="empty-reference-url-form">
+
+                    <div class="reference-url-form mb-3">
+
+                        {% for hidden in reference_url_formset.empty_form.hidden_fields %}
+
+                            {{ hidden }}
+
+                        {% endfor %}
+
+
+
+                        <div class="mb-2">
+
+                            <label
+                                for="{{ reference_url_formset.empty_form.title.id_for_label }}"
+                                class="form-label"
+                            >
+                                参考URL名
+                            </label>
+
+
+                            {{ reference_url_formset.empty_form.title }}
+
+                        </div>
+
+
+
+                        <div class="mb-2">
+
+                            <label
+                                for="{{ reference_url_formset.empty_form.url.id_for_label }}"
+                                class="form-label"
+                            >
+                                URL
+                            </label>
+
+
+                            {{ reference_url_formset.empty_form.url }}
+
+                        </div>
+
+
+
+                        <div class="delete-field d-none">
+                            {{ reference_url_formset.empty_form.DELETE }}
+                        </div>
+
+
+
+                        <div class="d-flex flex-wrap gap-2">
+
+                            <button
+                                type="button"
+                                class="btn btn-primary btn-sm register-reference-url"
+                            >
+                                登録
+                            </button>
+
+
+                            <button
+                                type="button"
+                                class="btn btn-outline-danger btn-sm remove-reference-url"
+                            >
+                                削除
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </template>
+
+
+
+                {# ======================================== #}
+                {# 参考URL追加 #}
+                {# ======================================== #}
+
+                <button
+                    type="button"
+                    id="add-reference-url"
+                    class="btn btn-primary btn-sm"
+                >
+                    ＋ 参考URL
+                </button>
+
+            </div>
+
+
+
+            {# ======================================== #}
+            {# Trip保存 #}
+            {# ======================================== #}
+
+            <div class="d-flex flex-wrap gap-2">
+
+                {% if object %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        保存
+                    </button>
+
+                {% else %}
+
+                    <button
+                        type="submit"
+                        class="btn btn-primary"
+                    >
+                        作成
+                    </button>
+
+                {% endif %}
+
+
+
+                {# ======================================== #}
+                {# キャンセル #}
+                {# ======================================== #}
+
+                {% if object %}
+
+                    {% if object.status == "draft" %}
+
+                        <a
+                            href="{% url 'trip_detail' object.trip_id %}"
+                            class="btn btn-outline-secondary"
+                        >
+                            キャンセル
+                        </a>
+
+                    {% else %}
+
+                        <a
+                            href="{% url 'trip_detail' object.trip_id %}?edit=1"
+                            class="btn btn-outline-secondary"
+                        >
+                            キャンセル
+                        </a>
+
+                    {% endif %}
+
+
+                {% else %}
+
+                    <a
+                        href="{% url 'trip_list' %}"
+                        class="btn btn-outline-secondary"
+                    >
+                        キャンセル
+                    </a>
+
+                {% endif %}
+
+            </div>
+
+
+        </form>
 
     </div>
 
-
-
-</form>
+</div>
 
 
 
@@ -728,7 +881,6 @@
                 function (dateInput) {
 
                     if (!dateInput) {
-
                         return;
                     }
 
@@ -750,8 +902,11 @@
 
                                     // ブラウザ標準の
                                     // date input表示に任せる
+
                                 }
+
                             }
+
                         }
                     );
 
@@ -793,6 +948,7 @@
             ) {
 
                 return;
+
             }
 
 
@@ -808,7 +964,8 @@
 
                     const formIndex =
                         parseInt(
-                            totalFormsInput.value
+                            totalFormsInput.value,
+                            10
                         );
 
 
@@ -829,7 +986,6 @@
 
                     totalFormsInput.value =
                         formIndex + 1;
-
 
                 }
             );
@@ -852,7 +1008,6 @@
 
 
                     if (!formElement) {
-
                         return;
                     }
 
@@ -861,8 +1016,8 @@
                     // =================================
                     // 登録
                     //
-                    // 「登録済み」にしても
-                    // 入力欄は編集可能なまま
+                    // 「登録」は画面上の状態のみ。
+                    // DBへの保存はTrip保存時に行う。
                     // =================================
 
                     if (
@@ -888,6 +1043,7 @@
                             );
 
                             return;
+
                         }
 
 
@@ -895,8 +1051,17 @@
                             "登録済み";
 
 
-                        return;
+                        event.target.classList.remove(
+                            "btn-primary"
+                        );
 
+
+                        event.target.classList.add(
+                            "btn-outline-secondary"
+                        );
+
+
+                        return;
 
                     }
 
@@ -923,15 +1088,14 @@
 
                             deleteInput.checked =
                                 true;
+
                         }
 
 
                         formElement.style.display =
                             "none";
 
-
                     }
-
 
                 }
             );
@@ -941,8 +1105,7 @@
             // =====================================
             // 登録後に内容を編集した場合
             //
-            // もう一度「登録」を押せるように
-            // 表示だけ戻す
+            // もう一度「登録」を押せる状態へ戻す
             // =====================================
 
             formContainer.addEventListener(
@@ -957,6 +1120,7 @@
                     ) {
 
                         return;
+
                     }
 
 
@@ -967,7 +1131,6 @@
 
 
                     if (!formElement) {
-
                         return;
                     }
 
@@ -984,11 +1147,21 @@
                         === "登録済み"
                     ) {
 
+
                         registerButton.textContent =
                             "登録";
 
-                    }
 
+                        registerButton.classList.remove(
+                            "btn-outline-secondary"
+                        );
+
+
+                        registerButton.classList.add(
+                            "btn-primary"
+                        );
+
+                    }
 
                 }
             );
@@ -998,7 +1171,6 @@
     );
 
 </script>
-
 
 
 {% endblock %}

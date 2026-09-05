@@ -6,131 +6,131 @@
 {% endblock %}
 
 
-
 {% block main %}
-
 
 <div class="row justify-content-center">
 
-
     <div class="col-md-8 col-lg-6">
-
 
         <div class="card shadow-sm">
 
-
             <div class="card-body p-4">
 
-
                 <h2 class="text-center mb-4">
-
                     メールアドレス変更
-
                 </h2>
-
-
 
 
                 {% if form.errors %}
 
-
                     <div class="alert alert-danger">
-
-                        入力内容に誤りがあります。
-
+                        入力内容を確認してください。
                     </div>
-
 
                 {% endif %}
 
 
-
-
-
-
                 <form method="post">
-
 
                     {% csrf_token %}
 
 
-
-
-                    <!-- メールアドレス -->
-
+                    {# ======================================== #}
+                    {# メールアドレス #}
+                    {# ======================================== #}
 
                     <div class="mb-4">
 
-
                         <label
                             for="id_email"
-                            class="form-label">
-
+                            class="form-label"
+                        >
                             メールアドレス
-
                         </label>
-
 
 
                         {{ form.email }}
 
 
+                        {% if form.email.errors %}
+
+                            <div class="text-danger small mt-1">
+
+                                {% for error in form.email.errors %}
+
+                                    <div>
+                                        {{ error }}
+                                    </div>
+
+                                {% endfor %}
+
+                            </div>
+
+                        {% endif %}
 
                     </div>
 
 
+                    {# ======================================== #}
+                    {# フォーム全体エラー #}
+                    {# ======================================== #}
+
+                    {% if form.non_field_errors %}
+
+                        <div class="alert alert-danger">
+
+                            {% for error in form.non_field_errors %}
+
+                                <div>
+                                    {{ error }}
+                                </div>
+
+                            {% endfor %}
+
+                        </div>
+
+                    {% endif %}
 
 
-
+                    {# ======================================== #}
+                    {# メールアドレス変更 #}
+                    {# ======================================== #}
 
                     <div class="d-grid">
 
-
                         <button
                             type="submit"
-                            class="btn btn-primary">
-
+                            class="btn btn-primary"
+                        >
                             変更する
-
                         </button>
 
-
                     </div>
-
-
-
 
                 </form>
 
 
+                {# ======================================== #}
+                {# プロフィールへ戻る #}
+                {# ======================================== #}
 
-
-
-                <div class="text-center mt-3">
-
+                <div class="d-grid mt-3">
 
                     <a
-                        href="{% url 'profile' %}">
-
+                        href="{% url 'profile' %}"
+                        class="btn btn-outline-secondary"
+                    >
                         プロフィールへ戻る
-
                     </a>
-
 
                 </div>
 
-
-
             </div>
-
 
         </div>
 
-
     </div>
 
-
 </div>
-
 
 {% endblock %}

@@ -5,121 +5,9 @@
 {# Day基本情報 #}
 {# ======================================== #}
 
-<div class="d-flex align-items-center justify-content-between mb-2">
-
-
-    <h3 class="mb-0">
-        Day {{ day.day_order }}
-    </h3>
-
-
-    {# ======================================== #}
-    {# Day入れ替えボタン #}
-    {# ======================================== #}
-
-    {% if trip.user == request.user and trip.status == "draft" or trip.user == request.user and edit_mode %}
-
-        <div class="d-flex gap-2">
-
-
-            {# ------------------------- #}
-            {# 1つ前のDayと入れ替え #}
-            {# ------------------------- #}
-
-            {% if not forloop.first %}
-
-                <form
-                    method="post"
-                    action="{% url 'day_move' day.day_id %}"
-                    class="m-0"
-                >
-
-                    {% csrf_token %}
-
-
-                    <input
-                        type="hidden"
-                        name="direction"
-                        value="up"
-                    >
-
-
-                    {% if edit_mode %}
-
-                        <input
-                            type="hidden"
-                            name="edit_mode"
-                            value="1"
-                        >
-
-                    {% endif %}
-
-
-                    <button
-                        type="submit"
-                        class="btn btn-outline-secondary btn-sm"
-                        title="前のDayと入れ替える"
-                    >
-                        ↑
-                    </button>
-
-                </form>
-
-            {% endif %}
-
-
-            {# ------------------------- #}
-            {# 1つ後ろのDayと入れ替え #}
-            {# ------------------------- #}
-
-            {% if not forloop.last %}
-
-                <form
-                    method="post"
-                    action="{% url 'day_move' day.day_id %}"
-                    class="m-0"
-                >
-
-                    {% csrf_token %}
-
-
-                    <input
-                        type="hidden"
-                        name="direction"
-                        value="down"
-                    >
-
-
-                    {% if edit_mode %}
-
-                        <input
-                            type="hidden"
-                            name="edit_mode"
-                            value="1"
-                        >
-
-                    {% endif %}
-
-
-                    <button
-                        type="submit"
-                        class="btn btn-outline-secondary btn-sm"
-                        title="次のDayと入れ替える"
-                    >
-                        ↓
-                    </button>
-
-                </form>
-
-            {% endif %}
-
-
-        </div>
-
-    {% endif %}
-
-
-</div>
+<h3 class="mb-2">
+    Day {{ day.day_order }}
+</h3>
 
 
 <p>
@@ -339,13 +227,13 @@
                     </label>
 
 
-                    <div class="d-flex gap-2">
+                    <div class="d-flex flex-wrap gap-2">
 
                         <input
                             type="number"
                             id="day-actual-amount-{{ day.day_id }}"
                             name="actual_amount"
-                            class="form-control"
+                            class="form-control flex-grow-1"
                             min="1"
                             placeholder="実際に支払った金額"
                             required
@@ -354,7 +242,7 @@
 
                         <button
                             type="submit"
-                            class="btn btn-primary"
+                            class="btn btn-primary btn-sm"
                         >
                             登録
                         </button>
@@ -399,13 +287,13 @@
                     </label>
 
 
-                    <div class="d-flex gap-2">
+                    <div class="d-flex flex-wrap gap-2">
 
                         <input
                             type="number"
                             id="day-actual-amount-{{ day.day_id }}"
                             name="actual_amount"
-                            class="form-control"
+                            class="form-control flex-grow-1"
                             min="1"
                             placeholder="実際に支払った金額"
                             required
@@ -414,7 +302,7 @@
 
                         <button
                             type="submit"
-                            class="btn btn-primary"
+                            class="btn btn-primary btn-sm"
                         >
                             登録
                         </button>
@@ -466,13 +354,13 @@
                     </label>
 
 
-                    <div class="d-flex gap-2">
+                    <div class="d-flex flex-wrap gap-2">
 
                         <input
                             type="number"
                             id="day-actual-amount-{{ day.day_id }}"
                             name="actual_amount"
-                            class="form-control"
+                            class="form-control flex-grow-1"
                             min="1"
                             placeholder="実際に支払った金額"
                             required
@@ -481,7 +369,7 @@
 
                         <button
                             type="submit"
-                            class="btn btn-primary"
+                            class="btn btn-primary btn-sm"
                         >
                             登録
                         </button>
@@ -611,8 +499,15 @@
 
 {% if trip.user == request.user and trip.status == "draft" or trip.user == request.user and edit_mode %}
 
-    <a href="{% url 'day_edit' day.day_id %}">
-        Dayを編集
-    </a>
+    <div class="mt-3">
+
+        <a
+            href="{% url 'day_edit' day.day_id %}"
+            class="btn btn-outline-secondary btn-sm"
+        >
+            Dayを編集
+        </a>
+
+    </div>
 
 {% endif %}

@@ -9,125 +9,294 @@
 {% block main %}
 
 
-<h1>
-    旅行期間変更の確認
-</h1>
+<div class="row justify-content-center">
+
+    <div class="col-lg-8">
 
 
-<p>
-    旅行期間を
-</p>
+        {# ======================================== #}
+        {# タイトル #}
+        {# ======================================== #}
 
-<p>
-    {{ trip.start_date }}
-    ～
-    {{ trip.end_date }}
-</p>
-
-<p>
-    から
-</p>
-
-<p>
-    {{ new_start_date }}
-    ～
-    {{ new_end_date }}
-</p>
-
-<p>
-    に変更すると、以下のDayが削除されます。
-</p>
+        <h1 class="mb-4">
+            旅行期間変更の確認
+        </h1>
 
 
-<hr>
+
+        {# ======================================== #}
+        {# 注意メッセージ #}
+        {# ======================================== #}
+
+        <div
+            class="alert alert-danger"
+            role="alert"
+        >
+
+            <p class="fw-bold mb-2">
+                旅行期間を短縮すると、期間外になるDayが削除されます。
+            </p>
 
 
-{% for day in outside_days %}
+            <p class="mb-0">
+                削除したDayの内容は元に戻せません。
+            </p>
 
-    <div>
+        </div>
 
-        <h3>
-            Day {{ day.day_order }}
-        </h3>
 
-        <p>
-            {{ day.date }}
-        </p>
 
-        {% if day.title %}
+        {# ======================================== #}
+        {# 旅行期間の変更内容 #}
+        {# ======================================== #}
 
-            <p>
-                {{ day.title }}
+        <div class="card shadow-sm mb-4">
+
+            <div class="card-body">
+
+
+                <h2 class="h5 mb-3">
+                    旅行期間
+                </h2>
+
+
+                <div class="mb-3">
+
+                    <div class="text-muted small mb-1">
+                        現在
+                    </div>
+
+
+                    <div>
+                        {{ trip.start_date|date:"Y年n月j日" }}
+                        ～
+                        {{ trip.end_date|date:"Y年n月j日" }}
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <div class="text-muted small mb-1">
+                        変更後
+                    </div>
+
+
+                    <div class="fw-semibold">
+                        {{ new_start_date|date:"Y年n月j日" }}
+                        ～
+                        {{ new_end_date|date:"Y年n月j日" }}
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        </div>
+
+
+
+        {# ======================================== #}
+        {# 削除されるDay #}
+        {# ======================================== #}
+
+        <h2 class="h5 mb-3">
+            削除されるDay
+        </h2>
+
+
+        <div class="mb-4">
+
+            {% for day in outside_days %}
+
+                <div class="card border-danger mb-3">
+
+                    <div class="card-body">
+
+
+                        {# ======================================== #}
+                        {# Day番号・日付 #}
+                        {# ======================================== #}
+
+                        <div
+                            class="
+                                d-flex
+                                flex-wrap
+                                justify-content-between
+                                align-items-start
+                                gap-2
+                                mb-3
+                            "
+                        >
+
+                            <h3 class="h6 mb-0">
+                                Day {{ day.day_order }}
+                            </h3>
+
+
+                            <span class="text-muted small">
+                                {{ day.date|date:"Y年n月j日" }}
+                            </span>
+
+                        </div>
+
+
+
+                        {# ======================================== #}
+                        {# Dayタイトル #}
+                        {# ======================================== #}
+
+                        {% if day.title %}
+
+                            <p class="fw-semibold mb-3">
+                                {{ day.title }}
+                            </p>
+
+                        {% endif %}
+
+
+
+                        {# ======================================== #}
+                        {# 登録されている内容 #}
+                        {# ======================================== #}
+
+                        {% if day.content or day.media or day.locations.exists or day.schedules.exists %}
+
+                            <p class="text-muted small mb-2">
+                                このDayには以下の内容が登録されています。
+                            </p>
+
+
+                            <div class="d-flex flex-wrap gap-2">
+
+                                {% if day.content %}
+
+                                    <span class="badge bg-secondary">
+                                        感想・内容
+                                    </span>
+
+                                {% endif %}
+
+
+                                {% if day.media %}
+
+                                    <span class="badge bg-secondary">
+                                        写真
+                                    </span>
+
+                                {% endif %}
+
+
+                                {% if day.locations.exists %}
+
+                                    <span class="badge bg-secondary">
+                                        訪問先
+                                    </span>
+
+                                {% endif %}
+
+
+                                {% if day.schedules.exists %}
+
+                                    <span class="badge bg-secondary">
+                                        スケジュール
+                                    </span>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% else %}
+
+                            <p class="text-muted small mb-0">
+                                このDayには表示対象の内容は登録されていません。
+                            </p>
+
+                        {% endif %}
+
+
+                    </div>
+
+                </div>
+
+
+            {% empty %}
+
+                <p class="text-muted">
+                    削除対象のDayはありません。
+                </p>
+
+            {% endfor %}
+
+        </div>
+
+
+
+        {# ======================================== #}
+        {# 最終確認 #}
+        {# ======================================== #}
+
+        {% if outside_days %}
+
+            <p class="text-danger fw-semibold mb-4">
+                削除対象のDayに登録されている内容も一緒に削除されます。
             </p>
 
         {% endif %}
 
-        {% if day.content %}
 
-            <p>
-                感想・内容が登録されています。
-            </p>
 
-        {% endif %}
+        {# ======================================== #}
+        {# 確定・キャンセル #}
+        {# ======================================== #}
 
-        {% if day.media %}
+        <form method="post">
 
-            <p>
-                写真が登録されています。
-            </p>
+            {% csrf_token %}
 
-        {% endif %}
 
-        {% if day.locations.exists %}
+            <div class="d-flex flex-wrap gap-2">
 
-            <p>
-                訪問先が登録されています。
-            </p>
 
-        {% endif %}
+                {# ======================================== #}
+                {# 元の期間を維持 #}
+                {# ======================================== #}
 
-        {% if day.schedules.exists %}
+                <button
+                    type="submit"
+                    name="action"
+                    value="cancel"
+                    class="btn btn-outline-secondary"
+                >
+                    元の期間のままにする
+                </button>
 
-            <p>
-                スケジュールが登録されています。
-            </p>
 
-        {% endif %}
+
+                {# ======================================== #}
+                {# 期間短縮を確定 #}
+                {# ======================================== #}
+
+                <button
+                    type="submit"
+                    name="action"
+                    value="confirm"
+                    class="btn btn-danger"
+                >
+                    Dayを削除して期間を短縮する
+                </button>
+
+
+            </div>
+
+        </form>
+
 
     </div>
 
-    <hr>
-
-{% endfor %}
-
-
-<p>
-    削除したDayの内容・写真・訪問先・スケジュールは元に戻せません。
-</p>
-
-
-<form method="post">
-
-    {% csrf_token %}
-
-    <button
-        type="submit"
-        name="action"
-        value="cancel"
-    >
-        短縮せず元の期間のままにする
-    </button>
-
-
-    <button
-        type="submit"
-        name="action"
-        value="confirm"
-    >
-        Dayを削除して期間を短縮する
-    </button>
-
-</form>
+</div>
 
 
 {% endblock %}

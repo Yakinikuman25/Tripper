@@ -4,11 +4,12 @@
 
 {% if can_save_trip or can_reuse_trip %}
 
-    <div class="d-flex flex-wrap gap-2 mb-4">
+    <div class="d-flex flex-wrap align-items-center gap-2 mb-4">
 
 
         {# ======================================== #}
         {# 保存・保存解除 #}
+        {# #}
         {# 自分のTripには表示しない #}
         {# ======================================== #}
 
@@ -27,16 +28,20 @@
 
                     <button
                         type="submit"
-                        class="btn btn-secondary"
+                        class="btn btn-outline-secondary btn-sm"
+                        aria-pressed="true"
+                        title="クリックすると保存を解除します"
                     >
                         保存済み
                     </button>
+
 
                 {% else %}
 
                     <button
                         type="submit"
-                        class="btn btn-outline-primary"
+                        class="btn btn-outline-primary btn-sm"
+                        aria-pressed="false"
                     >
                         保存
                     </button>
@@ -51,6 +56,7 @@
 
         {# ======================================== #}
         {# Trip再利用 #}
+        {# #}
         {# 自分のTrip：旅完了なら表示 #}
         {# 他ユーザー：公開・保存済みなら表示 #}
         {# ======================================== #}
@@ -59,7 +65,7 @@
 
             <a
                 href="{% url 'trip_reuse' trip.trip_id %}"
-                class="btn btn-primary"
+                class="btn btn-primary btn-sm"
             >
                 このTripを参考に旅を作る
             </a>
