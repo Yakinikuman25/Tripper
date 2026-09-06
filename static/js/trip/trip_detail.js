@@ -34,6 +34,7 @@ document.addEventListener(
         // Trip内容タブ
         //
         // 全体費用
+        // 持ち物リスト
         // Day 1
         // Day 2
         // ...
@@ -284,12 +285,14 @@ document.addEventListener(
             // -----------------------------
             // URLのhash更新
             //
-            // Dayをクリック
+            // タブをクリック
             // ↓
+            // #trip-expenses-panel
+            // #trip-packing-panel
             // #day-panel-○○
             //
             // 再読み込みしても
-            // 同じDayを開ける
+            // 同じタブを開ける
             // -----------------------------
 
             if (updateHash) {
@@ -317,9 +320,34 @@ document.addEventListener(
         // URLのhashから
         // 開くべきパネルを取得
         //
-        // パネルそのものだけでなく
-        // パネル内部の要素を指定している場合も
-        // そのDayを開く
+        // 例
+        //
+        // #trip-expenses-panel
+        // ↓
+        // 全体費用
+        //
+        // #trip-packing-panel
+        // ↓
+        // 持ち物リスト
+        //
+        // #trip-packing-list
+        // ↓
+        // 持ち物リスト
+        //
+        // #packing-item-10
+        // ↓
+        // 持ち物リスト
+        //
+        // #day-panel-3
+        // ↓
+        // Day
+        //
+        // #trip-expense-3
+        // ↓
+        // 全体費用
+        //
+        // パネル内部の要素でも
+        // 親パネルを開く
         // =================================
 
         function getPanelIdFromHash() {
@@ -331,12 +359,23 @@ document.addEventListener(
             }
 
 
-            const hashId =
-                decodeURIComponent(
-                    window.location.hash.substring(
-                        1
-                    )
-                );
+            let hashId;
+
+
+            try {
+
+                hashId =
+                    decodeURIComponent(
+                        window.location.hash.substring(
+                            1
+                        )
+                    );
+
+            } catch (error) {
+
+                return null;
+
+            }
 
 
             if (!hashId) {
@@ -509,17 +548,89 @@ document.addEventListener(
 
 
         // =================================
+        // 持ち物リストタブ取得
+        // =================================
+
+        function getTripPackingTarget() {
+
+            const packingButton =
+                tripContentTabButtons.find(
+                    function (button) {
+
+                        return (
+                            button.dataset.target
+                            === "trip-packing-panel"
+                        );
+
+                    }
+                );
+
+
+            if (!packingButton) {
+
+                return null;
+
+            }
+
+
+            return (
+                packingButton.dataset.target
+                || null
+            );
+
+        }
+
+
+
+        // =================================
+        // 最初に存在するタブ取得
+        //
+        // 念のための最終フォールバック
+        // =================================
+
+        function getFirstAvailableTarget() {
+
+            const firstButton =
+                tripContentTabButtons[0];
+
+
+            if (!firstButton) {
+
+                return null;
+
+            }
+
+
+            return (
+                firstButton.dataset.target
+                || null
+            );
+
+        }
+
+
+
+        // =================================
         // 初期表示するタブ
         //
         // 優先順位
         //
-        // 1. URLのhashで指定されたDay
+        // 1. URLのhash
+        //
+        //    持ち物追加・編集・削除・
+        //    チェック後の
+        //    #trip-packing-list
+        //    もここで処理
         //
         // 2. traveling ＋ 今日のDay
         //
         // 3. Day1
         //
         // 4. 全体費用
+        //
+        // 5. 持ち物リスト
+        //
+        // 6. 最初に存在するタブ
         // =================================
 
         function setupInitialTripContentTab() {
@@ -644,6 +755,56 @@ document.addEventListener(
                     }
                 );
 
+
+                return;
+
+            }
+
+
+
+            // -----------------------------
+            // 5. 持ち物リスト
+            // -----------------------------
+
+            const packingTarget =
+                getTripPackingTarget();
+
+
+            if (packingTarget) {
+
+                activateTripContentPanel(
+                    packingTarget,
+                    {
+                        updateHash: false,
+                        scrollTab: true,
+                    }
+                );
+
+
+                return;
+
+            }
+
+
+
+            // -----------------------------
+            // 6. 最初に存在するタブ
+            // -----------------------------
+
+            const firstAvailableTarget =
+                getFirstAvailableTarget();
+
+
+            if (firstAvailableTarget) {
+
+                activateTripContentPanel(
+                    firstAvailableTarget,
+                    {
+                        updateHash: false,
+                        scrollTab: true,
+                    }
+                );
+
             }
 
         }
@@ -692,7 +853,12 @@ document.addEventListener(
         // キーボード操作
         //
         // ← →
-        // でタブを切り替え可能
+        //
+        // 全体費用
+        // 持ち物リスト
+        // Day
+        //
+        // を順番に切り替え可能
         // =================================
 
         tripContentTabButtons.forEach(
@@ -810,7 +976,7 @@ document.addEventListener(
 
 
         // =================================
-        // Dayタブ 横スクロール
+        // Trip内容タブ 横スクロール
         //
         // スワイプ・横スクロールに加えて
         // ‹ › ボタンでも移動できる
@@ -997,8 +1163,13 @@ document.addEventListener(
 
 
         // =================================
-        // ブラウザの戻る・進むなどで
         // hashが変わった場合
+        //
+        // 全体費用
+        // 持ち物リスト
+        // Day
+        //
+        // の対応パネルを開く
         // =================================
 
         window.addEventListener(

@@ -18,6 +18,7 @@ from django.contrib.auth.views import LogoutView
 # =========================================
 
 from base.views import (
+
     # =====================================
     # Account
     # =====================================
@@ -78,6 +79,15 @@ from base.views import (
     # =====================================
     TripExpenseCreateView,
     DayExpenseCreateView,
+
+    # =====================================
+    # Packing
+    # =====================================
+    PackingItemCreateView,
+    PackingItemUpdateView,
+    PackingItemDeleteView,
+    PackingItemToggleView,
+
 )
 
 
@@ -91,6 +101,7 @@ urlpatterns = [
         "admin/",
         admin.site.urls,
     ),
+
 
     # =========================================
     # アカウント
@@ -126,6 +137,7 @@ urlpatterns = [
         name="profile",
     ),
 
+
     # =========================================
     # メールアドレス変更
     # =========================================
@@ -136,6 +148,7 @@ urlpatterns = [
         name="email_change",
     ),
 
+
     # =========================================
     # パスワード変更
     # =========================================
@@ -145,6 +158,7 @@ urlpatterns = [
         PasswordChange.as_view(),
         name="password_change",
     ),
+
 
     # =========================================
     # パスワードリセット
@@ -174,6 +188,7 @@ urlpatterns = [
         name="password_reset_complete",
     ),
 
+
     # =========================================
     # アカウント削除
     # =========================================
@@ -183,6 +198,7 @@ urlpatterns = [
         AccountDeleteView.as_view(),
         name="account_delete",
     ),
+
 
     # =========================================
     # Trip
@@ -209,6 +225,7 @@ urlpatterns = [
         name="trip_create",
     ),
 
+
     # =========================================
     # Save
     # =========================================
@@ -219,6 +236,7 @@ urlpatterns = [
         SavedTripListView.as_view(),
         name="saved_trip_list",
     ),
+
 
     # =========================================
     # Trip詳細・編集
@@ -280,6 +298,7 @@ urlpatterns = [
         name="trip_public_update",
     ),
 
+
     # =========================================
     # Save
     # =========================================
@@ -291,6 +310,7 @@ urlpatterns = [
         name="trip_save_toggle",
     ),
 
+
     # =========================================
     # Trip共通費用
     # =========================================
@@ -300,6 +320,40 @@ urlpatterns = [
         TripExpenseCreateView.as_view(),
         name="trip_expense_create",
     ),
+
+
+    # =========================================
+    # 持ち物リスト
+    # =========================================
+
+    # 持ち物追加
+    path(
+        "trips/<int:trip_id>/packing-items/create/",
+        PackingItemCreateView.as_view(),
+        name="packing_item_create",
+    ),
+
+    # 持ち物編集
+    path(
+        "packing-items/<int:packing_item_id>/edit/",
+        PackingItemUpdateView.as_view(),
+        name="packing_item_edit",
+    ),
+
+    # 持ち物削除
+    path(
+        "packing-items/<int:packing_item_id>/delete/",
+        PackingItemDeleteView.as_view(),
+        name="packing_item_delete",
+    ),
+
+    # 準備済みチェック切替
+    path(
+        "packing-items/<int:packing_item_id>/toggle/",
+        PackingItemToggleView.as_view(),
+        name="packing_item_toggle",
+    ),
+
 
     # =========================================
     # Day
@@ -333,6 +387,7 @@ urlpatterns = [
         name="day_record_edit",
     ),
 
+
     # =========================================
     # Day費用
     # =========================================
@@ -342,6 +397,7 @@ urlpatterns = [
         DayExpenseCreateView.as_view(),
         name="day_expense_create",
     ),
+
 
     # =========================================
     # Schedule
@@ -368,6 +424,7 @@ urlpatterns = [
         name="schedule_delete",
     ),
 
+
     # =========================================
     # Home
     # =========================================
@@ -377,6 +434,7 @@ urlpatterns = [
         HomeView.as_view(),
         name="home",
     ),
+
 ]
 
 

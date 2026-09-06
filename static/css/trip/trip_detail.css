@@ -23,6 +23,7 @@ Trip旅行ルート
     max-width: 100%;
 }
 
+
 .trip-route-item {
     white-space: nowrap;
 }
@@ -42,7 +43,6 @@ Day 旅の記録写真
 /* ========================================
 Trip全体費用
 ======================================== */
-
 
 /* 全体費用の編集フォーム */
 .trip-expense-edit {
@@ -70,7 +70,10 @@ Trip全体費用
 
 /* ========================================
 Trip内容タブ
-全体費用 + Day
+
+全体費用
+持ち物リスト
+Day
 ======================================== */
 
 
@@ -80,11 +83,12 @@ Trip内容タブ
 ここ自体は横スクロールさせない。
 
 左矢印
-中央のDay一覧
+中央のタブ一覧
 右矢印
 
 をまとめる領域。
 */
+
 .trip-content-tabs-wrapper {
     width: 100%;
     margin-bottom: 24px;
@@ -95,13 +99,15 @@ Trip内容タブ
 左矢印 + タブ一覧 + 右矢印
 ======================================== */
 
+
 /*
 3列構成
 
 42px       = 左矢印
-中央可変   = 全体費用 + Day一覧
+中央可変   = 全体費用 + 持ち物リスト + Day一覧
 42px       = 右矢印
 */
+
 .trip-content-tabs-navigation {
     display: grid;
 
@@ -150,6 +156,7 @@ Trip内容タブ
 /*
 マウスを乗せたとき
 */
+
 .trip-content-tabs-scroll-button:not(:disabled):hover {
     border-color: var(--bs-secondary);
     background-color: var(--bs-secondary-bg);
@@ -160,6 +167,7 @@ Trip内容タブ
 一番左・一番右など
 スクロールできない方向
 */
+
 .trip-content-tabs-scroll-button:disabled {
     opacity: 0.3;
     cursor: default;
@@ -170,13 +178,19 @@ Trip内容タブ
 タブ本体
 ======================================== */
 
+
 /*
-全体費用・Day1・Day2...
+全体費用
+持ち物リスト
+Day1
+Day2
+...
 
 中央部分だけを横スクロールさせる。
 
 左右矢印は動かない。
 */
+
 .trip-content-tabs {
     display: flex;
     flex-wrap: nowrap;
@@ -238,6 +252,7 @@ Trip内容タブ
 /*
 マウスを乗せたとき
 */
+
 .trip-content-tab-button:hover {
     border-color: var(--bs-primary);
 }
@@ -246,6 +261,7 @@ Trip内容タブ
 /*
 キーボード操作時
 */
+
 .trip-content-tab-button:focus-visible {
     outline: 2px solid var(--bs-primary);
     outline-offset: 2px;
@@ -255,6 +271,7 @@ Trip内容タブ
 /*
 現在選択中のタブ
 */
+
 .trip-content-tab-button.active {
     border-color: var(--bs-primary);
     background-color: var(--bs-primary);
@@ -279,8 +296,26 @@ Trip内容タブ
 /*
 「全体費用」の文字
 */
+
 .trip-content-tab-expense-label {
     font-weight: 700;
+}
+
+
+/* ========================================
+持ち物リストタブ
+======================================== */
+
+
+/*
+持ち物リストは
+全体費用タブと同じように
+中央揃えで表示する。
+*/
+
+.trip-content-tab-button.trip-packing-tab {
+    align-items: center;
+    text-align: center;
 }
 
 
@@ -292,6 +327,7 @@ Dayタブ
 /*
 Day 1
 */
+
 .trip-content-tab-day-number {
     display: block;
 
@@ -305,6 +341,7 @@ Day 1
 /*
 9/17
 */
+
 .trip-content-tab-date {
     display: block;
 
@@ -318,6 +355,7 @@ Day 1
 /*
 アルマトイ到着
 */
+
 .trip-content-tab-title {
     display: block;
 
@@ -336,6 +374,7 @@ Day 1
 選択中タブでは
 日付も少し見やすくする
 */
+
 .trip-content-tab-button.active
 .trip-content-tab-date {
     opacity: 0.9;
@@ -346,12 +385,93 @@ Day 1
 Trip内容パネル
 ======================================== */
 
+
 /*
-全体費用・各Dayの
-切り替え対象になる領域
+全体費用
+持ち物リスト
+各Day
+
+の切り替え対象になる領域
 */
+
 .trip-content-panel {
     width: 100%;
+}
+
+
+/* ========================================
+持ち物リスト
+======================================== */
+
+
+/*
+長い持ち物名でも
+横にはみ出さないようにする。
+*/
+
+#trip-packing-list {
+    width: 100%;
+    min-width: 0;
+}
+
+
+#trip-packing-list .text-break {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+
+/*
+チェックボックスを
+黒い□枠ではっきり表示する。
+*/
+
+#trip-packing-list .form-check-input {
+    margin-top: 0;
+
+    width: 1.15rem;
+    height: 1.15rem;
+
+    border: 2px solid #000;
+    border-radius: 3px;
+
+    flex-shrink: 0;
+}
+
+
+/*
+チェック済みの場合は
+Bootstrapの青色を使用する。
+*/
+
+#trip-packing-list .form-check-input:checked {
+    border-color: var(--bs-primary);
+    background-color: var(--bs-primary);
+}
+
+
+/*
+フォーカス時も
+黒枠・青枠が見やすいようにする。
+*/
+
+#trip-packing-list .form-check-input:focus {
+    border-color: var(--bs-primary);
+
+    box-shadow:
+        0 0 0 0.2rem
+        rgba(var(--bs-primary-rgb), 0.15);
+}
+
+
+/*
+disabled時でも
+旅完了画面などで
+枠が見えにくくならないようにする。
+*/
+
+#trip-packing-list .form-check-input:disabled {
+    opacity: 1;
 }
 
 
@@ -363,13 +483,16 @@ Trip内容パネル
 /*
 Chrome / Edge / Safari
 */
+
 .trip-content-tabs::-webkit-scrollbar {
     height: 6px;
 }
 
+
 .trip-content-tabs::-webkit-scrollbar-track {
     background: transparent;
 }
+
 
 .trip-content-tabs::-webkit-scrollbar-thumb {
     background-color: var(--bs-secondary-bg);
@@ -383,10 +506,10 @@ Chrome / Edge / Safari
 
 @media (max-width: 767.98px) {
 
-
     /*
     少しだけ左右いっぱいに広げる
     */
+
     .trip-content-tabs-wrapper {
         margin-left: -4px;
         margin-right: -4px;
@@ -400,6 +523,7 @@ Chrome / Edge / Safari
     中央可変
     右34px
     */
+
     .trip-content-tabs-navigation {
         grid-template-columns:
             34px
@@ -413,6 +537,7 @@ Chrome / Edge / Safari
     /*
     左右矢印
     */
+
     .trip-content-tabs-scroll-button {
         width: 34px;
         min-width: 34px;
@@ -427,6 +552,7 @@ Chrome / Edge / Safari
     /*
     タブ一覧
     */
+
     .trip-content-tabs {
         gap: 8px;
     }
@@ -435,6 +561,7 @@ Chrome / Edge / Safari
     /*
     各タブ
     */
+
     .trip-content-tab-button {
         min-width: 128px;
         max-width: 150px;
@@ -456,6 +583,15 @@ Chrome / Edge / Safari
 
     .trip-content-tab-title {
         font-size: 0.8rem;
+    }
+
+
+    /*
+    持ち物リスト
+    */
+
+    #trip-packing-list {
+        width: 100%;
     }
 
 }

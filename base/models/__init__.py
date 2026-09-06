@@ -10,3 +10,4 @@ from .trip_expense_models import *
 from .day_expense_models import *
 from .url_models import *
 from .save_models import *
+from .packing_item_models import *

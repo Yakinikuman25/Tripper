@@ -50,6 +50,7 @@ class TripDetailView(
 
     context_object_name = "trip"
 
+
     # =====================================
     # 表示可能なTrip
     #
@@ -78,9 +79,11 @@ class TripDetailView(
                 "days__reference_urls",
                 "days__day_expenses",
                 "days__schedules__reference_urls",
+                "packing_items",
             )
             .distinct()
         )
+
 
     # =====================================
     # Trip取得
@@ -106,6 +109,7 @@ class TripDetailView(
 
         return trip
 
+
     # =====================================
     # Trip所有者か
     # =====================================
@@ -118,6 +122,7 @@ class TripDetailView(
             self.object.user
             == self.request.user
         )
+
 
     # =====================================
     # Trip全体編集モードか
@@ -134,6 +139,7 @@ class TripDetailView(
             )
             == "1"
         )
+
 
     # =====================================
     # Trip全体費用を
@@ -165,6 +171,7 @@ class TripDetailView(
             self.is_edit_mode()
         )
 
+
     # =====================================
     # Trip全体費用1件を
     # 編集できるか
@@ -190,6 +197,7 @@ class TripDetailView(
 
         return True
 
+
     # =====================================
     # Trip全体費用を
     # 並び替えできるか
@@ -205,6 +213,7 @@ class TripDetailView(
                 trip_expense
             )
         )
+
 
     # =====================================
     # 新規Trip全体費用用
@@ -230,6 +239,7 @@ class TripDetailView(
             )
         )
 
+
     # =====================================
     # 既存Trip全体費用用
     # 参考URL FormSet
@@ -252,6 +262,7 @@ class TripDetailView(
             )
         )
 
+
     # =====================================
     # Trip全体費用参考URLの
     # management_formがPOSTされているか
@@ -267,6 +278,7 @@ class TripDetailView(
             f"{prefix}-TOTAL_FORMS"
             in request.POST
         )
+
 
     # =====================================
     # Trip全体費用操作後の戻り先
@@ -304,6 +316,7 @@ class TripDetailView(
 
         return url
 
+
     # =====================================
     # Context
     # =====================================
@@ -332,6 +345,7 @@ class TripDetailView(
         ] = (
             self.is_owner()
         )
+
 
         # =====================================
         # Trip保存
@@ -371,6 +385,7 @@ class TripDetailView(
             is_saved
         )
 
+
         # =====================================
         # Trip再利用
         # =====================================
@@ -397,6 +412,7 @@ class TripDetailView(
             can_reuse_trip
         )
 
+
         # =====================================
         # Trip全体編集モード
         # =====================================
@@ -409,6 +425,189 @@ class TripDetailView(
             "edit_mode"
         ] = edit_mode
 
+
+        # =====================================
+        # 持ち物リスト
+        # =====================================
+
+        all_packing_items = list(
+            self.object
+            .packing_items
+            .order_by(
+                "bag_type",
+                "item_order",
+                "packing_item_id",
+            )
+        )
+
+
+        # =====================================
+        # 画面に表示する持ち物
+        #
+        # 旅完了・通常表示
+        # → チェック済みだけ表示
+        #
+        # Trip全体編集時
+        # → 全件表示
+        #
+        # 作成中・出発待ち・旅中
+        # → 全件表示
+        # =====================================
+
+        if (
+            self.object.status
+            == "completed"
+            and not edit_mode
+        ):
+
+            packing_items = [
+                packing_item
+                for packing_item
+                in all_packing_items
+                if packing_item.is_packed
+            ]
+
+        else:
+
+            packing_items = (
+                all_packing_items
+            )
+
+
+        # =====================================
+        # バッグごとの表示用リスト
+        # =====================================
+
+        large_packing_items = []
+        small_packing_items = []
+        other_packing_items = []
+
+
+        for packing_item in (
+            packing_items
+        ):
+
+            if (
+                packing_item.bag_type
+                == "large"
+            ):
+
+                large_packing_items.append(
+                    packing_item
+                )
+
+            elif (
+                packing_item.bag_type
+                == "small"
+            ):
+
+                small_packing_items.append(
+                    packing_item
+                )
+
+            else:
+
+                other_packing_items.append(
+                    packing_item
+                )
+
+
+        # =====================================
+        # DB上に持ち物が1件以上あるか
+        # =====================================
+
+        has_all_packing_items = (
+            len(
+                all_packing_items
+            )
+            > 0
+        )
+
+
+        # =====================================
+        # 現在画面に表示する持ち物が
+        # 1件以上あるか
+        # =====================================
+
+        has_packing_items = (
+            len(
+                packing_items
+            )
+            > 0
+        )
+
+
+        # =====================================
+        # 持ち物リストタブを表示するか
+        #
+        # 所有者
+        # → 0件でも表示
+        #
+        # 他ユーザー
+        # → 公開Tripかつ
+        #   チェック済み持ち物がある場合
+        # =====================================
+
+        show_packing_tab = (
+            self.is_owner()
+            or (
+                self.object.status
+                == "completed"
+                and self.object.is_public
+                and has_packing_items
+            )
+        )
+
+
+        context[
+            "all_packing_items"
+        ] = (
+            all_packing_items
+        )
+
+        context[
+            "packing_items"
+        ] = (
+            packing_items
+        )
+
+        context[
+            "large_packing_items"
+        ] = (
+            large_packing_items
+        )
+
+        context[
+            "small_packing_items"
+        ] = (
+            small_packing_items
+        )
+
+        context[
+            "other_packing_items"
+        ] = (
+            other_packing_items
+        )
+
+        context[
+            "has_all_packing_items"
+        ] = (
+            has_all_packing_items
+        )
+
+        context[
+            "has_packing_items"
+        ] = (
+            has_packing_items
+        )
+
+        context[
+            "show_packing_tab"
+        ] = (
+            show_packing_tab
+        )
+
+
         # =====================================
         # 作成中では
         # Day実費を表示しない
@@ -420,6 +619,7 @@ class TripDetailView(
             self.object.status
             != "draft"
         )
+
 
         # =====================================
         # Trip全体費用
@@ -451,6 +651,7 @@ class TripDetailView(
                 "editing_expense_form"
             )
         )
+
 
         # =====================================
         # Trip全体費用1件ごとの
@@ -528,9 +729,11 @@ class TripDetailView(
                         )
                     )
 
+
         context[
             "trip_expenses"
         ] = trip_expenses
+
 
         # =====================================
         # 新規追加フォームを
@@ -542,6 +745,7 @@ class TripDetailView(
         ] = (
             self.can_add_trip_expense()
         )
+
 
         # =====================================
         # 既存HTMLとの互換用
@@ -562,6 +766,7 @@ class TripDetailView(
                 "trip_expense_form"
             ] = TripExpenseForm()
 
+
         # =====================================
         # 新規Trip全体費用用
         # 参考URL FormSet
@@ -579,6 +784,7 @@ class TripDetailView(
                 .get_new_trip_expense_reference_url_formset()
             )
 
+
         # =====================================
         # 旅を完了できるか
         # =====================================
@@ -591,6 +797,7 @@ class TripDetailView(
             and today
             >= self.object.end_date
         )
+
 
         # =====================================
         # ハッシュタグ
@@ -607,6 +814,7 @@ class TripDetailView(
             .all()
         )
 
+
         # =====================================
         # Trip参考URL
         # =====================================
@@ -620,6 +828,7 @@ class TripDetailView(
                 "url_order"
             )
         )
+
 
         # =====================================
         # Trip全体の訪問先
@@ -660,6 +869,7 @@ class TripDetailView(
         ] = (
             locations_by_country
         )
+
 
         # =====================================
         # Trip全体の訪問ルート
@@ -730,6 +940,7 @@ class TripDetailView(
             "trip_route"
         ] = trip_route
 
+
         # =====================================
         # Trip全体費用
         #
@@ -778,6 +989,7 @@ class TripDetailView(
                     True
                 )
 
+
         # =====================================
         # Dayごとの処理
         # =====================================
@@ -787,6 +999,7 @@ class TripDetailView(
             .days
             .all()
         )
+
 
         # =====================================
         # Day予定内訳
@@ -816,6 +1029,7 @@ class TripDetailView(
             False
         )
 
+
         # =====================================
         # Day実費内訳
         # =====================================
@@ -844,7 +1058,9 @@ class TripDetailView(
             False
         )
 
+
         for day in days:
+
 
             # =====================================
             # このDayの予定合計
@@ -855,6 +1071,7 @@ class TripDetailView(
             current_day_has_planned_cost = (
                 False
             )
+
 
             # =====================================
             # 自由費予算
@@ -881,6 +1098,7 @@ class TripDetailView(
                     True
                 )
 
+
             # =====================================
             # Day予定金額
             # =====================================
@@ -905,6 +1123,7 @@ class TripDetailView(
                 current_day_has_planned_cost = (
                     True
                 )
+
 
             # =====================================
             # Day費用明細
@@ -949,6 +1168,7 @@ class TripDetailView(
                 has_day_expense
             )
 
+
             # =====================================
             # 自由実費
             #
@@ -991,6 +1211,7 @@ class TripDetailView(
                     False
                 )
 
+
             # =====================================
             # Schedule
             # =====================================
@@ -1011,6 +1232,7 @@ class TripDetailView(
                 schedules_sorted
             )
 
+
             # =====================================
             # このDayのSchedule集計
             # =====================================
@@ -1018,6 +1240,7 @@ class TripDetailView(
             current_schedule_planned_total = 0
 
             current_schedule_actual_total = 0
+
 
             # =====================================
             # Day最低必要額の計算用
@@ -1035,9 +1258,11 @@ class TripDetailView(
                 False
             )
 
+
             for schedule in (
                 schedules_sorted
             ):
+
 
                 # =====================================
                 # Schedule予定金額
@@ -1068,6 +1293,7 @@ class TripDetailView(
                         True
                     )
 
+
                     # =================================
                     # 実際支払額が未入力の場合だけ
                     # Day最低必要額へ加える
@@ -1081,6 +1307,7 @@ class TripDetailView(
                         current_unpaid_schedule_total += (
                             schedule.planned_amount
                         )
+
 
                 # =====================================
                 # Schedule実際支払額
@@ -1107,6 +1334,7 @@ class TripDetailView(
                         True
                     )
 
+
             # =====================================
             # Schedule予定金額を
             # Day予定合計へ加える
@@ -1117,6 +1345,7 @@ class TripDetailView(
                 current_day_planned_total += (
                     current_schedule_planned_total
                 )
+
 
             # =====================================
             # Schedule予定合計
@@ -1134,6 +1363,7 @@ class TripDetailView(
                     None
                 )
 
+
             # =====================================
             # Schedule実際支払額合計
             # =====================================
@@ -1149,6 +1379,7 @@ class TripDetailView(
                 day.schedule_actual_total = (
                     None
                 )
+
 
             # =====================================
             # Day最低必要額
@@ -1169,6 +1400,7 @@ class TripDetailView(
                 or current_has_schedule_planned
             )
 
+
             # =====================================
             # 未払いDay予定金額
             # =====================================
@@ -1184,6 +1416,7 @@ class TripDetailView(
                     day.planned_amount
                 )
 
+
             # =====================================
             # 未払いSchedule予定金額
             # =====================================
@@ -1192,13 +1425,9 @@ class TripDetailView(
                 current_unpaid_schedule_total
             )
 
+
             # =====================================
             # Day最低必要額
-            #
-            # 予定金額が1件でもある場合
-            # 全て支払済みなら0円
-            #
-            # 予定金額自体がない場合はNone
             # =====================================
 
             if current_day_has_fixed_planned_cost:
@@ -1217,16 +1446,9 @@ class TripDetailView(
                 current_day_has_fixed_planned_cost
             )
 
+
             # =====================================
             # 当日予算目安
-            #
-            # =
-            # Day最低必要額
-            # +
-            # 自由費予算
-            #
-            # 自由費予算は
-            # Day最低必要額には含めない
             # =====================================
 
             if (
@@ -1261,6 +1483,7 @@ class TripDetailView(
                     False
                 )
 
+
             # =====================================
             # Day予定合計
             # =====================================
@@ -1293,6 +1516,7 @@ class TripDetailView(
                     False
                 )
 
+
             # =====================================
             # このDayの実際合計
             # =====================================
@@ -1302,6 +1526,7 @@ class TripDetailView(
             current_day_has_actual_cost = (
                 False
             )
+
 
             # =====================================
             # 自由実費
@@ -1324,6 +1549,7 @@ class TripDetailView(
                 current_day_has_actual_cost = (
                     True
                 )
+
 
             # =====================================
             # Day実際支払額
@@ -1350,6 +1576,7 @@ class TripDetailView(
                     True
                 )
 
+
             # =====================================
             # Schedule実際支払額
             # =====================================
@@ -1363,6 +1590,7 @@ class TripDetailView(
                 current_day_has_actual_cost = (
                     True
                 )
+
 
             # =====================================
             # Day実際合計
@@ -1395,6 +1623,7 @@ class TripDetailView(
                 day.has_actual_total = (
                     False
                 )
+
 
             # =====================================
             # Day訪問先
@@ -1446,6 +1675,7 @@ class TripDetailView(
                 day_locations
             )
 
+
             # =====================================
             # このDayの旅の記録を
             # 入力・編集できるか
@@ -1479,6 +1709,7 @@ class TripDetailView(
                     day.can_edit_record = (
                         True
                     )
+
 
             # =====================================
             # Schedule実際支払額入力フォーム
@@ -1534,9 +1765,11 @@ class TripDetailView(
                         }
                     )
 
+
         context[
             "days"
         ] = days
+
 
         # =====================================
         # Trip予定合計
@@ -1560,6 +1793,7 @@ class TripDetailView(
                 None
             )
 
+
         # =====================================
         # TripExpense予定合計
         # =====================================
@@ -1577,6 +1811,7 @@ class TripDetailView(
         ] = (
             has_trip_planned_cost
         )
+
 
         # =====================================
         # 自由費予算合計
@@ -1596,6 +1831,7 @@ class TripDetailView(
             has_day_budget
         )
 
+
         # =====================================
         # Day予定金額合計
         # =====================================
@@ -1613,6 +1849,7 @@ class TripDetailView(
         ] = (
             has_day_planned_amount
         )
+
 
         # =====================================
         # Schedule予定金額合計
@@ -1632,6 +1869,7 @@ class TripDetailView(
             has_schedule_planned_cost
         )
 
+
         # =====================================
         # 全Day予定合計
         # =====================================
@@ -1650,6 +1888,7 @@ class TripDetailView(
             has_day_planned_cost
         )
 
+
         # =====================================
         # Trip全体予定合計
         # =====================================
@@ -1663,6 +1902,7 @@ class TripDetailView(
         ] = (
             has_planned_cost
         )
+
 
         # =====================================
         # Trip実際支払額合計
@@ -1686,6 +1926,7 @@ class TripDetailView(
                 None
             )
 
+
         # =====================================
         # TripExpense実際支払額合計
         # =====================================
@@ -1703,6 +1944,7 @@ class TripDetailView(
         ] = (
             has_trip_actual_cost
         )
+
 
         # =====================================
         # 自由実費合計
@@ -1722,6 +1964,7 @@ class TripDetailView(
             has_day_free_actual
         )
 
+
         # =====================================
         # Day実際支払額合計
         # =====================================
@@ -1740,6 +1983,7 @@ class TripDetailView(
             has_day_actual_amount
         )
 
+
         # =====================================
         # Schedule実際支払額合計
         # =====================================
@@ -1757,6 +2001,7 @@ class TripDetailView(
         ] = (
             has_schedule_actual_cost
         )
+
 
         # =====================================
         # 全Day実際合計
@@ -1784,6 +2029,7 @@ class TripDetailView(
             else None
         )
 
+
         # =====================================
         # Trip全体の集計実費
         # =====================================
@@ -1799,6 +2045,7 @@ class TripDetailView(
         ] = (
             has_reference_actual_cost
         )
+
 
         # =====================================
         # Trip最終実費
@@ -1849,6 +2096,7 @@ class TripDetailView(
             has_final_actual_cost
         )
 
+
         # =====================================
         # 予定と実費の差額
         # =====================================
@@ -1879,15 +2127,9 @@ class TripDetailView(
                 "has_cost_difference"
             ] = False
 
+
         # =====================================
         # 今後最低必要額
-        #
-        # 自由費予算・自由実費は含めない
-        #
-        # =
-        # 未払いTrip全体費用
-        # +
-        # 各Day最低必要額
         # =====================================
 
         has_fixed_planned_cost = (
@@ -1895,6 +2137,7 @@ class TripDetailView(
             or has_day_planned_amount
             or has_schedule_planned_cost
         )
+
 
         # =====================================
         # 固定費予定合計
@@ -1913,6 +2156,7 @@ class TripDetailView(
             fixed_planned_total = (
                 None
             )
+
 
         # =====================================
         # 固定費実際支払額合計
@@ -1936,11 +2180,13 @@ class TripDetailView(
 
             fixed_actual_total = 0
 
+
         # =====================================
         # Trip全体の今後最低必要額
         # =====================================
 
         minimum_remaining_amount = 0
+
 
         # =====================================
         # 未払いTrip全体費用
@@ -1961,6 +2207,7 @@ class TripDetailView(
                     expense.planned_amount
                 )
 
+
         # =====================================
         # 各Day最低必要額
         # =====================================
@@ -1978,6 +2225,7 @@ class TripDetailView(
                     day.minimum_remaining_amount
                 )
 
+
         # =====================================
         # 固定費予定が全くない場合
         # =====================================
@@ -1987,6 +2235,7 @@ class TripDetailView(
             minimum_remaining_amount = (
                 None
             )
+
 
         # =====================================
         # 固定費予定合計
@@ -2004,6 +2253,7 @@ class TripDetailView(
             has_fixed_planned_cost
         )
 
+
         # =====================================
         # 固定費実際支払額合計
         # =====================================
@@ -2020,6 +2270,7 @@ class TripDetailView(
             has_fixed_actual_cost
         )
 
+
         # =====================================
         # 今後最低必要額
         # =====================================
@@ -2031,6 +2282,7 @@ class TripDetailView(
         )
 
         return context
+
 
     # =====================================
     # Trip詳細から
@@ -2081,6 +2333,7 @@ class TripDetailView(
                 )
             )
 
+
         if (
             action
             == "update_trip_expense"
@@ -2119,6 +2372,7 @@ class TripDetailView(
                     trip_expense,
                 )
             )
+
 
         if (
             action
@@ -2166,6 +2420,7 @@ class TripDetailView(
                 )
             )
 
+
         if (
             action
             == "delete_trip_expense"
@@ -2207,6 +2462,7 @@ class TripDetailView(
         return redirect(
             self.get_trip_expense_return_url()
         )
+
 
     # =====================================
     # Trip全体費用追加
@@ -2360,6 +2616,7 @@ class TripDetailView(
             )
         )
 
+
     # =====================================
     # Trip全体費用編集
     # =====================================
@@ -2496,6 +2753,7 @@ class TripDetailView(
                 context
             )
         )
+
 
     # =====================================
     # Trip全体費用並び替え
@@ -2754,6 +3012,7 @@ class TripDetailView(
                 ),
             )
         )
+
 
     # =====================================
     # Trip全体費用削除

@@ -60,7 +60,7 @@
 
         /* ======================================== */
         /* 旅行ルートの1地点 */
-        /* #}
+        /* */
         /* 例 */
         /* 東京（9/17）→ */
         /* */
@@ -205,10 +205,12 @@
 {# ======================================== #}
 {# Trip内容 #}
 {# #}
-{# 全体費用 + Day #}
+{# 全体費用 #}
+{# 持ち物リスト #}
+{# Day #}
 {# ======================================== #}
 
-{% if days or trip.user == request.user or trip_expenses %}
+{% if days or trip.user == request.user or trip_expenses or show_packing_tab %}
 
     <div
         id="trip-content-tabs"
@@ -232,8 +234,8 @@
                 type="button"
                 id="trip-tabs-scroll-left"
                 class="btn btn-outline-secondary trip-content-tabs-scroll-button"
-                aria-label="前のDayを表示"
-                title="前のDayを表示"
+                aria-label="前の項目を表示"
+                title="前の項目を表示"
                 disabled
             >
                 &lsaquo;
@@ -278,6 +280,45 @@
 
                         <span class="trip-content-tab-expense-label">
                             全体費用
+                        </span>
+
+                    </button>
+
+                {% endif %}
+
+
+
+                {# ======================================== #}
+                {# 持ち物リストタブ #}
+                {# #}
+                {# 所有者 #}
+                {# → 0件でも表示 #}
+                {# #}
+                {# 他ユーザー #}
+                {# → 公開Tripで持ち物がある場合のみ #}
+                {# ======================================== #}
+
+                {% if show_packing_tab %}
+
+                    <button
+                        type="button"
+                        id="trip-packing-tab"
+                        class="
+                            trip-content-tab-button
+                            trip-expense-tab
+                            trip-packing-tab
+                            {% if not days and trip.user != request.user and not trip_expenses %}active{% endif %}
+                        "
+                        data-trip-content-tab
+                        data-target="trip-packing-panel"
+                        role="tab"
+                        aria-controls="trip-packing-panel"
+                        aria-selected="{% if not days and trip.user != request.user and not trip_expenses %}true{% else %}false{% endif %}"
+                        tabindex="{% if not days and trip.user != request.user and not trip_expenses %}0{% else %}-1{% endif %}"
+                    >
+
+                        <span class="trip-content-tab-expense-label">
+                            持ち物リスト
                         </span>
 
                     </button>
@@ -354,8 +395,8 @@
                 type="button"
                 id="trip-tabs-scroll-right"
                 class="btn btn-outline-secondary trip-content-tabs-scroll-button"
-                aria-label="次のDayを表示"
-                title="次のDayを表示"
+                aria-label="次の項目を表示"
+                title="次の項目を表示"
             >
                 &rsaquo;
             </button>
@@ -390,6 +431,29 @@
             >
 
                 {% include "pages/trip/includes/trip_expenses.html" %}
+
+            </section>
+
+        {% endif %}
+
+
+
+        {# ======================================== #}
+        {# 持ち物リスト #}
+        {# ======================================== #}
+
+        {% if show_packing_tab %}
+
+            <section
+                id="trip-packing-panel"
+                class="trip-content-panel"
+                data-trip-content-panel
+                role="tabpanel"
+                aria-labelledby="trip-packing-tab"
+                {% if days or trip.user == request.user or trip_expenses %}hidden{% endif %}
+            >
+
+                {% include "pages/trip/includes/trip_packing_list.html" %}
 
             </section>
 

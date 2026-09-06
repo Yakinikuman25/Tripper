@@ -7,3 +7,4 @@ from .home import *
 from .schedule import *
 from .trip import *
 from .save import *
+from .packing import *

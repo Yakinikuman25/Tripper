@@ -1,0 +1,1643 @@
+{# ======================================== #}
+{# 持ち物リスト #}
+{# ======================================== #}
+
+<div
+    id="trip-packing-list"
+    class="mb-4"
+>
+
+    <div
+        class="
+            d-flex
+            flex-wrap
+            align-items-center
+            justify-content-between
+            gap-2
+            mb-3
+        "
+    >
+
+        <div>
+
+            <h3 class="mb-1">
+                持ち物リスト
+            </h3>
+
+
+            {% if trip.user == request.user %}
+
+                {% if trip.status == "completed" and not edit_mode %}
+
+                    <p class="text-muted small mb-0">
+                        この旅で準備済みとして記録した持ち物です。
+                    </p>
+
+                {% else %}
+
+                    <p class="text-muted small mb-0">
+                        準備できた持ち物にチェックを付けてください。
+                    </p>
+
+                {% endif %}
+
+            {% else %}
+
+                <p class="text-muted small mb-0">
+                    このTripの持ち物です。
+                </p>
+
+            {% endif %}
+
+        </div>
+
+    </div>
+
+
+
+    {# ======================================== #}
+    {# 旅中・旅完了の通常表示時 #}
+    {# ======================================== #}
+
+    {% if trip.user == request.user %}
+
+        {% if trip.status == "traveling" and not edit_mode %}
+
+            <div class="alert alert-light border small py-2 mb-3">
+
+                持ち物の追加・編集・削除は
+                「Trip全体を編集」から行えます。
+
+                <br>
+
+                準備済みチェックは旅中でも変更できます。
+
+            </div>
+
+        {% elif trip.status == "completed" and not edit_mode %}
+
+            <div class="alert alert-light border small py-2 mb-3">
+
+                旅完了後は、
+                準備済みとしてチェックされた持ち物だけを表示しています。
+
+                <br>
+
+                持ち物の追加・編集・削除やチェック状態の変更は
+                「Trip全体を編集」から行えます。
+
+            </div>
+
+        {% endif %}
+
+    {% endif %}
+
+
+
+    {# ======================================== #}
+    {# 大きなバッグ #}
+    {# #}
+    {# completed通常表示 #}
+    {# → チェック済みがある場合のみ表示 #}
+    {# #}
+    {# それ以外 #}
+    {# → 所有者なら0件でも表示 #}
+    {# ======================================== #}
+
+    {% if large_packing_items or trip.status != "completed" or edit_mode %}
+
+        <div class="border rounded mb-3">
+
+
+            {# ======================================== #}
+            {# グループ見出し #}
+            {# ======================================== #}
+
+            <button
+                type="button"
+                class="
+                    btn
+                    w-100
+                    text-start
+                    d-flex
+                    justify-content-between
+                    align-items-center
+                    gap-3
+                    p-3
+                    border-0
+                "
+                data-bs-toggle="collapse"
+                data-bs-target="#packing-large-{{ trip.trip_id }}"
+                aria-expanded="true"
+                aria-controls="packing-large-{{ trip.trip_id }}"
+            >
+
+                <span class="fw-semibold">
+                    大きなバッグ
+                </span>
+
+                <span class="text-muted small">
+                    {{ large_packing_items|length }}件
+                </span>
+
+            </button>
+
+
+
+            {# ======================================== #}
+            {# 大きなバッグ内容 #}
+            {# ======================================== #}
+
+            <div
+                id="packing-large-{{ trip.trip_id }}"
+                class="collapse show"
+            >
+
+                <div class="border-top p-3">
+
+
+                    {# ======================================== #}
+                    {# 登録済み持ち物 #}
+                    {# ======================================== #}
+
+                    {% for item in large_packing_items %}
+
+                        <div
+                            id="packing-item-{{ item.packing_item_id }}"
+                            class="
+                                py-2
+                                {% if not forloop.last %}border-bottom{% endif %}
+                            "
+                        >
+
+                            <div
+                                class="
+                                    d-flex
+                                    align-items-center
+                                    justify-content-between
+                                    gap-3
+                                "
+                            >
+
+                                <div
+                                    class="
+                                        d-flex
+                                        align-items-center
+                                        gap-2
+                                        flex-grow-1
+                                    "
+                                    style="min-width: 0;"
+                                >
+
+
+                                    {# ======================================== #}
+                                    {# 所有者 #}
+                                    {# ======================================== #}
+
+                                    {% if trip.user == request.user %}
+
+
+                                        {# ==================================== #}
+                                        {# 旅完了・通常表示 #}
+                                        {# #}
+                                        {# View側ですでに #}
+                                        {# チェック済みだけに絞っている #}
+                                        {# ==================================== #}
+
+                                        {% if trip.status == "completed" and not edit_mode %}
+
+                                            <span
+                                                class="
+                                                    text-success
+                                                    fw-semibold
+                                                    flex-shrink-0
+                                                "
+                                                aria-hidden="true"
+                                            >
+                                                ✓
+                                            </span>
+
+
+                                        {# ==================================== #}
+                                        {# それ以外 #}
+                                        {# → チェック変更可能 #}
+                                        {# ==================================== #}
+
+                                        {% else %}
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'packing_item_toggle' item.packing_item_id %}"
+                                                class="m-0 flex-shrink-0"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                {% if edit_mode %}
+
+                                                    <input
+                                                        type="hidden"
+                                                        name="edit_mode"
+                                                        value="1"
+                                                    >
+
+                                                {% endif %}
+
+
+                                                <input
+                                                    type="checkbox"
+                                                    class="form-check-input"
+                                                    aria-label="{{ item.name }}を準備済みにする"
+                                                    {% if item.is_packed %}checked{% endif %}
+                                                    onchange="this.form.submit();"
+                                                >
+
+                                            </form>
+
+                                        {% endif %}
+
+
+                                    {# ======================================== #}
+                                    {# 他ユーザー：閲覧のみ #}
+                                    {# ======================================== #}
+
+                                    {% else %}
+
+                                        <span
+                                            class="text-muted flex-shrink-0"
+                                            aria-hidden="true"
+                                        >
+                                            ・
+                                        </span>
+
+                                    {% endif %}
+
+
+
+                                    {# ======================================== #}
+                                    {# 持ち物名 #}
+                                    {# ======================================== #}
+
+                                    <span
+                                        class="text-break"
+                                        style="min-width: 0;"
+                                    >
+                                        {{ item.name }}
+                                    </span>
+
+
+
+                                    {# ======================================== #}
+                                    {# 個数 #}
+                                    {# ======================================== #}
+
+                                    {% if item.quantity != None %}
+
+                                        <span
+                                            class="
+                                                badge
+                                                bg-light
+                                                text-dark
+                                                border
+                                                flex-shrink-0
+                                            "
+                                        >
+                                            {{ item.quantity }}個
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+
+
+                                {# ======================================== #}
+                                {# 編集ボタン #}
+                                {# #}
+                                {# draft / planned #}
+                                {# → 通常時から表示 #}
+                                {# #}
+                                {# traveling / completed #}
+                                {# → Trip全体編集時のみ #}
+                                {# ======================================== #}
+
+                                {% if trip.user == request.user %}
+
+                                    {% if trip.status == "draft" or trip.status == "planned" or edit_mode %}
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm flex-shrink-0"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#packing-edit-{{ item.packing_item_id }}"
+                                            aria-expanded="false"
+                                            aria-controls="packing-edit-{{ item.packing_item_id }}"
+                                        >
+                                            編集
+                                        </button>
+
+                                    {% endif %}
+
+                                {% endif %}
+
+                            </div>
+
+
+
+                            {# ======================================== #}
+                            {# 編集フォーム #}
+                            {# ======================================== #}
+
+                            {% if trip.user == request.user %}
+
+                                {% if trip.status == "draft" or trip.status == "planned" or edit_mode %}
+
+                                    <div
+                                        id="packing-edit-{{ item.packing_item_id }}"
+                                        class="collapse mt-3"
+                                    >
+
+                                        <div class="border rounded bg-light p-3">
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'packing_item_edit' item.packing_item_id %}"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                {% if edit_mode %}
+
+                                                    <input
+                                                        type="hidden"
+                                                        name="edit_mode"
+                                                        value="1"
+                                                    >
+
+                                                {% endif %}
+
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        入れる場所
+                                                    </label>
+
+
+                                                    <select
+                                                        name="bag_type"
+                                                        class="form-select"
+                                                        required
+                                                    >
+
+                                                        <option
+                                                            value="large"
+                                                            {% if item.bag_type == "large" %}selected{% endif %}
+                                                        >
+                                                            大きなバッグ
+                                                        </option>
+
+                                                        <option
+                                                            value="small"
+                                                            {% if item.bag_type == "small" %}selected{% endif %}
+                                                        >
+                                                            小さなバッグ
+                                                        </option>
+
+                                                        <option
+                                                            value="other"
+                                                            {% if item.bag_type == "other" %}selected{% endif %}
+                                                        >
+                                                            その他
+                                                        </option>
+
+                                                    </select>
+
+                                                </div>
+
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        持ち物
+                                                    </label>
+
+
+                                                    <input
+                                                        type="text"
+                                                        name="name"
+                                                        value="{{ item.name }}"
+                                                        class="form-control"
+                                                        maxlength="100"
+                                                        required
+                                                    >
+
+                                                </div>
+
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        個数
+                                                    </label>
+
+
+                                                    <input
+                                                        type="number"
+                                                        name="quantity"
+                                                        value="{{ item.quantity|default_if_none:'' }}"
+                                                        class="form-control"
+                                                        min="1"
+                                                        placeholder="必要な場合のみ"
+                                                    >
+
+                                                </div>
+
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-primary btn-sm"
+                                                >
+                                                    保存
+                                                </button>
+
+                                            </form>
+
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'packing_item_delete' item.packing_item_id %}"
+                                                class="mt-2"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                {% if edit_mode %}
+
+                                                    <input
+                                                        type="hidden"
+                                                        name="edit_mode"
+                                                        value="1"
+                                                    >
+
+                                                {% endif %}
+
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-outline-danger btn-sm"
+                                                    onclick="return confirm('この持ち物を削除しますか？');"
+                                                >
+                                                    削除
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endif %}
+
+                        </div>
+
+
+                    {% empty %}
+
+                        {% if trip.user == request.user %}
+
+                            <p class="text-muted small mb-3">
+                                大きなバッグの持ち物はまだありません。
+                            </p>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+
+                    {# ======================================== #}
+                    {# 持ち物追加 #}
+                    {# ======================================== #}
+
+                    {% if trip.user == request.user %}
+
+                        {% if trip.status == "draft" or trip.status == "planned" or edit_mode %}
+
+                            <div class="mt-3">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-primary btn-sm"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#packing-add-large-{{ trip.trip_id }}"
+                                    aria-expanded="false"
+                                    aria-controls="packing-add-large-{{ trip.trip_id }}"
+                                >
+                                    ＋ 持ち物を追加
+                                </button>
+
+
+                                <div
+                                    id="packing-add-large-{{ trip.trip_id }}"
+                                    class="collapse mt-3"
+                                >
+
+                                    <div class="border rounded bg-light p-3">
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'packing_item_create' trip.trip_id %}"
+                                        >
+
+                                            {% csrf_token %}
+
+
+                                            <input
+                                                type="hidden"
+                                                name="bag_type"
+                                                value="large"
+                                            >
+
+
+                                            {% if edit_mode %}
+
+                                                <input
+                                                    type="hidden"
+                                                    name="edit_mode"
+                                                    value="1"
+                                                >
+
+                                            {% endif %}
+
+
+                                            <div class="mb-3">
+
+                                                <label class="form-label">
+                                                    持ち物
+                                                </label>
+
+
+                                                <input
+                                                    type="text"
+                                                    name="name"
+                                                    class="form-control"
+                                                    maxlength="100"
+                                                    placeholder="例：アウター"
+                                                    required
+                                                >
+
+                                            </div>
+
+
+                                            <div class="mb-3">
+
+                                                <label class="form-label">
+                                                    個数
+                                                </label>
+
+
+                                                <input
+                                                    type="number"
+                                                    name="quantity"
+                                                    class="form-control"
+                                                    min="1"
+                                                    placeholder="必要な場合のみ"
+                                                >
+
+                                            </div>
+
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-primary btn-sm"
+                                            >
+                                                登録
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+
+    {# ======================================== #}
+    {# 小さなバッグ #}
+    {# ======================================== #}
+
+    {% if small_packing_items or trip.status != "completed" or edit_mode %}
+
+        <div class="border rounded mb-3">
+
+
+            <button
+                type="button"
+                class="
+                    btn
+                    w-100
+                    text-start
+                    d-flex
+                    justify-content-between
+                    align-items-center
+                    gap-3
+                    p-3
+                    border-0
+                "
+                data-bs-toggle="collapse"
+                data-bs-target="#packing-small-{{ trip.trip_id }}"
+                aria-expanded="true"
+                aria-controls="packing-small-{{ trip.trip_id }}"
+            >
+
+                <span class="fw-semibold">
+                    小さなバッグ
+                </span>
+
+                <span class="text-muted small">
+                    {{ small_packing_items|length }}件
+                </span>
+
+            </button>
+
+
+
+            <div
+                id="packing-small-{{ trip.trip_id }}"
+                class="collapse show"
+            >
+
+                <div class="border-top p-3">
+
+
+                    {% for item in small_packing_items %}
+
+                        <div
+                            id="packing-item-{{ item.packing_item_id }}"
+                            class="
+                                py-2
+                                {% if not forloop.last %}border-bottom{% endif %}
+                            "
+                        >
+
+                            <div
+                                class="
+                                    d-flex
+                                    align-items-center
+                                    justify-content-between
+                                    gap-3
+                                "
+                            >
+
+                                <div
+                                    class="
+                                        d-flex
+                                        align-items-center
+                                        gap-2
+                                        flex-grow-1
+                                    "
+                                    style="min-width: 0;"
+                                >
+
+
+                                    {% if trip.user == request.user %}
+
+                                        {% if trip.status == "completed" and not edit_mode %}
+
+                                            <span
+                                                class="
+                                                    text-success
+                                                    fw-semibold
+                                                    flex-shrink-0
+                                                "
+                                                aria-hidden="true"
+                                            >
+                                                ✓
+                                            </span>
+
+                                        {% else %}
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'packing_item_toggle' item.packing_item_id %}"
+                                                class="m-0 flex-shrink-0"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                {% if edit_mode %}
+
+                                                    <input
+                                                        type="hidden"
+                                                        name="edit_mode"
+                                                        value="1"
+                                                    >
+
+                                                {% endif %}
+
+
+                                                <input
+                                                    type="checkbox"
+                                                    class="form-check-input"
+                                                    aria-label="{{ item.name }}を準備済みにする"
+                                                    {% if item.is_packed %}checked{% endif %}
+                                                    onchange="this.form.submit();"
+                                                >
+
+                                            </form>
+
+                                        {% endif %}
+
+                                    {% else %}
+
+                                        <span
+                                            class="text-muted flex-shrink-0"
+                                            aria-hidden="true"
+                                        >
+                                            ・
+                                        </span>
+
+                                    {% endif %}
+
+
+
+                                    <span
+                                        class="text-break"
+                                        style="min-width: 0;"
+                                    >
+                                        {{ item.name }}
+                                    </span>
+
+
+                                    {% if item.quantity != None %}
+
+                                        <span
+                                            class="
+                                                badge
+                                                bg-light
+                                                text-dark
+                                                border
+                                                flex-shrink-0
+                                            "
+                                        >
+                                            {{ item.quantity }}個
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+
+
+                                {% if trip.user == request.user %}
+
+                                    {% if trip.status == "draft" or trip.status == "planned" or edit_mode %}
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm flex-shrink-0"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#packing-edit-{{ item.packing_item_id }}"
+                                            aria-expanded="false"
+                                            aria-controls="packing-edit-{{ item.packing_item_id }}"
+                                        >
+                                            編集
+                                        </button>
+
+                                    {% endif %}
+
+                                {% endif %}
+
+                            </div>
+
+
+
+                            {% if trip.user == request.user %}
+
+                                {% if trip.status == "draft" or trip.status == "planned" or edit_mode %}
+
+                                    <div
+                                        id="packing-edit-{{ item.packing_item_id }}"
+                                        class="collapse mt-3"
+                                    >
+
+                                        <div class="border rounded bg-light p-3">
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'packing_item_edit' item.packing_item_id %}"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                {% if edit_mode %}
+
+                                                    <input
+                                                        type="hidden"
+                                                        name="edit_mode"
+                                                        value="1"
+                                                    >
+
+                                                {% endif %}
+
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        入れる場所
+                                                    </label>
+
+
+                                                    <select
+                                                        name="bag_type"
+                                                        class="form-select"
+                                                        required
+                                                    >
+
+                                                        <option
+                                                            value="large"
+                                                            {% if item.bag_type == "large" %}selected{% endif %}
+                                                        >
+                                                            大きなバッグ
+                                                        </option>
+
+                                                        <option
+                                                            value="small"
+                                                            {% if item.bag_type == "small" %}selected{% endif %}
+                                                        >
+                                                            小さなバッグ
+                                                        </option>
+
+                                                        <option
+                                                            value="other"
+                                                            {% if item.bag_type == "other" %}selected{% endif %}
+                                                        >
+                                                            その他
+                                                        </option>
+
+                                                    </select>
+
+                                                </div>
+
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        持ち物
+                                                    </label>
+
+
+                                                    <input
+                                                        type="text"
+                                                        name="name"
+                                                        value="{{ item.name }}"
+                                                        class="form-control"
+                                                        maxlength="100"
+                                                        required
+                                                    >
+
+                                                </div>
+
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        個数
+                                                    </label>
+
+
+                                                    <input
+                                                        type="number"
+                                                        name="quantity"
+                                                        value="{{ item.quantity|default_if_none:'' }}"
+                                                        class="form-control"
+                                                        min="1"
+                                                        placeholder="必要な場合のみ"
+                                                    >
+
+                                                </div>
+
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-primary btn-sm"
+                                                >
+                                                    保存
+                                                </button>
+
+                                            </form>
+
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'packing_item_delete' item.packing_item_id %}"
+                                                class="mt-2"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                {% if edit_mode %}
+
+                                                    <input
+                                                        type="hidden"
+                                                        name="edit_mode"
+                                                        value="1"
+                                                    >
+
+                                                {% endif %}
+
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-outline-danger btn-sm"
+                                                    onclick="return confirm('この持ち物を削除しますか？');"
+                                                >
+                                                    削除
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endif %}
+
+                        </div>
+
+
+                    {% empty %}
+
+                        {% if trip.user == request.user %}
+
+                            <p class="text-muted small mb-3">
+                                小さなバッグの持ち物はまだありません。
+                            </p>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+
+                    {# ======================================== #}
+                    {# 持ち物追加 #}
+                    {# ======================================== #}
+
+                    {% if trip.user == request.user %}
+
+                        {% if trip.status == "draft" or trip.status == "planned" or edit_mode %}
+
+                            <div class="mt-3">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-primary btn-sm"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#packing-add-small-{{ trip.trip_id }}"
+                                    aria-expanded="false"
+                                    aria-controls="packing-add-small-{{ trip.trip_id }}"
+                                >
+                                    ＋ 持ち物を追加
+                                </button>
+
+
+                                <div
+                                    id="packing-add-small-{{ trip.trip_id }}"
+                                    class="collapse mt-3"
+                                >
+
+                                    <div class="border rounded bg-light p-3">
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'packing_item_create' trip.trip_id %}"
+                                        >
+
+                                            {% csrf_token %}
+
+
+                                            <input
+                                                type="hidden"
+                                                name="bag_type"
+                                                value="small"
+                                            >
+
+
+                                            {% if edit_mode %}
+
+                                                <input
+                                                    type="hidden"
+                                                    name="edit_mode"
+                                                    value="1"
+                                                >
+
+                                            {% endif %}
+
+
+                                            <div class="mb-3">
+
+                                                <label class="form-label">
+                                                    持ち物
+                                                </label>
+
+
+                                                <input
+                                                    type="text"
+                                                    name="name"
+                                                    class="form-control"
+                                                    maxlength="100"
+                                                    placeholder="例：パスポート"
+                                                    required
+                                                >
+
+                                            </div>
+
+
+                                            <div class="mb-3">
+
+                                                <label class="form-label">
+                                                    個数
+                                                </label>
+
+
+                                                <input
+                                                    type="number"
+                                                    name="quantity"
+                                                    class="form-control"
+                                                    min="1"
+                                                    placeholder="必要な場合のみ"
+                                                >
+
+                                            </div>
+
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-primary btn-sm"
+                                            >
+                                                登録
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+
+    {# ======================================== #}
+    {# その他 #}
+    {# ======================================== #}
+
+    {% if other_packing_items or trip.status != "completed" or edit_mode %}
+
+        <div class="border rounded mb-3">
+
+
+            <button
+                type="button"
+                class="
+                    btn
+                    w-100
+                    text-start
+                    d-flex
+                    justify-content-between
+                    align-items-center
+                    gap-3
+                    p-3
+                    border-0
+                "
+                data-bs-toggle="collapse"
+                data-bs-target="#packing-other-{{ trip.trip_id }}"
+                aria-expanded="true"
+                aria-controls="packing-other-{{ trip.trip_id }}"
+            >
+
+                <span class="fw-semibold">
+                    その他
+                </span>
+
+                <span class="text-muted small">
+                    {{ other_packing_items|length }}件
+                </span>
+
+            </button>
+
+
+
+            <div
+                id="packing-other-{{ trip.trip_id }}"
+                class="collapse show"
+            >
+
+                <div class="border-top p-3">
+
+
+                    {% for item in other_packing_items %}
+
+                        <div
+                            id="packing-item-{{ item.packing_item_id }}"
+                            class="
+                                py-2
+                                {% if not forloop.last %}border-bottom{% endif %}
+                            "
+                        >
+
+                            <div
+                                class="
+                                    d-flex
+                                    align-items-center
+                                    justify-content-between
+                                    gap-3
+                                "
+                            >
+
+                                <div
+                                    class="
+                                        d-flex
+                                        align-items-center
+                                        gap-2
+                                        flex-grow-1
+                                    "
+                                    style="min-width: 0;"
+                                >
+
+
+                                    {% if trip.user == request.user %}
+
+                                        {% if trip.status == "completed" and not edit_mode %}
+
+                                            <span
+                                                class="
+                                                    text-success
+                                                    fw-semibold
+                                                    flex-shrink-0
+                                                "
+                                                aria-hidden="true"
+                                            >
+                                                ✓
+                                            </span>
+
+                                        {% else %}
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'packing_item_toggle' item.packing_item_id %}"
+                                                class="m-0 flex-shrink-0"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                {% if edit_mode %}
+
+                                                    <input
+                                                        type="hidden"
+                                                        name="edit_mode"
+                                                        value="1"
+                                                    >
+
+                                                {% endif %}
+
+
+                                                <input
+                                                    type="checkbox"
+                                                    class="form-check-input"
+                                                    aria-label="{{ item.name }}を準備済みにする"
+                                                    {% if item.is_packed %}checked{% endif %}
+                                                    onchange="this.form.submit();"
+                                                >
+
+                                            </form>
+
+                                        {% endif %}
+
+                                    {% else %}
+
+                                        <span
+                                            class="text-muted flex-shrink-0"
+                                            aria-hidden="true"
+                                        >
+                                            ・
+                                        </span>
+
+                                    {% endif %}
+
+
+
+                                    <span
+                                        class="text-break"
+                                        style="min-width: 0;"
+                                    >
+                                        {{ item.name }}
+                                    </span>
+
+
+                                    {% if item.quantity != None %}
+
+                                        <span
+                                            class="
+                                                badge
+                                                bg-light
+                                                text-dark
+                                                border
+                                                flex-shrink-0
+                                            "
+                                        >
+                                            {{ item.quantity }}個
+                                        </span>
+
+                                    {% endif %}
+
+                                </div>
+
+
+
+                                {% if trip.user == request.user %}
+
+                                    {% if trip.status == "draft" or trip.status == "planned" or edit_mode %}
+
+                                        <button
+                                            type="button"
+                                            class="btn btn-outline-secondary btn-sm flex-shrink-0"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#packing-edit-{{ item.packing_item_id }}"
+                                            aria-expanded="false"
+                                            aria-controls="packing-edit-{{ item.packing_item_id }}"
+                                        >
+                                            編集
+                                        </button>
+
+                                    {% endif %}
+
+                                {% endif %}
+
+                            </div>
+
+
+
+                            {% if trip.user == request.user %}
+
+                                {% if trip.status == "draft" or trip.status == "planned" or edit_mode %}
+
+                                    <div
+                                        id="packing-edit-{{ item.packing_item_id }}"
+                                        class="collapse mt-3"
+                                    >
+
+                                        <div class="border rounded bg-light p-3">
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'packing_item_edit' item.packing_item_id %}"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                {% if edit_mode %}
+
+                                                    <input
+                                                        type="hidden"
+                                                        name="edit_mode"
+                                                        value="1"
+                                                    >
+
+                                                {% endif %}
+
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        入れる場所
+                                                    </label>
+
+
+                                                    <select
+                                                        name="bag_type"
+                                                        class="form-select"
+                                                        required
+                                                    >
+
+                                                        <option
+                                                            value="large"
+                                                            {% if item.bag_type == "large" %}selected{% endif %}
+                                                        >
+                                                            大きなバッグ
+                                                        </option>
+
+                                                        <option
+                                                            value="small"
+                                                            {% if item.bag_type == "small" %}selected{% endif %}
+                                                        >
+                                                            小さなバッグ
+                                                        </option>
+
+                                                        <option
+                                                            value="other"
+                                                            {% if item.bag_type == "other" %}selected{% endif %}
+                                                        >
+                                                            その他
+                                                        </option>
+
+                                                    </select>
+
+                                                </div>
+
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        持ち物
+                                                    </label>
+
+
+                                                    <input
+                                                        type="text"
+                                                        name="name"
+                                                        value="{{ item.name }}"
+                                                        class="form-control"
+                                                        maxlength="100"
+                                                        required
+                                                    >
+
+                                                </div>
+
+
+                                                <div class="mb-3">
+
+                                                    <label class="form-label">
+                                                        個数
+                                                    </label>
+
+
+                                                    <input
+                                                        type="number"
+                                                        name="quantity"
+                                                        value="{{ item.quantity|default_if_none:'' }}"
+                                                        class="form-control"
+                                                        min="1"
+                                                        placeholder="必要な場合のみ"
+                                                    >
+
+                                                </div>
+
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-primary btn-sm"
+                                                >
+                                                    保存
+                                                </button>
+
+                                            </form>
+
+
+                                            <form
+                                                method="post"
+                                                action="{% url 'packing_item_delete' item.packing_item_id %}"
+                                                class="mt-2"
+                                            >
+
+                                                {% csrf_token %}
+
+
+                                                {% if edit_mode %}
+
+                                                    <input
+                                                        type="hidden"
+                                                        name="edit_mode"
+                                                        value="1"
+                                                    >
+
+                                                {% endif %}
+
+
+                                                <button
+                                                    type="submit"
+                                                    class="btn btn-outline-danger btn-sm"
+                                                    onclick="return confirm('この持ち物を削除しますか？');"
+                                                >
+                                                    削除
+                                                </button>
+
+                                            </form>
+
+                                        </div>
+
+                                    </div>
+
+                                {% endif %}
+
+                            {% endif %}
+
+                        </div>
+
+
+                    {% empty %}
+
+                        {% if trip.user == request.user %}
+
+                            <p class="text-muted small mb-3">
+                                その他の持ち物はまだありません。
+                            </p>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+
+
+                    {# ======================================== #}
+                    {# 持ち物追加 #}
+                    {# ======================================== #}
+
+                    {% if trip.user == request.user %}
+
+                        {% if trip.status == "draft" or trip.status == "planned" or edit_mode %}
+
+                            <div class="mt-3">
+
+                                <button
+                                    type="button"
+                                    class="btn btn-primary btn-sm"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#packing-add-other-{{ trip.trip_id }}"
+                                    aria-expanded="false"
+                                    aria-controls="packing-add-other-{{ trip.trip_id }}"
+                                >
+                                    ＋ 持ち物を追加
+                                </button>
+
+
+                                <div
+                                    id="packing-add-other-{{ trip.trip_id }}"
+                                    class="collapse mt-3"
+                                >
+
+                                    <div class="border rounded bg-light p-3">
+
+                                        <form
+                                            method="post"
+                                            action="{% url 'packing_item_create' trip.trip_id %}"
+                                        >
+
+                                            {% csrf_token %}
+
+
+                                            <input
+                                                type="hidden"
+                                                name="bag_type"
+                                                value="other"
+                                            >
+
+
+                                            {% if edit_mode %}
+
+                                                <input
+                                                    type="hidden"
+                                                    name="edit_mode"
+                                                    value="1"
+                                                >
+
+                                            {% endif %}
+
+
+                                            <div class="mb-3">
+
+                                                <label class="form-label">
+                                                    持ち物
+                                                </label>
+
+
+                                                <input
+                                                    type="text"
+                                                    name="name"
+                                                    class="form-control"
+                                                    maxlength="100"
+                                                    placeholder="例：南京錠"
+                                                    required
+                                                >
+
+                                            </div>
+
+
+                                            <div class="mb-3">
+
+                                                <label class="form-label">
+                                                    個数
+                                                </label>
+
+
+                                                <input
+                                                    type="number"
+                                                    name="quantity"
+                                                    class="form-control"
+                                                    min="1"
+                                                    placeholder="必要な場合のみ"
+                                                >
+
+                                            </div>
+
+
+                                            <button
+                                                type="submit"
+                                                class="btn btn-primary btn-sm"
+                                            >
+                                                登録
+                                            </button>
+
+                                        </form>
+
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endif %}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    {% endif %}
+
+
+
+    {# ======================================== #}
+    {# 持ち物が0件の場合 #}
+    {# ======================================== #}
+
+    {% if trip.user == request.user %}
+
+        {% if not has_packing_items %}
+
+            <p class="text-muted small mt-3 mb-0">
+
+                {% if trip.status == "completed" and not edit_mode %}
+
+                    準備済みとして記録された持ち物はありません。
+
+                {% elif trip.status == "traveling" and not edit_mode %}
+
+                    持ち物はまだ登録されていません。
+
+                {% else %}
+
+                    持ち物を追加して旅行の準備リストを作成できます。
+
+                {% endif %}
+
+            </p>
+
+        {% endif %}
+
+    {% endif %}
+
+</div>
